@@ -95,11 +95,18 @@ class	View {
 			});
 			console.log( 'parsed' );
 			const	gridhelper = new THREE.GridHelper();
-			const	moutainMat = new THREE.MeshBasicMaterial({ color: 'yellow', side: 2, wireframe: false });
-			const	moutainMeshuggah = new THREE.Mesh( geometry, moutainMat );
-			moutainMeshuggah.position.y = 0
-			moutainMeshuggah.rotation.x = Math.PI / 2;
-			this.scene.add( moutainMeshuggah,  gridhelper );
+
+			const	texture = new THREE.TextureLoader().load( '../data/agri-small-autumn.jpg' );
+			const	material = new THREE.MeshLambertMaterial({
+				wireframe: false,
+				side: 2,
+				map: texture
+			});
+
+			const	moutainMesh = new THREE.Mesh( geometry, material );
+			moutainMesh.position.y = 0
+			moutainMesh.rotation.x = Math.PI / 2;
+			this.scene.add( moutainMesh, gridhelper );
 		};
 		readTiff();
 	};
@@ -125,4 +132,4 @@ class	View {
 	}
 };
 
-export default	View;
+export default	( View );
