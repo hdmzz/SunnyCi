@@ -9,8 +9,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@mapbox/tile-cover": "^3.0.2",
+    "@types/mapbox__tile-cover": "^3.0.4",
     "@types/proj4": "^2.5.5",
+    "@types/turf": "^3.5.32",
     "proj4": "^2.12.1",
+    "turf": "^3.0.14",
     "typescript": "^5.5.3",
     "vite": "^5.4.1"
   },
