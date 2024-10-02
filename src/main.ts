@@ -3,11 +3,14 @@ import View from "./View";
 
 const	viewerDiv = document.getElementById( 'viewerDiv' ) as HTMLDivElement;
 
-//const	view = new View( window.innerWidth, window.innerHeight, viewerDiv );
+const	view = new View( window.innerWidth, window.innerHeight, viewerDiv, true );
 
-const	ed = (await fetch( "../data/building2.geojson" ).then( res => res.json() ));
+const	ed = (await fetch( "../data/onlyOneBuilding.json" ).then( res => res.json() ));
 
-console.log( typeof ed )
 const	geometryLayer = new GeometryLayer( "cityBuildings", ed );
 
-geometryLayer.buildBuildings();
+const	buildingsLayer = geometryLayer.buildBuildings({ merge: true });
+
+
+
+view.addLayer( buildingsLayer );

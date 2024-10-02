@@ -3,7 +3,7 @@ import * as THREE from 'three';
 class	Layer {
 	public	name: string;
 	public	type: string;
-	public	layer: THREE.Group;
+	public	layer: THREE.Group;//to add to the THREE scene 
 
 	constructor( name: string, type: string = 'default' ){
 		this.name = name;
@@ -11,7 +11,7 @@ class	Layer {
 		this.type = type;
 	};
 
-	addLayer(object3d: any): THREE.Group {
+	addGeometry( object3d: THREE.Mesh ): THREE.Group {
 		this.layer.add( object3d );
 		return ( this.layer );
 	};

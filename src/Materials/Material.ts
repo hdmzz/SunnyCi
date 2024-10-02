@@ -8,7 +8,7 @@ export default {
 	},
 
 	buildingMat (property = {
-		color: 0x7884B2,
+		color: "red",
 		specular: 0xfafafa,
 		reflectivity: 0.6
 	}) {

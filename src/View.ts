@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as Geotiff from 'geotiff';
+import { MapControls } from 'three/examples/jsm/Addons.js';
 
 class	View {
 	width: number;
@@ -13,7 +14,7 @@ class	View {
 	sun: THREE.DirectionalLight;
 	cameraStateChanged: boolean;
 
-	constructor(width: number, height: number, viewerDiv?: HTMLDivElement) {
+	constructor( width: number, height: number, viewerDiv?: HTMLDivElement, helper?: boolean ) {
 		this.width = width;
 		this.height = height;
 		this.cameraStateChanged = false
@@ -40,24 +41,27 @@ class	View {
 		);
 		this.camera.position.set( 500, 500, 500 );
 
-		const cameraState = localStorage.getItem('cameraState');
-		const savedState = cameraState ? JSON.parse(cameraState) : null;
-		if ( savedState ) {
-		  this.camera.position.fromArray( savedState.position );
-		  this.camera.rotation.fromArray( savedState.rotation );
-		} else {
-			this.camera.lookAt( this.scene.position );
-		}
+		//const cameraState = localStorage.getItem('cameraState');
+		//const savedState = cameraState ? JSON.parse(cameraState) : null;
+		//if ( savedState ) {
+		//  this.camera.position.fromArray( savedState.position );
+		//  this.camera.rotation.fromArray( savedState.rotation );
+		//} else {
+		//	this.camera.lookAt( this.scene.position );
+		//}
 
-		this.controls = new OrbitControls( this.camera, this.viewerDiv );
-		this.controls.addEventListener( 'change', () => {
-			this.cameraStateChanged = true;
-		})
+		this.controls = new MapControls( this.camera, this.viewerDiv );
+		//this.controls.addEventListener( 'change', () => {
+		//	this.cameraStateChanged = true;
+		//})
 
 		this.sun = new THREE.DirectionalLight( 0xffffff );
 		this.sun.position.set( 500, 1000, 250 );
 		this.scene.add( this.sun );
-		this.setUpTerrain();
+		if ( helper ) {
+			const	gridhelper = new THREE.GridHelper();
+			this.scene.add( gridhelper );
+		}
 		this.render();
 	};
 
@@ -112,23 +116,42 @@ class	View {
 	};
 
 	render() {
-		if ( this.cameraStateChanged ){
-			localStorage.setItem('cameraState', JSON.stringify({
-				position: this.camera.position.toArray(),
-				rotation: this.camera.rotation.toArray()
-			}));
-		}
+		//if ( this.cameraStateChanged ){
+		//	localStorage.setItem('cameraState', JSON.stringify({
+		//		position: this.camera.position.toArray(),
+		//		rotation: this.camera.rotation.toArray()
+		//	}));
+		//}
 		this.controls.update();
 		this.renderer.render( this.scene, this.camera );
 		requestAnimationFrame(() => {
-			if ( this.cameraStateChanged ){
-				localStorage.setItem('cameraState', JSON.stringify({
-					position: this.camera.position.toArray(),
-					rotation: this.camera.rotation.toArray()
-				}));
-			}
+			//if ( this.cameraStateChanged ){
+			//	localStorage.setItem('cameraState', JSON.stringify({
+			//		position: this.camera.position.toArray(),
+			//		rotation: this.camera.rotation.toArray()
+			//	}));
+			//}
 			this.render();
 		});
+	};
+
+	addLayer( layer: THREE.Group ) {
+		this.scene.add( layer );
+		const box = new THREE.Box3().setFromObject(layer);
+		const center = new THREE.Vector3();
+		box.getCenter(center);
+
+		const distance = 50; // Ajustez cette valeur selon vos besoins
+		const offset = new THREE.Vector3(distance, distance, distance);
+		this.camera.position.copy(center).add(offset);
+
+		// Faire en sorte que la caméra regarde vers le centre du groupe
+		this.camera.lookAt(center);
+
+		// Mettre à jour les contrôles de la caméra
+		this.controls.target.copy(center);
+		this.controls.update();
+		this.render();
 	}
 };
 
