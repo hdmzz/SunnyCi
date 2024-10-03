@@ -1,4 +1,5 @@
-import getPixels from 'get-pixels';
+import ndarray from 'ndarray';
+import getPixels from './GetPixels';
 
 class Fetch {
 	static	getZoomPositionElevation(zpCovered: number[][]) {
@@ -29,29 +30,28 @@ class Fetch {
 		const	resFormat = '@2x.pngraw';
 		return ( `${prefix}/${zoomPos.join('/')}${resFormat}?access_token=${token}`)
 	};
-
-	static async	getRgbTile( uri: string ) {
-		console.log(window);
-		const	png = getPixels(uri, 'png', (_err, pixels) => {
-			console.log(pixels);
+/**
+ * !Un peu CallBack HEll NON??!!
+ * @param uri du DEM de Mapbox.
+ * @returns une promesse contenant les valeur rgb des pixels du raster
+ */
+	static async	getRgbTile( uri: string ): Promise<ndarray.NdArray<Uint8Array>> {
+		return new Promise(( res, rej ) => {
+			getPixels( uri, ( err: any, pixels: ndarray.NdArray<Uint8Array> ) => {
+				if ( err ) {
+					rej( err );
+				} else {
+					res( pixels );
+				};
+			});
 		});
-
-		console.log( png );
 	};
 
-	static	fetchTile( zoomPos: number[], token: string, _api?: string ) {
+	static async	fetchTile( zoomPos: number[], token: string, _api?: string ) {
 		const	uri: string  = this.getUri( zoomPos, token);
-		let		ret = this.getRgbTile( uri );
-
+		let		ret = await this.getRgbTile( uri );
+		console.log( ret );
 		return ( ret );
-	};
-
-	static async	getPixelsModule() {
-		if ( window === undefined ){
-			return ( await import( "get-pixels" )).default;
-		} else {
-			return ( await import( "get-pixels" ) ).default;
-		};
 	};
 };
 export default	Fetch;

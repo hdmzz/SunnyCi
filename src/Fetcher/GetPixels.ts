@@ -5,7 +5,14 @@ import ndarray from 'ndarray';
 //recuperer le context 2d puis dessiner grace au context dans le canva
 //une fois que cest fait il suffit d'utiliser la methode getImageDatadu context
 //puis onn peut construire un n-dimension-array avec les donnees
-export default function	getPixels( url: string, type: string, cb: Function ) {
+/**
+ * 
+ * @param url of the image from ;;apbox
+ * @param type not mandatoruy for now i doont care
+ * @param cb cll back take  error to  define in the when we call the function
+ *! e. g : getPixels( url, 'png', ( err, res ) => return ( res ) );
+ */
+export default function	getPixels( url: string, cb: Function, _type?: string ) {
 	const	image = new Image();
 	image.crossOrigin =  'Anonymous';
 	image.onload = () => {
