@@ -1,4 +1,5 @@
-import { BboxType } from "../main";
+import Fetch from "../Fetcher/Fetch";
+import { BboxType } from "../ThreeGeo";
 
 class	RgbModel {
 	public	unitsPerMeter: number;
@@ -11,11 +12,18 @@ class	RgbModel {
 		this.unitsPerMeter = units;
 	};
 
-	public	fetch( zpCovered: Array<Array<number>>, bbox: BboxType ): void {
-		//calculer 
-	}
+	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
+		//calculer le zoomPositionElevation
+		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
+		let	count = 0;
 
-}
+		zoomPositionElevation.forEach( async zoomPos => {
+			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, 'mapbox-rgb');
+
+			count++;
+		});
+	};
+};
 
 
 export default	RgbModel;

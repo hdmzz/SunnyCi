@@ -10,15 +10,19 @@
   },
   "devDependencies": {
     "@mapbox/tile-cover": "^3.0.2",
+    "@types/get-pixels": "^3.3.4",
     "@types/mapbox__tile-cover": "^3.0.4",
     "@types/proj4": "^2.5.5",
     "@types/turf": "^3.5.32",
+    "ndarray": "^1.0.19",
     "proj4": "^2.12.1",
     "turf": "^3.0.14",
     "typescript": "^5.5.3",
     "vite": "^5.4.1"
   },
   "dependencies": {
+    "@turf/destination": "^7.1.0",
+    "@turf/helpers": "^7.1.0",
     "@types/three": "^0.168.0",
     "geotiff": "^2.1.3",
     "three": "^0.169.0"
