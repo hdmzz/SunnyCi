@@ -49,20 +49,25 @@ class	ThreeGeo {
 		this.tokenMapBox = opts.tokenMapBox;
 	};
 
-	private	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ) {
+	/**
+	 * @origin = lat lon coordonnées
+	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
+	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
+	 */
+	private	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): void {
 			try {
 				const	unitsSide = this.unitsSide;
 				const	unitsPerMeters = ThreeGeo.getUnitsPerMeters( this. unitsSide, radius );
-				const	projectCoords = ( args: projectCoordsArg ) => {
-					ThreeGeo.projectCoord( unitsSide, args.coord, args.nw, args.se );
+				const	projectCoords = ( coord: [number, number], nw: [number, number], se: [number, number] ) => {
+					return ThreeGeo.projectCoord( unitsSide, coord, nw, se );
 				};
-				const	{ tokenMapBox: token, apiRgb } = this;
+				const	{ tokenMapBox: token, apiSatellite } = this;
 				const	bbox = ThreeGeo.getBbox( origin, radius );
 				const	zoomPositionCovered = ThreeGeo.getZoomPositionCovered( bbox.feature, zoom );
-				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token ).fetch( zoomPositionCovered, bbox );
+				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite ).fetch( zoomPositionCovered, bbox );
 
 			} catch ( error ) {
-				throw new Error(" erro founnd  here: " + error);
+				throw new Error(" Error found here: " + error);
 			};
 		};
 

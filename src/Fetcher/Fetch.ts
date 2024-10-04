@@ -3,7 +3,7 @@ import getPixels from './GetPixels';
 
 class Fetch {
 	static	getZoomPositionElevation(zpCovered: number[][]) {
-		const elevations: { [key: string]: Array<Array<number>> } = {};
+		const elevations: { [key: string]: number[][] } = {};
 
 		zpCovered.forEach(( zoomPos ) => {
 			let	grandparent = [
@@ -23,12 +23,14 @@ class Fetch {
 			.map(triplet => triplet.split(',').map(num => parseFloat(num)))
 		);
 	};
-	//https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/#mapbox-terrain-rgb
+
+//https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/#mapbox-terrain-rgb
 	static	getUri( zoomPos: number[], token: string, _api?: string): string {
 		const	prefix = 'https://api.mapbox.com/v4/mapbox.terrain-rgb';
 		const	resFormat = '@2x.pngraw';
 		return ( `${prefix}/${zoomPos.join('/')}${resFormat}?access_token=${token}`)
 	};
+
 /**
  * !Un peu CallBack HEll NON??!!
  * @param uri du DEM de Mapbox.

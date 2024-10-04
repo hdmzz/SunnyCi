@@ -23,17 +23,21 @@ const	sixteenthPixelRanges = (() => {
 	return ( ranges );
 })();
 
+type ProjectCoordsFunction = (coord: [number, number], nw: [number, number], se: [number, number]) => number[];
+
 class	RgbModel {
 	public	unitsPerMeter: number;
-	public	projectCoords: Function;
+	public	projectCoords: ProjectCoordsFunction;
 	public	mapBoxToken: string;
-	public	dataElevationCovered: [];
+	public	dataElevationCovered: number[][][];
+	public	apiSatellite: string;
 
-	constructor ( units: number, projectCoords: Function, token: string ) {
+	constructor ( units: number, projectCoords: ProjectCoordsFunction, token: string, apiSatellite: string ) {
 		this.mapBoxToken = token;
 		this.projectCoords = projectCoords;
 		this.unitsPerMeter = units;
 		this.dataElevationCovered = [];
+		this.apiSatellite = apiSatellite;
 	};
 
 	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
@@ -49,15 +53,16 @@ class	RgbModel {
 			} else {
 				throw new Error('no tile addedl 26 RgbModel');
 			}
+
 			count++;
 			if ( count === zoomPositionElevation.length )
 				this.build();
 		});
 	};
 
-	public	addTile( tile: ndarray.NdArray<Uint8Array>, zoomPos: number[], zpCovered: number[][], bbox: BboxType ): [] {
+	public	addTile( tile: ndarray.NdArray<Uint8Array>, zoomPositionElevation: number[], zpCovered: number[][], bbox: BboxType ): number[][][] {
 		let	elevations =  [];
-
+		//ici extrcction de l'elevation
 		if ( tile ) {
 			let	R, G, B;
 			for ( let i = 0; i < tile.data.length; i += 4 ) {//on avance de 4 car la  quatrieme valeur est la valeur alpha du pixel
@@ -66,25 +71,28 @@ class	RgbModel {
 				B = tile.data[i + 2];
 				elevations.push( -10000 + ( ( R * 256 ** 2 ) + ( G * 256 ) + B ) * 0.1 );
 			};
+		} else {
+			elevations = new Array(262144).fill(0);
 		};
 
 		let	sixteenths = [];
 		for ( let col = 0; col < 4; col++ ) {
 			for ( let row = 0; row < 4; row++ ) {
 				sixteenths.push([
-					zoomPos[0] + 2,
-					zoomPos[1] * 4 + col,
-					zoomPos[2] * 4 + row].join( '/' ));
+					zoomPositionElevation[0] + 2,
+					zoomPositionElevation[1] * 4 + col,
+					zoomPositionElevation[2] * 4 + row,
+				].join( '/' ));
 			};
 		};
 
 		let	zpCoveredStr = zpCovered.map(( zp ) => { return zp.join('/'); });
 
-		const	dataElev = [];
-		sixteenths.forEach(( zoomposStr, index ) => {
-			if ( !zpCoveredStr.includes( zoomposStr ) ) return;
+		const	dataElev: number[][][] = [];
+		sixteenths.forEach(( zoomPosStr, index ) => {
+			if ( !zpCoveredStr.includes( zoomPosStr ) ) return;
 
-			let	zoompos = zoomposStr.split( '/' ).map( str => parseInt( str ) );
+			let	zoomPos = zoomPosStr.split( '/' ).map( str => parseInt( str ) );
 			let	pxRange = sixteenthPixelRanges[index];
 			let	elev = [];
 
@@ -99,24 +107,41 @@ class	RgbModel {
 			for ( let row = 0; row < constVertices; row++ ) {
 				for ( let col = 0; col < constVertices; col++ ) {
 					let lonlatPixel = constTilePixels.ll([
-						zoompos[1] * 128 + col,
-						zoompos[2] * 128 + row
-					], zoompos[0]);
+						zoomPos[1] * 128 + col,
+						zoomPos[2] * 128 + row
+					], zoomPos[0]);
 
 					array.push(
-						...this.projectCoords( lonlatPixel, bbox.northWest, bbox.southEast ),
+						...this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] ),
 						elev[dataIndex] * this.unitsPerMeter);
 					dataIndex++;
 				}
 			}
-			dataElev.push( [zoompos, array, zoompos] )
+			dataElev.push([ zoomPos, array, zoomPositionElevation ])
 		});
 		return ( dataElev );
 	};
 
 	public	build() {
-
+		const	meshes = this._build();
 	}
+
+	private	_build() {
+		const	{ dataElevationCovered: dataEl, apiSatellite, mapBoxToken } = this;
+
+		//first sort the data Ele
+		dataEl.sort(( zp1, zp2 ) => {
+			return ( zp1[0].join( "/" ) > zp2[0].join( "/" ) ? 1 : -1 );
+		});
+
+		//on index chaque valeurn et on les stock dans un tab nommé dataEleIds
+		const	dataElIds: { [key: string]: number } = {};
+		dataEl.forEach(( data, index ) => { dataElIds[data[0].join('/')] = index });
+
+		dataEl.forEach(([ zoomPos, array, zoomPosEle ]) => {
+			const	plane = new THREE.Pla
+		})
+	};
 };
 
 
