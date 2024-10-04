@@ -23,7 +23,6 @@ class Fetch {
 			.map(triplet => triplet.split(',').map(num => parseFloat(num)))
 		);
 	};
-
 	//https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/#mapbox-terrain-rgb
 	static	getUri( zoomPos: number[], token: string, _api?: string): string {
 		const	prefix = 'https://api.mapbox.com/v4/mapbox.terrain-rgb';
@@ -50,7 +49,6 @@ class Fetch {
 	static async	fetchTile( zoomPos: number[], token: string, _api?: string ) {
 		const	uri: string  = this.getUri( zoomPos, token);
 		let		ret = await this.getRgbTile( uri );
-		console.log( ret );
 		return ( ret );
 	};
 };
