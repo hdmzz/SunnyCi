@@ -55,7 +55,7 @@ class	ThreeGeo {
 	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
 	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
 	 */
-	public async	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
+	public async	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group>{
 		return new Promise(async ( res, rej ) => {
 			try {
 				const	unitsSide = this.unitsSide;
@@ -68,8 +68,6 @@ class	ThreeGeo {
 				const	zoomPositionCovered = ThreeGeo.getZoomPositionCovered( bbox.feature, zoom );
 				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite );
 				const terrain = await rgbModel.fetch( zoomPositionCovered, bbox );
-
-				console.log(terrain);
 
 				res ( terrain );
 			} catch ( error ) {

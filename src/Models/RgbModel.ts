@@ -57,7 +57,7 @@ class	RgbModel {
 		this.apiSatellite = apiSatellite;
 	};
 
-	public async	fetch( zpCovered: number[][], bbox: BboxType ): Promise<THREE.Mesh[] | void> {
+	public async	fetch( zpCovered: number[][], bbox: BboxType ): Promise<THREE.Group> {
 		//calculer le zoomPositionElevation
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
 		let	count = 0;
@@ -78,7 +78,8 @@ class	RgbModel {
 				objs.push(...this._build());
 			};
 		});
-		return ( objs );
+
+		return ( ThreeGeo.createDemGroups( "Rgb dem ", objs ) );
 	};
 
 	public	addTile( tile: ndarray.NdArray<Uint8Array>, zoomPositionElevation: number[], zpCovered: number[][], bbox: BboxType ): number[][][] {

@@ -13,10 +13,6 @@ const	terrain = await tgeo.getTerrain(
 	12
 );
 
-//setTimeout(() => console.log(terrain), 10000);
-
-console.log( terrain );
-
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
@@ -33,12 +29,10 @@ document.body.appendChild( renderer.domElement );
 const	controls = new OrbitControls( camera, renderer.domElement );
 
 setTimeout(() => {
-	terrain.forEach(element => {
-		scene.add( element )
-	});
+	console.log( terrain );
+	scene.add( terrain );
 
-}, 500)
-
+}, 2000)
 
 function animate() {
 
