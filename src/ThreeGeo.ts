@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import Utils from './Utils/geoUtils';
 import cover from '@mapbox/tile-cover';
 import RgbModel from './Models/RgbModel';
+import { rgb } from 'geotiff';
 
 export type	BboxType = {
 	feature: {
@@ -54,7 +55,8 @@ class	ThreeGeo {
 	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
 	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
 	 */
-	private	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): void {
+	public async	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
+		return new Promise(async ( res, rej ) => {
 			try {
 				const	unitsSide = this.unitsSide;
 				const	unitsPerMeters = ThreeGeo.getUnitsPerMeters( this. unitsSide, radius );
@@ -64,28 +66,30 @@ class	ThreeGeo {
 				const	{ tokenMapBox: token, apiSatellite } = this;
 				const	bbox = ThreeGeo.getBbox( origin, radius );
 				const	zoomPositionCovered = ThreeGeo.getZoomPositionCovered( bbox.feature, zoom );
-				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite ).fetch( zoomPositionCovered, bbox );
+				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite );
+				const terrain = await rgbModel.fetch( zoomPositionCovered, bbox );
 
+				console.log(terrain);
+
+				res ( terrain );
 			} catch ( error ) {
-				throw new Error(" Error found here: " + error);
+				console.log( error );
+				rej( error );
 			};
+		});
+	};
+
+	static	createDemGroups( name: string, objects: THREE.Mesh[] ): THREE.Group {
+		const	group = new THREE.Group();
+
+		console.log(objects);
+		for ( let i = 0; i > objects.length; i++ ) {
+			objects[i].name = name;
+			group.add( objects[i] );
 		};
-
-	public async	getTerrainRgb(
-		origin: [lat: number, lon:  number],
-		radius: number,
-		zoom: number ): Promise<THREE.Group> {
-			const	rgbDem = await this.getTerrain( origin, radius, zoom );
-
-			return ( ThreeGeo.createDemGroups( 'dem-rgb', rgbDem ) );
-	}
-
-	static	createDemGroups( name: string, object: THREE.Mesh ): THREE.Group {
-		const	group = new THREE.Group();;
 
 		return ( group );
 	};
-
 	static	getUnitsPerMeters( unitsSide: number, radius: number ): number {
 		return ( unitsSide / ( radius * Math.pow( 2, 0.5 ) * 1000 ) );
 	};
