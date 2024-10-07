@@ -59,7 +59,7 @@ class	ThreeGeo {
 		return new Promise(async ( res, rej ) => {
 			try {
 				const	unitsSide = this.unitsSide;
-				const	unitsPerMeters = ThreeGeo.getUnitsPerMeters( this. unitsSide, radius );
+				const	unitsPerMeters = ThreeGeo.getUnitsPerMeters( this.unitsSide, radius );
 				const	projectCoords = ( coord: [number, number], nw: [number, number], se: [number, number] ) => {
 					return ThreeGeo.projectCoord( unitsSide, coord, nw, se );
 				};
