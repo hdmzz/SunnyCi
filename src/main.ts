@@ -1,7 +1,6 @@
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import ThreeGeo from "./ThreeGeo";
 import * as THREE from "three";
-import { color } from "three/webgpu";
 
 const	tgeo = new ThreeGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w'
@@ -12,6 +11,7 @@ const	terrain = await tgeo.getTerrain(
 	5.0,
 	12
 );
+
 
 const scene = new THREE.Scene();
 
@@ -29,8 +29,9 @@ document.body.appendChild( renderer.domElement );
 const	controls = new OrbitControls( camera, renderer.domElement );
 
 setTimeout(() => {
-	console.log( terrain );
-	scene.add( terrain );
+	const	groupMesh = ThreeGeo.createDemGroups("name", terrain );
+	console.log( groupMesh );
+	scene.add( groupMesh );
 
 }, 2000)
 

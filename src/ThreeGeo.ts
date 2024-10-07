@@ -55,7 +55,7 @@ class	ThreeGeo {
 	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
 	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
 	 */
-	public async	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group>{
+	public async	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
 		return new Promise(async ( res, rej ) => {
 			try {
 				const	unitsSide = this.unitsSide;
@@ -80,14 +80,23 @@ class	ThreeGeo {
 	static	createDemGroups( name: string, objects: THREE.Mesh[] ): THREE.Group {
 		const	group = new THREE.Group();
 
-		console.log(objects);
-		for ( let i = 0; i > objects.length; i++ ) {
-			objects[i].name = name;
-			group.add( objects[i] );
-		};
+		if (!objects || objects.length === 0) {
+			console.warn('No objects provided to createDemGroups');
+			return group;
+		}
 
-		return ( group );
+		for ( let i = 0; i < objects.length; i++ ) {
+			if (objects[i] instanceof THREE.Mesh) {
+				objects[i].name = name;
+				group.add( objects[i] );
+			} else {
+				console.warn(`Object at index ${i} is not a THREE.Mesh`);
+			}
+		}
+
+		return group;
 	};
+
 	static	getUnitsPerMeters( unitsSide: number, radius: number ): number {
 		return ( unitsSide / ( radius * Math.pow( 2, 0.5 ) * 1000 ) );
 	};
