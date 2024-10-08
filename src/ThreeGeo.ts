@@ -2,29 +2,7 @@ import * as THREE from 'three';
 import Utils from './Utils/geoUtils';
 import cover from '@mapbox/tile-cover';
 import RgbModel from './Models/RgbModel';
-import { rgb } from 'geotiff';
-
-export type	BboxType = {
-	feature: {
-		type: string;
-		geometry: {
-			properties: {};
-			type: string;
-			coordinates: [number[][]];
-		};
-	};
-	northWest: number[];
-	southEast: number[];
-};
-
-type	PolygonFeature = {
-	type: string;
-	geometry: {
-		properties: {};
-		type: string;
-		coordinates: [number[][]];
-	};
-};
+import { PolygonFeature } from './type';
 
 class	ThreeGeo {
 	public	unitsSide: number;
@@ -53,10 +31,12 @@ class	ThreeGeo {
 	 * @origin = lat lon coordonnées
 	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
 	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
+	 * le res de  la promesse doit etre donne au watcher
 	 */
-	private async	getTerrain( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
+	private	getTerrain( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
 		return new Promise(async ( res, rej ) => {
 			try {
+				const	watcher = this.createWatcher( res );
 				const	unitsSide = this.unitsSide;
 				const	unitsPerMeters = ThreeGeo.getUnitsPerMeters( this.unitsSide, radius );
 				const	projectCoords = ( coord: [number, number], nw: [number, number], se: [number, number] ) => {
@@ -65,10 +45,10 @@ class	ThreeGeo {
 				const	{ tokenMapBox: token, apiSatellite } = this;
 				const	bbox = ThreeGeo.getBbox( origin, radius );
 				const	zoomPositionCovered = ThreeGeo.getZoomPositionCovered( bbox.feature, zoom );
-				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite );
-				const terrain = await rgbModel.fetch( zoomPositionCovered, bbox );
+				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite, watcher );
 
-				res ( terrain );
+				//la promesse sera resolu par la fonction fetch de rgb model  qui qpplera la finalcallback qui n'est autre que la  resolve qu'on lui a passe a la creation du watcher
+				rgbModel.fetch( zoomPositionCovered, bbox );
 			} catch ( error ) {
 				console.log( error );
 				rej( error );
@@ -143,17 +123,40 @@ class	ThreeGeo {
 		};
 	};
 
-	static	getZoomPositionCovered( polygon: PolygonFeature, zoom: number ): Array<Array<number>> {
+	static	getZoomPositionCovered( polygon: PolygonFeature, zoom: number ): number[][] {
 		const	limits = {
 			min_zoom: zoom,
 			max_zoom: zoom,
 		};
 
 		console.log( cover )
-
+		
 		return ( cover.tiles( polygon.geometry as GeoJSON.Geometry, limits ) )
 		.map(( [x, y, z] ) => [z, x, y]);
-	}
-}
+	};
+	
+	private	createWatcher( finalCallBack:(value: THREE.Mesh<THREE.BufferGeometry>[]) => void): (payload: { what: string, data: THREE.Mesh[] }) => void {
+		let		isRgbPending: boolean = true;
+		const	ret: { value: THREE.Mesh[] } = { value: [] }; // rgbDem will contain all the data
+		const	isDone = () => !isRgbPending;
+
+		if ( isDone() ) {
+			finalCallBack( ret.value );
+		}
+
+		return (payload: { what: string, data: THREE.Mesh[] }) => {
+			const { what, data } = payload;
+
+			if ( what === 'rgb-dem' ) {
+				isRgbPending = false;
+				ret.value = data;
+			};
+			if ( isDone() ) {
+				console.log( 'watcher says all shit is done' );
+				finalCallBack( ret.value );
+			};
+		};
+	};
+};
 
 export default	ThreeGeo;

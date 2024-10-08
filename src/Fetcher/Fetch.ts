@@ -41,11 +41,10 @@ class Fetch {
 	};
 
 /**
- * !Un peu CallBack HEll NON??!!
  * @param uri du DEM de Mapbox.
  * @returns une promesse contenant les valeur rgb des pixels du raster
  */
-	static async	getRgbTile( uri: string ): Promise<ndarray.NdArray<Uint8Array>> {
+	static async	getRgbTile({ uri }: { uri: string; }): Promise<ndarray.NdArray<Uint8Array>> {
 		return new Promise(( res, rej ) => {
 			getPixels( uri, ( err: any, pixels: ndarray.NdArray<Uint8Array> ) => {
 				if ( err ) {
@@ -59,7 +58,7 @@ class Fetch {
 
 	static async	fetchTile( zoomPos: number[], token: string, _api?: string ) {
 		const	uri: string  = this.getUri( zoomPos, token);
-		let		ret = await this.getRgbTile( uri );
+		let		ret = await this.getRgbTile({ uri });
 		return ( ret );
 	};
 };
