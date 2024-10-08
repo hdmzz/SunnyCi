@@ -17,13 +17,6 @@ export type	BboxType = {
 	southEast: number[];
 };
 
-
-type	projectCoordsArg = {
-	coord: [number, number],
-	nw: [number, number],
-	se: [number, number]
-};
-
 type	PolygonFeature = {
 	type: string;
 	geometry: {
@@ -50,12 +43,18 @@ class	ThreeGeo {
 		this.tokenMapBox = opts.tokenMapBox;
 	};
 
+	public async	getTerrainRgb( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group> {
+		const	meshes = await this.getTerrain(origin, radius, zoom);
+
+		return (ThreeGeo.createDemGroups( "dem-rgb", meshes ));
+	}
+
 	/**
 	 * @origin = lat lon coordonnées
 	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
 	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
 	 */
-	public async	getTerrain(origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
+	private async	getTerrain( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
 		return new Promise(async ( res, rej ) => {
 			try {
 				const	unitsSide = this.unitsSide;
@@ -149,6 +148,8 @@ class	ThreeGeo {
 			min_zoom: zoom,
 			max_zoom: zoom,
 		};
+
+		console.log( cover )
 
 		return ( cover.tiles( polygon.geometry as GeoJSON.Geometry, limits ) )
 		.map(( [x, y, z] ) => [z, x, y]);

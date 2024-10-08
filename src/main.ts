@@ -6,11 +6,13 @@ const	tgeo = new ThreeGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w'
 });
 
-const	terrain = await tgeo.getTerrain(
+const	terrain = await tgeo.getTerrainRgb(
 	[46.5763, 7.9904],
 	5.0,
 	12
 );
+
+console.log(terrain);
 
 window.addEventListener( 'resize', () => {
 	camera.aspect = window.innerWidth / window.innerHeight;
@@ -35,12 +37,7 @@ document.body.appendChild( renderer.domElement );
 
 const	controls = new OrbitControls( camera, renderer.domElement );
 
-setTimeout(() => {
-	const	groupMesh = ThreeGeo.createDemGroups("name", terrain );
-	console.log( groupMesh );
-	scene.add( groupMesh );
-
-}, 2000)
+scene.add( terrain );
 
 function animate() {
 

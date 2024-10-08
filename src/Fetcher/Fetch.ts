@@ -2,7 +2,16 @@ import ndarray from 'ndarray';
 import getPixels from './GetPixels';
 
 class Fetch {
-	static	getZoomPositionElevation(zpCovered: number[][]) {
+	/**
+  * Calculates the unique zoom positions covered by the provided zoom positions.
+  *
+  * This function groups the provided zoom positions by their grandparent zoom position
+  * (two zoom levels higher) and returns the unique grandparent zoom positions.
+  *
+  * @param zpCovered - An array of zoom position arrays, where each inner array represents a zoom position.
+  * @returns An array of unique grandparent zoom position arrays.
+  */
+ static	getZoomPositionElevation(zpCovered: number[][]) {
 		const elevations: { [key: string]: number[][] } = {};
 
 		zpCovered.forEach(( zoomPos ) => {

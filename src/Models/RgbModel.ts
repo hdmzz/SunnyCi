@@ -64,7 +64,7 @@ class	RgbModel {
 
 		const	objs: THREE.Mesh[] = [];
 
-		const test = zoomPositionElevation.forEach( async zoomPos => {
+		zoomPositionElevation.forEach( async zoomPos => {
 			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, 'mapbox-rgb' );
 
 			if ( tile !== null ) {
