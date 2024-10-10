@@ -23,6 +23,7 @@ class	ThreeGeo {
 
 	public async	getTerrainRgb( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group> {
 		const	meshes = await this.getTerrain(origin, radius, zoom);
+		
 
 		return (ThreeGeo.createDemGroups( "dem-rgb", meshes ));
 	}
@@ -31,7 +32,7 @@ class	ThreeGeo {
 	 * @origin = lat lon coordonnées
 	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
 	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
-	 * le res de  la promesse doit etre donne au watcher
+	 * le res de la promesse doit etre donne au watcher
 	 */
 	private	getTerrain( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
 		return new Promise(async ( res, rej ) => {
@@ -42,10 +43,10 @@ class	ThreeGeo {
 				const	projectCoords = ( coord: [number, number], nw: [number, number], se: [number, number] ) => {
 					return ThreeGeo.projectCoord( unitsSide, coord, nw, se );
 				};
-				const	{ tokenMapBox: token, apiSatellite } = this;
+				const	{ tokenMapBox: token, apiSatellite, apiRgb } = this;
 				const	bbox = ThreeGeo.getBbox( origin, radius );
 				const	zoomPositionCovered = ThreeGeo.getZoomPositionCovered( bbox.feature, zoom );
-				const	rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite, watcher );
+				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher );
 
 				//la promesse sera resolu par la fonction fetch de rgb model  qui qpplera la finalcallback qui n'est autre que la  resolve qu'on lui a passe a la creation du watcher
 				rgbModel.fetch( zoomPositionCovered, bbox );
@@ -107,8 +108,8 @@ class	ThreeGeo {
 					"properties": {},
 					"type": "Polygon",
 					"coordinates": [[]] as unknown as [number[][]]
-				}
-			}]
+				},
+			}],
 		};
 		const polygon = testPolygon.features[0];
 		const [w, s, e, n] = Utils.originRadiusToBbox(origin, radius);
@@ -144,8 +145,8 @@ class	ThreeGeo {
 			finalCallBack( ret.value );
 		}
 
-		return (payload: { what: string, data: THREE.Mesh[] }) => {
-			const { what, data } = payload;
+		return (( payload: { what: string, data: THREE.Mesh[] } ) => {
+			const	{ what, data } = payload;
 
 			if ( what === 'rgb-dem' ) {
 				isRgbPending = false;
@@ -155,7 +156,7 @@ class	ThreeGeo {
 				console.log( 'watcher says all shit is done' );
 				finalCallBack( ret.value );
 			};
-		};
+		});
 	};
 };
 

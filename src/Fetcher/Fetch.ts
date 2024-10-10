@@ -34,10 +34,23 @@ class Fetch {
 	};
 
 //https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/#mapbox-terrain-rgb
-	static	getUri( zoomPos: number[], token: string, _api?: string): string {
-		const	prefix = 'https://api.mapbox.com/v4/mapbox.terrain-rgb';
-		const	resFormat = '@2x.pngraw';
-		return ( `${prefix}/${zoomPos.join('/')}${resFormat}?access_token=${token}`)
+	static	getUri( zoomPos: number[], token: string, api: string): string {
+		let	prefix = '';
+		let	resFormat = '';
+		switch ( api ) {
+			case ( 'mapbox-terrain-rgb' ):
+				prefix = 'https://api.mapbox.com/v4/mapbox.terrain-rgb';
+				resFormat = '@2x.pngraw';
+				break;
+			case ( 'mapbox-satellite' ):
+				prefix = 'https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles';
+				resFormat = '@2x';
+				break;
+			default:
+				console.log( "No Uri generated" );
+				return ( '' );
+		};
+		return ( `${prefix}/${zoomPos.join('/')}${resFormat}?access_token=${token}`);
 	};
 
 /**
@@ -56,8 +69,8 @@ class Fetch {
 		});
 	};
 
-	static async	fetchTile( zoomPos: number[], token: string, _api?: string ) {
-		const	uri: string  = this.getUri( zoomPos, token);
+	static async	fetchTile( zoomPos: number[], token: string, api: string ) {
+		const	uri: string  = this.getUri( zoomPos, token, api );
 		let		ret = await this.getRgbTile({ uri });
 		return ( ret );
 	};
