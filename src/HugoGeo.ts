@@ -4,7 +4,7 @@ import cover from '@mapbox/tile-cover';
 import RgbModel from './Models/RgbModel';
 import { PolygonFeature } from './type';
 
-class	ThreeGeo {
+class	HugoGeo {
 	public	unitsSide: number;
 	public	isNode: boolean;
 	public	apiVector: string;
@@ -25,7 +25,7 @@ class	ThreeGeo {
 		const	meshes = await this.getTerrain(origin, radius, zoom);
 		
 
-		return (ThreeGeo.createDemGroups( "dem-rgb", meshes ));
+		return (HugoGeo.createDemGroups( "dem-rgb", meshes ));
 	}
 
 	/**
@@ -39,13 +39,13 @@ class	ThreeGeo {
 			try {
 				const	watcher = this.createWatcher( res );
 				const	unitsSide = this.unitsSide;
-				const	unitsPerMeters = ThreeGeo.getUnitsPerMeters( this.unitsSide, radius );
+				const	unitsPerMeters = HugoGeo.getUnitsPerMeters( this.unitsSide, radius );
 				const	projectCoords = ( coord: [number, number], nw: [number, number], se: [number, number] ) => {
-					return ThreeGeo.projectCoord( unitsSide, coord, nw, se );
+					return HugoGeo.projectCoord( unitsSide, coord, nw, se );
 				};
 				const	{ tokenMapBox: token, apiSatellite, apiRgb } = this;
-				const	bbox = ThreeGeo.getBbox( origin, radius );
-				const	zoomPositionCovered = ThreeGeo.getZoomPositionCovered( bbox.feature, zoom );
+				const	bbox = HugoGeo.getBbox( origin, radius );
+				const	zoomPositionCovered = HugoGeo.getZoomPositionCovered( bbox.feature, zoom );
 				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher );
 
 				//la promesse sera resolu par la fonction fetch de rgb model  qui qpplera la finalcallback qui n'est autre que la  resolve qu'on lui a passe a la creation du watcher
@@ -160,4 +160,4 @@ class	ThreeGeo {
 	};
 };
 
-export default	ThreeGeo;
+export default	HugoGeo;

@@ -1,50 +1,30 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import ThreeGeo from "./ThreeGeo";
-import { MapControls } from "three/examples/jsm/Addons.js";
+import HugoGeo from "./HugoGeo";
+import View from "./View/View";
+import Buildings from "./Buildings/Buildings";
 
 
-const	tgeo = new ThreeGeo({
+const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
+
+const	tgeo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w'
 });
-
 const	terrain = await tgeo.getTerrainRgb(
 	[46.5872, 7.9383],
-	3.00,
-	15
+	5.00,
+	13
 );
 
+terrain.rotation.x = - Math.PI/2;
 
-const	container = document.getElementById('viewerDiv');
+const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
-const scene = new THREE.Scene();
+const	view =  new View( container )
 
-//scene.background = new THREE.Color("white")
+//view.addLayer( terrain );
 
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000 );
-camera.position.z = 1;
-//camera.lookAt( terrain.position );
+view.addLayer( gridHelper );
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setAnimationLoop( animate );
-container?.appendChild( renderer.domElement );
-const	controls = new OrbitControls( camera, renderer.domElement );
-//controls.target.set(terrain.position.x, terrain.position.y, terrain.position.z);
-//controls.update();
+const building = await new Buildings([45.77369876, 4.83607042,]).Building();
 
-scene.add( terrain );
-
-function animate() {
-	
-	controls.update()
-	renderer.render( scene, camera );
-	
-}
-
-
-window.addEventListener( 'resize', () => {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize( window.innerWidth, window.innerHeight );
-})
+view.addLayer( building, terrain );

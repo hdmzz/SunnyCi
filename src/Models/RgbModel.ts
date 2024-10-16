@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import ndarray from "ndarray";
 import Fetch from "../Fetcher/Fetch";
-import ThreeGeo from "../ThreeGeo";
 import { SphericalMercator } from "@mapbox/sphericalmercator";
 import { BboxType } from "../type";
 
@@ -104,10 +103,10 @@ class	RgbModel {
 				R = tile.data[i];
 				G = tile.data[i + 1];
 				B = tile.data[i + 2];
-				elevations.push( -10000 + ( ( R * 256 ** 2 ) + ( G * 256 ) + B ) * 0.1 );
+				elevations.push( -10000 + (( R * 256 ** 2 ) + ( G * 256 ) + B) * 0.1 );
 			};
 		} else {
-			elevations = new Array(262144).fill(0);
+			elevations = new Array(262144).fill(0);//262144 ==> (256**2 * 4)
 		};
 
 		let	sixteenths = [];
@@ -166,7 +165,7 @@ class	RgbModel {
 		if ( this.onSatelliteMat )
 			onSatelliteMatWrapper = ( meshAcc: THREE.Mesh[] ) => {
 				satCount++;
-				if (  satCount === this.dataElevationCovered.length )
+				if ( satCount === this.dataElevationCovered.length )
 					this.watcher({ what: 'rgb-dem', data: meshAcc });
 			};
 
@@ -192,7 +191,6 @@ class	RgbModel {
 
 		const	objs: THREE.Mesh[] = [];
 		dataEl.forEach(([ zoomPos, array, _zoomPosEle ]) => {
-
 			let	cSegments = this.resolveSeams(
 				array, this.getNeighborsInfo( dataEl, dataElIds, zoomPos )
 			);
@@ -201,7 +199,7 @@ class	RgbModel {
 
 			geom.setAttribute(
 				"position",
-				 new THREE.Float32BufferAttribute( new Float32Array(array), 3 )
+				new THREE.Float32BufferAttribute( new Float32Array(array), 3 )
 			);
 
 			const	plane = new THREE.Mesh(

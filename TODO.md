@@ -1,13 +1,108 @@
-systeme de watcher :
-
-pas besoin de class Watcher ca serait trop lourd et preetntieux pour une si petite class
-
-le watcher est un objet qui contient une variable booleenne pour savoir si les donnees sont recuperees 
-isRgbPending init a false de premier abord,
-
-la cretion d'un watcher se deroule comme suit==> 
-un booleen isRgbDem a false 
--	une fonction is done declaree retourne le status de la varialeisRgbDem
-un ojet return  qui contien les donnees de la rgbdem un array vide
-
--	
+[
+    [
+        [
+            [
+                4.83774221,
+                45.77032532,
+                196.3
+            ],
+            [
+                4.83750034,
+                45.77032836,
+                196.3
+            ],
+            [
+                4.83727779,
+                45.77033198,
+                196.3
+            ],
+            [
+                4.83728504,
+                45.77051111,
+                196.3
+            ],
+            [
+                4.8372903,
+                45.77051463,
+                196.3
+            ],
+            [
+                4.83774311,
+                45.77050725,
+                196.3
+            ],
+            [
+                4.83774811,
+                45.77050267,
+                196.3
+            ],
+            [
+                4.83774221,
+                45.77032532,
+                196.3
+            ]
+        ],
+        [
+            [
+                4.83756906,
+                45.77038218,
+                196.3
+            ],
+            [
+                4.83757109,
+                45.7704434,
+                196.3
+            ],
+            [
+                4.83750285,
+                45.77044271,
+                196.3
+            ],
+            [
+                4.83749914,
+                45.77044727,
+                196.3
+            ],
+            [
+                4.83749953,
+                45.77045898,
+                196.3
+            ],
+            [
+                4.83737733,
+                45.77046097,
+                196.3
+            ],
+            [
+                4.83737433,
+                45.77037094,
+                196.3
+            ],
+            [
+                4.83749651,
+                45.77036805,
+                196.3
+            ],
+            [
+                4.8374969,
+                45.77037976,
+                196.3
+            ],
+            [
+                4.83749962,
+                45.77038421,
+                196.3
+            ],
+            [
+                4.83753307,
+                45.77038367,
+                196.3
+            ],
+            [
+                4.83756906,
+                45.77038218,
+                196.3
+            ]
+        ]
+    ]
+]

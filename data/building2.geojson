@@ -458,20 +458,20 @@
 	  {
 		"type": "Feature",
 		"properties": {
-		  "type": "way",
-		  "id": 5320938,
-		  "tags": {
-			"addr:housename": "McEwan Hall",
-			"addr:postcode": "EH8 9AG",
-			"addr:street": "Teviot Place",
-			"building": "university",
-			"building:levels": "4",
-			"edinburgh_fringe": "Underbelly's McEwan Hall",
-			"name": "McEwan Hall",
-			"source": "NLS_OS_Edinburgh_map_1940;Bing;survey",
-			"wikidata": "Q6801106",
-			"wikipedia": "en:McEwan Hall"
-		  }
+			"type": "way",
+			"id": 5320938,
+			"tags": {
+				"addr:housename": "McEwan Hall",
+				"addr:postcode": "EH8 9AG",
+				"addr:street": "Teviot Place",
+				"building": "university",
+				"building:levels": "4",
+				"edinburgh_fringe": "Underbelly's McEwan Hall",
+				"name": "McEwan Hall",
+				"source": "NLS_OS_Edinburgh_map_1940;Bing;survey",
+				"wikidata": "Q6801106",
+				"wikipedia": "en:McEwan Hall"
+			}
 		},
 		"geometry": {
 		  "type": "Polygon",
