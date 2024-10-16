@@ -195,7 +195,7 @@ class	RgbModel {
 				array, this.getNeighborsInfo( dataEl, dataElIds, zoomPos )
 			);
 
-			const	geom = new THREE.PlaneGeometry( 1, 1, cSegments[0], cSegments[1] );
+			const	geom = new THREE.PlaneGeometry(1,1,cSegments[0],cSegments[1]);
 
 			geom.setAttribute(
 				"position",

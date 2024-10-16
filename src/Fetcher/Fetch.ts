@@ -1,5 +1,19 @@
 import ndarray from 'ndarray';
 import getPixels from './GetPixels';
+import { BboxType } from '../type';
+
+type	Bbox = {
+	feature: {
+		type: string;
+		geometry: {
+			properties: {};
+			type: string;
+			coordinates: [number[][]];
+		};
+	};
+	northWest: number[];//[number, number]
+	southEast: number[];//[number, number]
+}
 
 class Fetch {
 	/**
@@ -32,6 +46,15 @@ class Fetch {
 			.map(triplet => triplet.split(',').map(num => parseFloat(num)))
 		);
 	};
+
+	static	urlBuilder( bbox: BboxType ): string {
+		const	prefix = 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&REQUEST=GetFeature&typeName=BDTOPO_V3:batiment&VERSION=2.0.0&SRSNAME=EPSG:4326&outputFormat=application/json&BBOX=4.822998047,45.736083984,4.833984375,45.747070313,EPSG:4326'//BBox= ne sw
+		const	SRS = 'EPSG:4326';
+
+		console.log(bbox);
+		return ( SRS );//!for testing
+
+	}
 
 //https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/#mapbox-terrain-rgb
 	static	getUri( zoomPos: number[], token: string, api: string): string {

@@ -88,7 +88,10 @@ class	HugoGeo {
 		];
 	};
 
-	static	getBbox( origin: [number, number], radius: number ): {
+	/**
+	 * @param origin lat lon
+	 */
+	static	getBbox( origin: [lat: number, lon: number], radius: number ): {
 		feature: {
 			type: string;
 			geometry: {

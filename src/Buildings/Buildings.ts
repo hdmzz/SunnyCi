@@ -1,20 +1,21 @@
 import * as THREE from 'three';
-import { getDistance, getRhumbLineBearing } from 'geolib';
-import { GeolibInputCoordinates } from 'geolib/es/types';
 import { GeoJSONFeature, GeoJSONFeatureCollection } from '../type';
 import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
+import Fetch from '../Fetcher/Fetch';
 
 class	Buildings {
 	
 	data: GeoJSONFeature | {};
 	buildingsArray: [];
-	center: number[];
+	center: [lat: number, lon: number];
+	radius: number;
 	
-	constructor( center: number[] ) {
+	constructor( center: [lat:number, lon: number], radius: number ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
+		this.radius = radius;
 	};
 
 	public async	getBuildings(): Promise<GeoJSONFeature[]> {
@@ -29,6 +30,8 @@ class	Buildings {
 	public async	Building() {
 		const	meshes: THREE.Mesh[] = [];
 		const	buildings = await this.getBuildings();
+
+		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], this.radius ));
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	mat = new THREE.MeshBasicMaterial({ color: 'green', side: 2 });
 

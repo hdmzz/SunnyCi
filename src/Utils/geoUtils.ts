@@ -7,7 +7,7 @@ class	Utils {
 		return turfHelpers.point([latLon[1], latLon[0]]);
 	};
 
-	static	originRadiusToBbox( origin: [number, number], radius: number ): [number, number, number, number] {
+	static	originRadiusToBbox( origin: [lat: number, lon: number], radius: number ): [number, number, number, number] {
 		const	[w, n] = turfDestination( this.createTurfPoint( origin ), radius, -45, "kilometers" ).geometry.coordinates;
 		const	[e, s] = turfDestination( this.createTurfPoint( origin ), radius, 135, "kilometers" ).geometry.coordinates;
 
