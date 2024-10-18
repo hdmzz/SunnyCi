@@ -13,7 +13,7 @@ class	HugoGeo {
 	private	tokenMapBox: string;
 
 	constructor( opts: { tokenMapBox: string } ) {
-		this.unitsSide = 1;
+		this.unitsSide = 10;
 		this.isNode = false;
 		this.apiVector = "mapbox-terrain-vector";
 		this.apiRgb = "mapbox-terrain-rgb";
@@ -78,7 +78,7 @@ class	HugoGeo {
 	};
 
 	static	getUnitsPerMeters( unitsSide: number, radius: number ): number {
-		return ( unitsSide / ( radius * Math.pow( 2, 0.5 ) * 1000 ) );
+		return ( unitsSide / ( radius * ( 2**0.5 ) * 1000 ) );
 	};
 
 	static	projectCoord( unitsSide: number, coord: [number, number], nw: [number, number], se: [number, number]) {

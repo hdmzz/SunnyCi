@@ -18,8 +18,16 @@ class	Buildings {
 		this.radius = radius;
 	};
 
-	public async	getBuildings(): Promise<GeoJSONFeature[]> {
-		const	data: GeoJSONFeatureCollection = await fetch('../../data/building.geojson').then(( res ) => {
+	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
+		if ( !url ) {
+			throw new Error( 'No url given!! getBuilding Function' );
+		};
+
+		const	data: GeoJSONFeatureCollection = await fetch( url ).then(( res ) => {
+			if ( !res.ok ) {
+				throw new Error( `Something happened maybe the url Given is not correct: ${res.status}` );
+			};
+
 			return ( res.json() )
 		});
 		
@@ -29,25 +37,24 @@ class	Buildings {
 	
 	public async	Building() {
 		const	meshes: THREE.Mesh[] = [];
-		const	buildings = await this.getBuildings();
-
-		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], this.radius ));
+		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 1 ));
+		const	buildings = await this.getBuildings( url );
+		//const	buildings = await fetch("../../data/onlyOneBuilding.json").then(res => res.json())
 		const	geometries: THREE.ExtrudeGeometry[] = [];
-		const	mat = new THREE.MeshBasicMaterial({ color: 'green', side: 2 });
+		const	mat = new THREE.MeshBasicMaterial({ color: 'red', side: 2, wireframe: false });
+
 
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
-			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 10 : 1;
-			console.log(height);
-			const	building = this.addBuilding( featureElement.geometry.coordinates, height );
+			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 100 : 0.01;
+			const	groundAltitude = featureElement.properties.altitude_minimale_sol ? featureElement.properties.altitude_minimale_sol / 680 : 1;
+			const	building = this.addBuilding( featureElement.geometry.coordinates, height, groundAltitude );
 			geometries.push( building );
 		};
 
 		for ( let i = 0; i < geometries.length; i++ ) {
 			const	mesh = new THREE.Mesh( geometries[i], mat ); 
 			meshes.push(mesh);
-			if (i === 1)
-				console.log(mesh);
 		};
 
 		const	buildingGroup = HugoGeo.createDemGroups( 'Buildings', meshes );
@@ -55,7 +62,7 @@ class	Buildings {
 		return ( buildingGroup );
 	};
 
-	public	addBuilding( coords: number[][][][], height: number ): THREE.ExtrudeGeometry {
+	public	addBuilding( coords: number[][][][], height: number, groundAltitude: number ): THREE.ExtrudeGeometry {
 		const	holes = [];
 		let		shape: THREE.Shape | undefined;
 
@@ -78,7 +85,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false } );
+		const	geometry = this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false }, groundAltitude );
 		geometry.rotateX(Math.PI / 2);
 		geometry.rotateZ(Math.PI);
 		geometry.computeBoundingSphere();
@@ -91,9 +98,10 @@ class	Buildings {
 		for ( let i = 0; i < points.length; i++ ) {
 			const	elPoint = points[i];//
 
-			elPoint.forEach(( point, i ) => {
+			elPoint.forEach(( point, y ) => {
 				const	normPnt = new Coordinate({ latitude: point[1], longitude: point[0] }, this.center as [number, number]).ComputeWorldCoordinate();
-				if ( i === 0 ) {
+
+				if ( y === 0 ) {
 					shape.moveTo( normPnt.world.x, normPnt.world.z );
 				} else {
 					shape.lineTo( normPnt.world.x, normPnt.world.z );
@@ -104,10 +112,10 @@ class	Buildings {
 		return ( shape );
 	};
 
-	public	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean } ): THREE.ExtrudeGeometry {
+	public	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean }, altitude: number ): THREE.ExtrudeGeometry {
 		const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 		geometry.computeBoundingBox();
-
+		geometry.translate(-0.01, 0, altitude);
 		return ( geometry );
 	};
 

@@ -76,6 +76,7 @@ class	RgbModel {
 	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
 		//calculer le zoomPositionElevation
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
+		console.log(zoomPositionElevation);
 		let	count = 0;
 		
 		zoomPositionElevation.forEach( async zoomPos => {
@@ -84,7 +85,7 @@ class	RgbModel {
 			if ( tile !== null ) {
 				this.dataElevationCovered = this.dataElevationCovered.concat( this.addTile( tile, zoomPos, zpCovered, bbox ) );
 			} else {
-				throw new Error( 'no tile addedl 26 RgbModel' );
+				throw new Error( 'no tile added l-87 RgbModel' );
 			};
 
 			count++;
@@ -206,7 +207,6 @@ class	RgbModel {
 				geom,
 				new THREE.MeshBasicMaterial({
 					wireframe: true,
-					color: "green",
 				})
 			);
 
@@ -222,7 +222,7 @@ class	RgbModel {
 						plane.material = new THREE.MeshBasicMaterial({
 							side: 2,// FrontSide
 							map: tex,//DataTexture made of the pixels
-							wireframe: true
+							//wireframe: true
 						});
 					};
 					if ( onSatelliteMatWrapper ) {

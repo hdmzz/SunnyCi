@@ -46,20 +46,21 @@ class Fetch {
 			.map(triplet => triplet.split(',').map(num => parseFloat(num)))
 		);
 	};
-
+//
 	static	urlBuilder( bbox: BboxType ): string {
-		const	prefix = 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&REQUEST=GetFeature&typeName=BDTOPO_V3:batiment&VERSION=2.0.0&SRSNAME=EPSG:4326&outputFormat=application/json&BBOX=4.822998047,45.736083984,4.833984375,45.747070313,EPSG:4326'//BBox= ne sw
-		const	SRS = 'EPSG:4326';
+		let	ret = `https://data.geopf.fr/wfs/ows?SERVICE=WFS&REQUEST=GetFeature&typeName=BDTOPO_V3:batiment&VERSION=2.0.0&SRSNAME=EPSG:4326&outputFormat=application/json&BBOX=${bbox.northWest[0]},${bbox.southEast[1]},${bbox.southEast[0]},${bbox.northWest[1]},EPSG:4326`//BBox= ne sw
 
-		console.log(bbox);
-		return ( SRS );//!for testing
+		
 
-	}
+		return ( ret );
+
+	};
 
 //https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/#mapbox-terrain-rgb
 	static	getUri( zoomPos: number[], token: string, api: string): string {
 		let	prefix = '';
 		let	resFormat = '';
+
 		switch ( api ) {
 			case ( 'mapbox-terrain-rgb' ):
 				prefix = 'https://api.mapbox.com/v4/mapbox.terrain-rgb';
@@ -77,7 +78,7 @@ class Fetch {
 	};
 
 /**
- * @param uri du DEM de Mapbox.
+ * @param uri du DEM de Mapbox ou Photo
  * @returns une promesse contenant les valeur rgb des pixels du raster
  */
 	static async	getRgbTile({ uri }: { uri: string; }): Promise<ndarray.NdArray<Uint8Array>> {
