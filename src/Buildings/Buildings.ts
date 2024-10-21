@@ -47,7 +47,7 @@ class	Buildings {
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 100 : 0.01;
-			const	groundAltitude = featureElement.properties.altitude_minimale_sol ? featureElement.properties.altitude_minimale_sol / 680 : 1;
+			const	groundAltitude = featureElement.properties.altitude_minimale_sol ? featureElement.properties.altitude_minimale_sol / 705.9 : 1;
 			const	building = this.addBuilding( featureElement.geometry.coordinates, height, groundAltitude );
 			geometries.push( building );
 		};
@@ -86,9 +86,7 @@ class	Buildings {
 		};
 
 		const	geometry = this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false }, groundAltitude );
-		geometry.rotateX(Math.PI / 2);
-		geometry.rotateZ(Math.PI);
-		geometry.computeBoundingSphere();
+		
 		return ( geometry );
 	};
 
@@ -100,7 +98,7 @@ class	Buildings {
 
 			elPoint.forEach(( point, y ) => {
 				const	normPnt = new Coordinate({ latitude: point[1], longitude: point[0] }, this.center as [number, number]).ComputeWorldCoordinate();
-
+				console.log( normPnt );//normpnt contient les valurs xzy du point dans une instance de la classe Coordinate avec un objet world
 				if ( y === 0 ) {
 					shape.moveTo( normPnt.world.x, normPnt.world.z );
 				} else {
@@ -115,7 +113,10 @@ class	Buildings {
 	public	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean }, altitude: number ): THREE.ExtrudeGeometry {
 		const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 		geometry.computeBoundingBox();
-		geometry.translate(-0.01, 0, altitude);
+		geometry.translate(-0.01, -0.005, altitude);
+		geometry.rotateX(Math.PI / 2);
+		geometry.rotateZ(Math.PI);
+		geometry.computeBoundingSphere();
 		return ( geometry );
 	};
 

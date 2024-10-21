@@ -222,7 +222,7 @@ class	RgbModel {
 						plane.material = new THREE.MeshBasicMaterial({
 							side: 2,// FrontSide
 							map: tex,//DataTexture made of the pixels
-							//wireframe: true
+							wireframe: true
 						});
 					};
 					if ( onSatelliteMatWrapper ) {
