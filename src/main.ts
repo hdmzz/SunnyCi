@@ -4,7 +4,7 @@ import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 
 const	RADIUS = 5.00;
-const	CENTER: [lat: number, lon: number] = [45.8259882,6.6929854];
+const	CENTER: [lat: number, lon: number] = [45.85615158081055,6.72303581237793];
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 
 const	tgeo = new HugoGeo({
@@ -13,7 +13,7 @@ const	tgeo = new HugoGeo({
 const	terrain = await tgeo.getTerrainRgb(
 	CENTER,
 	RADIUS,
-	15,
+	13,
 );
 
 console.log( terrain );
@@ -28,6 +28,6 @@ const	view =  new View( container )
 
 view.addLayer( gridHelper );
 
-const building = await new Buildings(CENTER, RADIUS).Building();
+const building = await new Buildings( CENTER, RADIUS, terrain ).Building();
 
 view.addLayer( terrain, building );//pb avec chamonix il faut que lq cqerq se repositionne a l'altitude correspondante

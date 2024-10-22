@@ -76,7 +76,6 @@ class	RgbModel {
 	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
 		//calculer le zoomPositionElevation
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
-		console.log(zoomPositionElevation);
 		let	count = 0;
 		
 		zoomPositionElevation.forEach( async zoomPos => {

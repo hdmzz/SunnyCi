@@ -48,7 +48,6 @@ class	HugoGeo {
 				const	zoomPositionCovered = HugoGeo.getZoomPositionCovered( bbox.feature, zoom );
 				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher );
 
-				//la promesse sera resolu par la fonction fetch de rgb model  qui qpplera la finalcallback qui n'est autre que la  resolve qu'on lui a passe a la creation du watcher
 				rgbModel.fetch( zoomPositionCovered, bbox );
 			} catch ( error ) {
 				console.log( error );
