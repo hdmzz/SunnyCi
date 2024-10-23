@@ -1,5 +1,19 @@
 import ndarray from 'ndarray';
 import getPixels from './GetPixels';
+import { BboxType } from '../type';
+
+type	Bbox = {
+	feature: {
+		type: string;
+		geometry: {
+			properties: {};
+			type: string;
+			coordinates: [number[][]];
+		};
+	};
+	northWest: number[];//[number, number]
+	southEast: number[];//[number, number]
+}
 
 class Fetch {
 	/**
@@ -32,20 +46,39 @@ class Fetch {
 			.map(triplet => triplet.split(',').map(num => parseFloat(num)))
 		);
 	};
+//
+	static	urlBuilder( bbox: BboxType ): string {
+		let	ret = `https://data.geopf.fr/wfs/ows?SERVICE=WFS&REQUEST=GetFeature&typeName=BDTOPO_V3:batiment&VERSION=2.0.0&SRSNAME=EPSG:4326&outputFormat=application/json&BBOX=${bbox.northWest[0]},${bbox.southEast[1]},${bbox.southEast[0]},${bbox.northWest[1]},EPSG:4326`//BBox= ne sw
+		return ( ret );
+
+	};
 
 //https://docs.mapbox.com/data/tilesets/guides/access-elevation-data/#mapbox-terrain-rgb
-	static	getUri( zoomPos: number[], token: string, _api?: string): string {
-		const	prefix = 'https://api.mapbox.com/v4/mapbox.terrain-rgb';
-		const	resFormat = '@2x.pngraw';
-		return ( `${prefix}/${zoomPos.join('/')}${resFormat}?access_token=${token}`)
+	static	getUri( zoomPos: number[], token: string, api: string): string {
+		let	prefix = '';
+		let	resFormat = '';
+
+		switch ( api ) {
+			case ( 'mapbox-terrain-rgb' ):
+				prefix = 'https://api.mapbox.com/v4/mapbox.terrain-rgb';
+				resFormat = '@2x.pngraw';
+				break;
+			case ( 'mapbox-satellite' ):
+				prefix = 'https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles';
+				resFormat = '@2x';
+				break;
+			default:
+				console.log( "No Uri generated" );
+				return ( '' );
+		};
+		return ( `${prefix}/${zoomPos.join('/')}${resFormat}?access_token=${token}`);
 	};
 
 /**
- * !Un peu CallBack HEll NON??!!
- * @param uri du DEM de Mapbox.
+ * @param uri du DEM de Mapbox ou Photo
  * @returns une promesse contenant les valeur rgb des pixels du raster
  */
-	static async	getRgbTile( uri: string ): Promise<ndarray.NdArray<Uint8Array>> {
+	static async	getRgbTile({ uri }: { uri: string; }): Promise<ndarray.NdArray<Uint8Array>> {
 		return new Promise(( res, rej ) => {
 			getPixels( uri, ( err: any, pixels: ndarray.NdArray<Uint8Array> ) => {
 				if ( err ) {
@@ -57,9 +90,9 @@ class Fetch {
 		});
 	};
 
-	static async	fetchTile( zoomPos: number[], token: string, _api?: string ) {
-		const	uri: string  = this.getUri( zoomPos, token);
-		let		ret = await this.getRgbTile( uri );
+	static async	fetchTile( zoomPos: number[], token: string, api: string ) {
+		const	uri: string  = this.getUri( zoomPos, token, api );
+		let		ret = await this.getRgbTile({ uri });
 		return ( ret );
 	};
 };

@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import ndarray from "ndarray";
 import Fetch from "../Fetcher/Fetch";
-import ThreeGeo, { BboxType } from "../ThreeGeo";
 import { SphericalMercator } from "@mapbox/sphericalmercator";
+import { BboxType } from "../type";
 
 const	constVertices = 128;
 //! Attention ll signifi lon lat ici et pas lat lon
@@ -48,38 +48,50 @@ class	RgbModel {
 	public	mapBoxToken: string;
 	public	dataElevationCovered: number[][][];
 	public	apiSatellite: string;
+	public	apiRgb: string;
+	private	onSatelliteMat: ( () => void ) | undefined;
+	private	watcher: (payload: { what: string; data: THREE.Mesh[]; }) => void;
 
-	constructor ( units: number, projectCoords: ProjectCoordsFunction, token: string, apiSatellite: string ) {
+	constructor (
+			units: number,
+			projectCoords: ProjectCoordsFunction,
+			token: string, apiSatellite: string,
+			apiRgb: string,
+			watcher: (payload: { what: string, data: THREE.Mesh[] }) => void,
+			onSatelliteMat?: () => void,
+		) {
 		this.mapBoxToken = token;
 		this.projectCoords = projectCoords;
 		this.unitsPerMeter = units;
 		this.dataElevationCovered = [];
 		this.apiSatellite = apiSatellite;
+		this.apiRgb = apiRgb;
+		this.watcher = watcher;
+		if ( onSatelliteMat )
+			this.onSatelliteMat = onSatelliteMat;
+		else
+			this.onSatelliteMat = undefined;
 	};
 
-	public async	fetch( zpCovered: number[][], bbox: BboxType ): Promise<THREE.Mesh[]> {
+	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
 		//calculer le zoomPositionElevation
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
 		let	count = 0;
-
-		const	objs: THREE.Mesh[] = [];
-
+		
 		zoomPositionElevation.forEach( async zoomPos => {
-			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, 'mapbox-rgb' );
+			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );
 
 			if ( tile !== null ) {
 				this.dataElevationCovered = this.dataElevationCovered.concat( this.addTile( tile, zoomPos, zpCovered, bbox ) );
 			} else {
-				throw new Error( 'no tile addedl 26 RgbModel' );
+				throw new Error( 'no tile added l-87 RgbModel' );
 			};
 
 			count++;
 			if ( count === zoomPositionElevation.length ) {
-				objs.push(...this._build());
+				this.build();
 			};
 		});
-
-		return ( objs )
 	};
 
 	public	addTile( tile: ndarray.NdArray<Uint8Array>, zoomPositionElevation: number[], zpCovered: number[][], bbox: BboxType ): number[][][] {
@@ -91,10 +103,10 @@ class	RgbModel {
 				R = tile.data[i];
 				G = tile.data[i + 1];
 				B = tile.data[i + 2];
-				elevations.push( -10000 + ( ( R * 256 ** 2 ) + ( G * 256 ) + B ) * 0.1 );
+				elevations.push( -10000 + (( R * 256 ** 2 ) + ( G * 256 ) + B) * 0.1 );
 			};
 		} else {
-			elevations = new Array(262144).fill(0);
+			elevations = new Array(262144).fill(0);//262144 ==> (256**2 * 4)
 		};
 
 		let	sixteenths = [];
@@ -144,13 +156,28 @@ class	RgbModel {
 		return ( dataElev );
 	};
 
+	//cette fonnction s'executera dans la boucle forEacch DataElevation 
+	//c'est pour  cela qu on un compte de pour  verifier que les tuiles de 
+	//lelevation ont bien ete fetche et sont bieng arrivees
 	public async	build() {
-		const	meshes = await this._build();
-		console.log(meshes);
+		let		satCount = 0;
+		let		onSatelliteMatWrapper = null;
+		if ( this.onSatelliteMat )
+			onSatelliteMatWrapper = ( meshAcc: THREE.Mesh[] ) => {
+				satCount++;
+				if ( satCount === this.dataElevationCovered.length )
+					this.watcher({ what: 'rgb-dem', data: meshAcc });
+			};
 
+		const	meshes = this._build( onSatelliteMatWrapper );
+		
+		if ( !onSatelliteMatWrapper )
+			this.watcher({ what: 'rgb-dem', data: meshes });
 	};
 
-	private	_build(): THREE.Mesh[] {
+	private	_build(
+			onSatelliteMatWrapper: ((meshAcc: THREE.Mesh[]) => void) | null
+		): THREE.Mesh[] {
 		const	{ dataElevationCovered: dataEl, apiSatellite, mapBoxToken } = this;
 
 		//first sort the data Ele
@@ -165,22 +192,45 @@ class	RgbModel {
 		const	objs: THREE.Mesh[] = [];
 		dataEl.forEach(([ zoomPos, array, _zoomPosEle ]) => {
 			let	cSegments = this.resolveSeams(
-				array, this.getNeighborsInfo( dataEl, dataElIds, zoomPos ));
+				array, this.getNeighborsInfo( dataEl, dataElIds, zoomPos )
+			);
 
-			const	geom = new THREE.PlaneGeometry( 1, 1, cSegments[0], cSegments[1] );
-			geom.setAttribute( "position", new THREE.Float32BufferAttribute( new Float32Array( array ), 3) );
+			const	geom = new THREE.PlaneGeometry(1,1,cSegments[0],cSegments[1]);
+
+			geom.setAttribute(
+				"position",
+				new THREE.Float32BufferAttribute( new Float32Array(array), 3 )
+			);
 
 			const	plane = new THREE.Mesh(
 				geom,
 				new THREE.MeshBasicMaterial({
 					wireframe: true,
-					color: "red",
 				})
 			);
 
+			//la raison de mettre plane dans objs est//qu'on en a besoin
 			objs.push( plane );
+
+			this.resolveTexture(
+				zoomPos,
+				apiSatellite,
+				mapBoxToken,
+				( tex ) => {
+					if ( tex ){
+						plane.material = new THREE.MeshBasicMaterial({
+							side: 2,// FrontSide
+							map: tex,//DataTexture made of the pixels
+							wireframe: true
+						});
+					};
+					if ( onSatelliteMatWrapper ) {
+						onSatelliteMatWrapper( objs );
+					}
+				},
+			);
 		});
-		console.log(objs)
+
 		return ( objs );
 	};
 
@@ -262,6 +312,24 @@ class	RgbModel {
 			neighbors.push( zoomposNei );
 		});
 		return ( neighbors );
+	};
+
+	//on va choper le raster de couleur correspondant au zoomPos au momment ou on a les elevations et  tout ds la fonctioon build
+	private async	resolveTexture(
+		zoomPos: number[],
+		apiSatellite: string,
+		token:string,
+		onTex: ( texture: THREE.DataTexture ) => void,
+	) {
+		const	pixels = await Fetch.fetchTile( zoomPos, token, apiSatellite );
+		const	tex = new THREE.DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], THREE.RGBAFormat );
+
+		tex.flipY = true;
+		tex.needsUpdate = true;
+		if ( onTex ) {
+			onTex( tex );
+		}
+
 	};
 };
 

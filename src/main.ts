@@ -1,47 +1,36 @@
-import { OrbitControls } from "three/examples/jsm/Addons.js";
-import ThreeGeo from "./ThreeGeo";
 import * as THREE from "three";
+import HugoGeo from "./HugoGeo";
+import View from "./View/View";
+import Buildings from "./Buildings/Buildings";
 
-const	tgeo = new ThreeGeo({
+const	RADIUS =5.00;
+const	CENTER: [lat: number, lon: number] = [45.7736192,4.8431104];
+const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
+
+const	tgeo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w'
 });
-
 const	terrain = await tgeo.getTerrainRgb(
-	[46.5763, 7.9904],
-	5.0,
-	12
+	CENTER,
+	RADIUS,
+	15,
 );
 
-console.log(terrain);
+const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
-window.addEventListener( 'resize', () => {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize( window.innerWidth, window.innerHeight );
-})
+const	view =  new View( container )
 
-const scene = new THREE.Scene();
+terrain.children.forEach(( mesh ) => {
+	console.log( mesh );
+});
 
-scene.background = new THREE.Color("white")
+console.log( terrain );
 
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
-camera.position.z = 5;
-//camera.lookAt( terrain.position );
+terrain.rotation.x = -Math.PI/2;
 
-const	light = new THREE.AmbientLight();
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setAnimationLoop( animate );
-document.body.appendChild( renderer.domElement );
+view.addLayer( gridHelper );
 
-const	controls = new OrbitControls( camera, renderer.domElement );
+const building = await new Buildings( CENTER, RADIUS, terrain ).Building();
 
-scene.add( terrain );
-
-function animate() {
-
-	controls.update()
-	renderer.render( scene, camera );
-
-}
+view.addLayer( terrain, building );//pb avec chamonix il faut que lq cqerq se repositionne a l'altitude correspondante
