@@ -3,8 +3,8 @@ import HugoGeo from "./HugoGeo";
 import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 
-const	RADIUS = 5.00;
-const	CENTER: [lat: number, lon: number] = [45.85615158081055,6.72303581237793];
+const	RADIUS =5.00;
+const	CENTER: [lat: number, lon: number] = [45.7736192,4.8431104];
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 
 const	tgeo = new HugoGeo({
@@ -13,18 +13,21 @@ const	tgeo = new HugoGeo({
 const	terrain = await tgeo.getTerrainRgb(
 	CENTER,
 	RADIUS,
-	13,
+	15,
 );
-
-console.log( terrain );
-
-terrain.rotation.x = -Math.PI/2;
 
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	view =  new View( container )
 
-//view.addLayer( terrain );
+terrain.children.forEach(( mesh ) => {
+	console.log( mesh );
+});
+
+console.log( terrain );
+
+terrain.rotation.x = -Math.PI/2;
+
 
 view.addLayer( gridHelper );
 

@@ -81,7 +81,7 @@ class	HugoGeo {
 	};
 
 	static	projectCoord( unitsSide: number, coord: [number, number], nw: [number, number], se: [number, number]) {
-		return [ // lng, lat -> px, py
+		return [
 			unitsSide * (-0.5 + (coord[0]-nw[0]) / (se[0]-nw[0])),
 			unitsSide * (-0.5 - (coord[1]-se[1]) / (se[1]-nw[1]))
 		];

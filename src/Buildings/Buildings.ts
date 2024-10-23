@@ -6,7 +6,7 @@ import Fetch from '../Fetcher/Fetch';
 
 const	coordinateCahe: { [key: string]: Coordinate } = {};
 
-export function	getWorldCoords( lat: number, lon: number, center: [number, number] ) {
+export function	getWorldCoords( lat: number, lon: number, alt: number, center: [number, number] ) {
 	const	cacheKey: string = `${lat},${lon},${center[0]},${center[1]}`;
 
 	if ( coordinateCahe[cacheKey] ) {
@@ -89,7 +89,7 @@ class	Buildings {
 
 	public async	Building() {
 		const	mat = new THREE.MeshBasicMaterial({ color: 'red', side: 2, wireframe: false });
-		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 1 ));
+		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 0.5 ));
 		const	buildings = await this.getBuildings( url );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
@@ -116,7 +116,6 @@ class	Buildings {
 
 	public	addBuilding( coords: number[][][][], height: number, groundAltitude: number ): THREE.ExtrudeGeometry {
 		const	holes = [];
-		let		altitude: number = 0;
 		let		shape: THREE.Shape | undefined;
 
 		for ( let i = 0; i < coords.length; i++ ) {//ex 2
@@ -166,7 +165,7 @@ class	Buildings {
 		const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 
 		geometry.computeBoundingBox();
-		geometry.translate(-0.01, -0.005, altitude);
+		//geometry.translate(-0.01, -0.005, altitude);
 		geometry.rotateX(Math.PI / 2);
 		geometry.rotateZ(Math.PI);
 		geometry.computeBoundingSphere();

@@ -49,9 +49,6 @@ class Fetch {
 //
 	static	urlBuilder( bbox: BboxType ): string {
 		let	ret = `https://data.geopf.fr/wfs/ows?SERVICE=WFS&REQUEST=GetFeature&typeName=BDTOPO_V3:batiment&VERSION=2.0.0&SRSNAME=EPSG:4326&outputFormat=application/json&BBOX=${bbox.northWest[0]},${bbox.southEast[1]},${bbox.southEast[0]},${bbox.northWest[1]},EPSG:4326`//BBox= ne sw
-
-		
-
 		return ( ret );
 
 	};

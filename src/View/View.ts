@@ -26,6 +26,8 @@ class	View extends THREE.EventDispatcher {
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
+		const axesHelper = new THREE.AxesHelper(4);
+		this.scene.add(axesHelper);
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		container.appendChild( this.renderer.domElement );

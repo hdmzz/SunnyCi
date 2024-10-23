@@ -1,9 +1,9 @@
 function	mercator( lat: number, lon: number ) {
 	const	mercator = { x: 0, y: 0 };
 	const	earthRad = 6378.137;
+	const	a = lat * Math.PI / 180;
 
 	mercator.x = lon * Math.PI / 180 * earthRad;
-	const a = lat * Math.PI / 180;
 	mercator.y = earthRad / 2 * Math.log((1.0 + Math.sin(a)) / (1.0 - Math.sin(a)));
 	
 	return ( mercator );
@@ -30,7 +30,7 @@ export class Coordinate {
 	constructor ( coor: { latitude: number, longitude: number, altitude?: number }, center: [number, number] ) {
 		this.world = { x: 0, y: 0, z: 0 };
 		this.gps = new GPSCoordinate( coor.latitude, coor.longitude, coor.altitude || 0 );
-		this.scale =  1;
+		this.scale = 1.15;
 		this.center = {latitude: center[0], longitude: center[1] };
 	};
 
@@ -44,8 +44,8 @@ export class Coordinate {
 
 		const	center = mercator(this.center.latitude, this.center.longitude);
 		this.world.x = ( center.x - obj.x ) * this.scale;
-		this.world.z = ( center.y - obj.y ) * this.scale;
-		this.world.y = this.gps.altitude;
+		this.world.y = ( center.y - obj.y ) * this.scale;
+		this.world.z = this.gps.altitude;
 
 		return ( this );
 	};
