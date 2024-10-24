@@ -20,10 +20,6 @@ const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	view =  new View( container )
 
-terrain.children.forEach(( mesh ) => {
-	console.log( mesh );
-});
-
 console.log( terrain );
 
 terrain.rotation.x = -Math.PI/2;

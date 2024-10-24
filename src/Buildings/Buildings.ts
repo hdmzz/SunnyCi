@@ -13,17 +13,17 @@ export function	getWorldCoords( lat: number, lon: number, alt: number, center: [
 		return ( coordinateCahe[cacheKey] );
 	} else {
 		coordinateCahe[cacheKey] = new Coordinate({ latitude: lat, longitude: lon }, center as [number, number]).ComputeWorldCoordinate();
-		return	coordinateCahe[cacheKey];
+		return	( coordinateCahe[cacheKey] );
 	};
 };
 
 class	Buildings {
-	
 	data: GeoJSONFeature | {};
 	buildingsArray: [];
 	center: [lat: number, lon: number];
 	radius: number;
 	terrain: THREE.Mesh[];
+
 	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Group ) {
 		this.data = {};
 		this.buildingsArray = [];
@@ -66,7 +66,7 @@ class	Buildings {
 
 	public async	getAltitude( el: number[][][] ): Promise<number> {
 		//je doils trouver la mesh qui contient le point
-		const	normpoint = getWorldCoords( el[0][0][1], el[0][0][0], this.center );
+		const	normpoint = getWorldCoords( el[0][0][1], el[0][0][0], el[0][0][2], this.center );
 
 		this.terrain.forEach(( mesh, index ) => {
 			let	firstX, lastX, firstY, lastY;
@@ -76,7 +76,7 @@ class	Buildings {
 			firstY = mesh.geometry.attributes.position.array[2];
 			lastY = mesh.geometry.attributes.position.array[mesh.geometry.attributes.position.array.length - 1];
 
-			if ( normpoint.world.z >= firstX && normpoint.world.z <= lastX ) {
+			if ( normpoint.world.y >= firstX && normpoint.world.z <= lastX ) {
 				const	dem = this.shortest( normpoint, mesh.geometry.attributes.position.array );
 				if ( dem !== false ) {
 					return ( dem );
@@ -99,8 +99,8 @@ class	Buildings {
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 100 : 0.01;
 			const	groundAltitude = featureElement.properties.altitude_minimale_sol ? featureElement.properties.altitude_minimale_sol / 705.9 : 1;
 			const	building = this.addBuilding( featureElement.geometry.coordinates, height, groundAltitude );
-			const	altitude = await this.getAltitude( featureElement.geometry.coordinates[0] );
-			building.translate( 0, 0, altitude );
+			//const	altitude = await this.getAltitude( featureElement.geometry.coordinates[0] );
+			//building.translate( 0, 0, altitude );
 			geometries.push( building );
 		};
 
@@ -120,7 +120,7 @@ class	Buildings {
 
 		for ( let i = 0; i < coords.length; i++ ) {//ex 2
 			const	el = coords[i];
-			
+
 			if ( i === 0 ) {
 				shape = this.genShape( el );
 			} else {
@@ -148,12 +148,12 @@ class	Buildings {
 			const	elPoint = points[i];//
 
 			elPoint.forEach(( point, y ) => {
-				const	normPnt = getWorldCoords( point[1], point[0], this.center );
+				const	normPnt = getWorldCoords( point[1], point[0], point[2], this.center );
 
 				if ( y === 0 ) {
-					shape.moveTo( normPnt.world.x, normPnt.world.z );
+					shape.moveTo( normPnt.world.x, normPnt.world.y );
 				} else {
-					shape.lineTo( normPnt.world.x, normPnt.world.z );
+					shape.lineTo( normPnt.world.x, normPnt.world.y );
 				};
 			});
 		};
