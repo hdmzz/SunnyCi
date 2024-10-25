@@ -3,6 +3,7 @@ import { GeoJSONFeature, GeoJSONFeatureCollection } from '../type';
 import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
 import Fetch from '../Fetcher/Fetch';
+import View from '../View/View';
 
 const	coordinateCahe: { [key: string]: Coordinate } = {};
 
@@ -23,13 +24,15 @@ class	Buildings {
 	center: [lat: number, lon: number];
 	radius: number;
 	terrain: THREE.Mesh[];
+	view: View;
 
-	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Group ) {
+	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Group, view: View ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
 		this.radius = radius;
 		this.terrain = terrain.children as THREE.Mesh[];
+		this.view = view;
 	};
 
 	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
@@ -64,48 +67,48 @@ class	Buildings {
 		return ( res );
 	};
 
-	public async	getAltitude( el: number[][][] ): Promise<number> {
-		//je doils trouver la mesh qui contient le point
-		const	normpoint = getWorldCoords( el[0][0][1], el[0][0][0], el[0][0][2], this.center );
+	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
+		const	raycaster = new THREE.Raycaster();
+		const	up = new THREE.Vector3( 0, 1, 0 );
+		let	altitude = 0;
 
-		this.terrain.forEach(( mesh, index ) => {
-			let	firstX, lastX, firstY, lastY;
+		console.log( building );
+		for ( const mesh of this.terrain) {
 
-			firstX = mesh.geometry.attributes.position.array[0];
-			lastX = mesh.geometry.attributes.position.array[mesh.geometry.attributes.position.array.length - 3];
-			firstY = mesh.geometry.attributes.position.array[2];
-			lastY = mesh.geometry.attributes.position.array[mesh.geometry.attributes.position.array.length - 1];
+			raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
 
-			if ( normpoint.world.y >= firstX && normpoint.world.z <= lastX ) {
-				const	dem = this.shortest( normpoint, mesh.geometry.attributes.position.array );
-				if ( dem !== false ) {
-					return ( dem );
-				}
+			const	intersects = await new Promise<THREE.Intersection[]>(( resolve ) => {
+				const	res = raycaster.intersectObject( mesh );
+				resolve( res );
+			});
+			
+			if ( intersects.length > 0 ) {
+				altitude = intersects[0].point.y;
+				console.log( "intersection ici: %f", altitude );
+				break;
 			};
-		});
+		};
 
-		return ( 0 );
+		return ( altitude );
 	};
 
 	public async	Building() {
 		const	mat = new THREE.MeshBasicMaterial({ color: 'red', side: 2, wireframe: false });
-		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 1 ));
+		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 0.5 ));
 		const	buildings = await this.getBuildings( url );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
 		const	unitsPerMeters = HugoGeo.getUnitsPerMeters( 10, 5.00 );
-		console.log( unitsPerMeters );
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 100 : 0.01;
-			const	groundAltitude = featureElement.properties.altitude_minimale_sol ? featureElement.properties.altitude_minimale_toit * 0.0014142135623730950: 1;
-			const	building = this.addBuilding( featureElement.geometry.coordinates, height, groundAltitude );
+			const	building = await this.addBuilding( featureElement.geometry.coordinates, height );
 
 			geometries.push( building );
 		};
 
 		for ( let i = 0; i < geometries.length; i++ ) {
-			const	mesh = new THREE.Mesh( geometries[i], mat ); 
+			const	mesh = new THREE.Mesh( geometries[i], mat );
 			meshes.push( mesh );
 		};
 
@@ -114,7 +117,7 @@ class	Buildings {
 		return ( buildingGroup );
 	};
 
-	public	addBuilding( coords: number[][][][], height: number, groundAltitude: number ): THREE.ExtrudeGeometry {
+	public async	addBuilding( coords: number[][][][], height: number ): Promise<THREE.ExtrudeGeometry> {
 		const	holes = [];
 		let		shape: THREE.Shape | undefined;
 
@@ -136,7 +139,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false }, groundAltitude );
+		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false } );
 
 		return ( geometry );
 	};
@@ -161,14 +164,15 @@ class	Buildings {
 		return ( shape );
 	};
 
-	public	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean }, altitude: number ): THREE.ExtrudeGeometry {
+	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean } ): Promise<THREE.ExtrudeGeometry> {
 		const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-
-		geometry.computeBoundingBox();
-		geometry.translate(-0.01, -0.005, altitude);
+		
 		geometry.rotateX(Math.PI / 2);
 		geometry.rotateZ(Math.PI);
 		geometry.computeBoundingSphere();
+		const	altitude = await this.getAltitude( geometry );
+		console.log(altitude);
+		geometry.translate(0, altitude, 0);
 
 		return ( geometry );
 	};
