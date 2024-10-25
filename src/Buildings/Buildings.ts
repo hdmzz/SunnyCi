@@ -7,12 +7,12 @@ import Fetch from '../Fetcher/Fetch';
 const	coordinateCahe: { [key: string]: Coordinate } = {};
 
 export function	getWorldCoords( lat: number, lon: number, alt: number, center: [number, number] ) {
-	const	cacheKey: string = `${lat},${lon},${center[0]},${center[1]}`;
+	const	cacheKey: string = `${lat},${lon},${alt},${center[0]},${center[1]}`;
 
 	if ( coordinateCahe[cacheKey] ) {
 		return ( coordinateCahe[cacheKey] );
 	} else {
-		coordinateCahe[cacheKey] = new Coordinate({ latitude: lat, longitude: lon }, center as [number, number]).ComputeWorldCoordinate();
+		coordinateCahe[cacheKey] = new Coordinate({ latitude: lat, longitude: lon, altitude: alt }, center as [number, number]).ComputeWorldCoordinate();
 		return	( coordinateCahe[cacheKey] );
 	};
 };
@@ -89,18 +89,18 @@ class	Buildings {
 
 	public async	Building() {
 		const	mat = new THREE.MeshBasicMaterial({ color: 'red', side: 2, wireframe: false });
-		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 0.5 ));
+		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 1 ));
 		const	buildings = await this.getBuildings( url );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
-
+		const	unitsPerMeters = HugoGeo.getUnitsPerMeters( 10, 5.00 );
+		console.log( unitsPerMeters );
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 100 : 0.01;
-			const	groundAltitude = featureElement.properties.altitude_minimale_sol ? featureElement.properties.altitude_minimale_sol / 705.9 : 1;
+			const	groundAltitude = featureElement.properties.altitude_minimale_sol ? featureElement.properties.altitude_minimale_toit * 0.0014142135623730950: 1;
 			const	building = this.addBuilding( featureElement.geometry.coordinates, height, groundAltitude );
-			//const	altitude = await this.getAltitude( featureElement.geometry.coordinates[0] );
-			//building.translate( 0, 0, altitude );
+
 			geometries.push( building );
 		};
 
@@ -165,7 +165,7 @@ class	Buildings {
 		const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 
 		geometry.computeBoundingBox();
-		//geometry.translate(-0.01, -0.005, altitude);
+		geometry.translate(-0.01, -0.005, altitude);
 		geometry.rotateX(Math.PI / 2);
 		geometry.rotateZ(Math.PI);
 		geometry.computeBoundingSphere();

@@ -106,7 +106,7 @@ class	RgbModel {
 				elevations.push( -10000 + (( R * 256 ** 2 ) + ( G * 256 ) + B) * 0.1 );
 			};
 		} else {
-			elevations = new Array(262144).fill(0);//262144 ==> (256**2 * 4)
+			elevations = new Array( 262144 ).fill( 0 );//262144 ==> (256**2 * 4)
 		};
 
 		let	sixteenths = [];
@@ -126,7 +126,7 @@ class	RgbModel {
 		sixteenths.forEach(( zoomPosStr, index ) => {
 			if ( !zpCoveredStr.includes( zoomPosStr ) ) return;
 
-			let	zoomPos = zoomPosStr.split( '/' ).map( str => parseInt( str ) );
+			let	zoomPos = zoomPosStr.split( '/' ).map(( str ) => parseInt( str ));
 			let	pxRange = sixteenthPixelRanges[index];
 			let	elev = [];
 
@@ -195,11 +195,11 @@ class	RgbModel {
 				array, this.getNeighborsInfo( dataEl, dataElIds, zoomPos )
 			);
 
-			const	geom = new THREE.PlaneGeometry(1,1,cSegments[0],cSegments[1]);
+			const	geom = new THREE.PlaneGeometry( 1, 1, cSegments[0], cSegments[1] );
 
 			geom.setAttribute(
 				"position",
-				new THREE.Float32BufferAttribute( new Float32Array(array), 3 )
+				new THREE.Float32BufferAttribute( new Float32Array( array ), 3 )
 			);
 
 			const	plane = new THREE.Mesh(

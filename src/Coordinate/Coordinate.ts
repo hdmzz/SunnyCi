@@ -27,9 +27,9 @@ export class Coordinate {
 	scale: number;
 	center: { latitude: number, longitude: number };
 
-	constructor ( coor: { latitude: number, longitude: number, altitude?: number }, center: [number, number] ) {
+	constructor ( coor: { latitude: number, longitude: number, altitude: number }, center: [number, number] ) {
 		this.world = { x: 0, y: 0, z: 0 };
-		this.gps = new GPSCoordinate( coor.latitude, coor.longitude, coor.altitude || 0 );
+		this.gps = new GPSCoordinate( coor.latitude, coor.longitude, coor.altitude );
 		this.scale = 1.15;
 		this.center = {latitude: center[0], longitude: center[1] };
 	};
