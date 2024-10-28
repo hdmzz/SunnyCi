@@ -51,22 +51,6 @@ class	Buildings {
 		return ( data.features );
 	};
 
-	public	shortest( target: Coordinate , arr: THREE.TypedArray ): number| boolean {
-		let	resDis = 10000;
-		let	res: number | boolean = false;
-
-		for ( let i  = 0; i < arr.length; i+=3 ) {
-			const	dis = Math.sqrt((target.world.x - arr[i])**2 + (target.world.z - arr[i + 2])**2);
-
-			if ( dis <= resDis ) {
-				resDis = dis;
-				res = arr[i + 1];
-			};
-		};
-
-		return ( res );
-	};
-
 	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
 		const	raycaster = new THREE.Raycaster();
 		const	up = new THREE.Vector3( 0, 1, 0 );

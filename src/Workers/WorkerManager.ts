@@ -33,7 +33,7 @@ class WorkerManager<T> {
 		// console.log("Initializing workers...", this.jobQueue.length);
 		while ( this.jobQueue.length > 0 ) {
 			if ( this.totalWorkers < MAX_WORKERS ) {
-				const	worker = new Worker( new URL( "/public/workers/workertest.ts", import.meta.url ) );
+				const	worker = new Worker( new URL( "/public/workers/altitude.ts", import.meta.url ) );
 				this.totalWorkers++;
 
 				this.availableWorker.push(Promise.resolve( worker ));
@@ -77,7 +77,7 @@ class WorkerManager<T> {
 		};
 	};
 
-	private	killAllWorkers() {
+	public	killAllWorkers() {
 		Promise.all( this.availableWorker.map(( workerPromise ) => workerPromise.then(( w ) => w.terminate()))).then(() => {
 			this.availableWorker = [];
 			this.totalWorkers = 0;
