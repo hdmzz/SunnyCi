@@ -4,7 +4,7 @@ import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 
 const	RADIUS = 5.00;
-const	CENTER: [lat: number, lon: number] = [45.892014,6.711926];
+const	CENTER: [lat: number, lon: number] = [43.28550109788168,5.360945227435185];
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 
 const	tgeo = new HugoGeo({
