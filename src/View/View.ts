@@ -7,18 +7,28 @@ class	View extends THREE.EventDispatcher {
 	renderer: THREE.WebGLRenderer;
 	controls: OrbitControls;
 	container: HTMLDivElement;
+	light: THREE.DirectionalLight;
 
 	constructor( container: HTMLDivElement ) {
 		super();
 		this.scene = new THREE.Scene();
 		//this.scene.background = new THREE.Color( "white" );
-		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 100000 );
+		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 1000 );
 		this.camera.position.z = 1;
 		this.camera.position.y = 1.5;
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: true,
 		});
-
+		this.renderer.shadowMap.enabled = true;
+		this.light = new THREE.DirectionalLight( 0xffffff, 1 );
+		this.light.position.set( 10, 20, 10 );
+		this.light.castShadow = true;
+		this.light.shadow.camera.near = 0.1;
+		this.light.shadow.camera.far = 100;
+		this.light.shadow.camera.left = -50;  // Increase shadow area for larger scenes
+		this.light.shadow.camera.right = 50;
+		this.light.shadow.camera.top = 50;
+		this.light.shadow.camera.bottom = -50;
 		const	animate =  () => {
 			this.controls.update();
 			this.renderer.render( this.scene, this.camera );
@@ -27,7 +37,7 @@ class	View extends THREE.EventDispatcher {
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
 		const axesHelper = new THREE.AxesHelper(4);
-		this.scene.add(axesHelper);
+		this.scene.add( axesHelper, this.light );
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		container.appendChild( this.renderer.domElement );

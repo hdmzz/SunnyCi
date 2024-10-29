@@ -54,30 +54,30 @@ class	Buildings {
 	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
 		const	raycaster = new THREE.Raycaster();
 		const	up = new THREE.Vector3( 0, 1, 0 );
+		const	chunkSize = 5;
 		let	altitude = 0;
 
-		console.log( building );
-		for ( const mesh of this.terrain) {
-
+		for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
+			const	terrainChunk = this.terrain.slice( i, i + chunkSize );
 			raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
 
-			const	intersects = await new Promise<THREE.Intersection[]>(( resolve ) => {
-				const	res = raycaster.intersectObject( mesh );
-				resolve( res );
-			});
-			
-			if ( intersects.length > 0 ) {
-				altitude = intersects[0].point.y;
-				console.log( "intersection ici: %f", altitude );
-				break;
-			};
-		};
+			for ( const mesh of terrainChunk ) {
+				const	intersects =  raycaster.intersectObject( mesh );
+				if ( intersects.length > 0 ) {
+					altitude = intersects[0].point.y;
+					break;
+				}
+			}
+			if ( i + chunkSize < this.terrain.length )  {
+				await new Promise(( resolve ) => setTimeout( resolve, 0 ));
+			}
+		}
 
 		return ( altitude );
 	};
 
 	public async	Building() {
-		const	mat = new THREE.MeshBasicMaterial({ color: 'red', side: 2, wireframe: false });
+		const	mat = new THREE.MeshPhongMaterial({ color: 'red', side: 2, wireframe: false });
 		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 0.5 ));
 		const	buildings = await this.getBuildings( url );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
@@ -93,6 +93,7 @@ class	Buildings {
 
 		for ( let i = 0; i < geometries.length; i++ ) {
 			const	mesh = new THREE.Mesh( geometries[i], mat );
+			mesh.castShadow = true;
 			meshes.push( mesh );
 		};
 
@@ -154,8 +155,10 @@ class	Buildings {
 		geometry.rotateX(Math.PI / 2);
 		geometry.rotateZ(Math.PI);
 		geometry.computeBoundingSphere();
+		geometry.rotateY(-0.01)
+		
+		//geometry.translate(-0.01, 0, -0.05);
 		const	altitude = await this.getAltitude( geometry );
-		console.log(altitude);
 		geometry.translate(0, altitude, 0);
 
 		return ( geometry );

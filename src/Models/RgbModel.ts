@@ -204,10 +204,12 @@ class	RgbModel {
 
 			const	plane = new THREE.Mesh(
 				geom,
-				new THREE.MeshBasicMaterial({
+				new THREE.MeshPhongMaterial({
 					wireframe: true,
 				})
 			);
+			plane.castShadow = true;
+			plane.receiveShadow = true;
 
 			//la raison de mettre plane dans objs est//qu'on en a besoin
 			objs.push( plane );
@@ -218,10 +220,10 @@ class	RgbModel {
 				mapBoxToken,
 				( tex ) => {
 					if ( tex ){
-						plane.material = new THREE.MeshBasicMaterial({
+						plane.material = new THREE.MeshPhongMaterial({
 							side: 2,// FrontSide
 							map: tex,//DataTexture made of the pixels
-							wireframe: true
+							wireframe: false
 						});
 					};
 					if ( onSatelliteMatWrapper ) {
@@ -249,9 +251,6 @@ class	RgbModel {
 
 		if (cSegments[0] === constVertices &&
 			cSegments[1] === constVertices) {
-			// Both _stitchWithNei2() and _stitchWithNei3() were
-			// applided to this array.  Need filling a diagonal pothole.
-			// console.log('filling a pothole...');
 			let arrayNei6 = infoNei["6"];
 			if ( arrayNei6 ) {
 				array.push( arrayNei6[0], arrayNei6[1], arrayNei6[2] );
