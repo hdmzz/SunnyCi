@@ -208,7 +208,7 @@ class	RgbModel {
 					wireframe: true,
 				})
 			);
-			plane.castShadow = true;
+			//plane.castShadow = true;
 			plane.receiveShadow = true;
 
 			//la raison de mettre plane dans objs est//qu'on en a besoin
