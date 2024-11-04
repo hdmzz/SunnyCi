@@ -49,8 +49,8 @@ class	RgbModel {
 	public	dataElevationCovered: number[][][];
 	public	apiSatellite: string;
 	public	apiRgb: string;
-	private	onSatelliteMat: ( () => void ) | undefined;
 	private	watcher: (payload: { what: string; data: THREE.Mesh[]; }) => void;
+	private	onSatelliteMat: ( () => void ) | undefined;
 
 	constructor (
 			units: number,
@@ -208,7 +208,7 @@ class	RgbModel {
 				geom,
 				new THREE.MeshPhongMaterial({
 					color: 0xfff998,
-					wireframe: false,
+					wireframe: true,
 				})
 			);
 			//plane.castShadow = true;
@@ -255,15 +255,16 @@ class	RgbModel {
 
 		if (cSegments[0] === constVertices &&
 			cSegments[1] === constVertices) {
-			let arrayNei6 = infoNei["6"];
+			let	arrayNei6 = infoNei["6"];
 			if ( arrayNei6 ) {
 				array.push( arrayNei6[0], arrayNei6[1], arrayNei6[2] );
 			} else {
 				// filling with a degenerated triangle
-				let len = array.length;
+				let	len = array.length;
 				array.push( array[len-3], array[len-2], array[len-1] );
 			};
 		};
+
 		return ( cSegments );
 	};
 
