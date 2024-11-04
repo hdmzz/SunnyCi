@@ -162,15 +162,17 @@ class	RgbModel {
 	public async	build() {
 		let		satCount = 0;
 		let		onSatelliteMatWrapper = null;
-		if ( this.onSatelliteMat )
+		if ( this.onSatelliteMat !== undefined ) {
 			onSatelliteMatWrapper = ( meshAcc: THREE.Mesh[] ) => {
 				satCount++;
-				if ( satCount === this.dataElevationCovered.length )
-					this.watcher({ what: 'rgb-dem', data: meshAcc });
+				if ( satCount === this.dataElevationCovered.length ) {
+					this.watcher({ what: 'rgb-dem', data: meshAcc })
+				};
 			};
+		};
 
 		const	meshes = this._build( onSatelliteMatWrapper );
-		
+
 		if ( !onSatelliteMatWrapper )
 			this.watcher({ what: 'rgb-dem', data: meshes });
 	};
@@ -205,7 +207,8 @@ class	RgbModel {
 			const	plane = new THREE.Mesh(
 				geom,
 				new THREE.MeshPhongMaterial({
-					wireframe: true,
+					color: 0xfff998,
+					wireframe: false,
 				})
 			);
 			//plane.castShadow = true;
@@ -213,24 +216,25 @@ class	RgbModel {
 
 			//la raison de mettre plane dans objs est//qu'on en a besoin
 			objs.push( plane );
-
-			this.resolveTexture(
-				zoomPos,
-				apiSatellite,
-				mapBoxToken,
-				( tex ) => {
-					if ( tex ){
-						plane.material = new THREE.MeshPhongMaterial({
-							side: 2,// FrontSide
-							map: tex,//DataTexture made of the pixels
-							wireframe: false
-						});
-					};
-					if ( onSatelliteMatWrapper ) {
-						onSatelliteMatWrapper( objs );
-					}
-				},
-			);
+			if ( onSatelliteMatWrapper !== null ) {
+				this.resolveTexture(
+					zoomPos,
+					apiSatellite,
+					mapBoxToken,
+					( tex ) => {
+						if ( tex ){
+							plane.material = new THREE.MeshPhongMaterial({
+								side: 2,// FrontSide
+								map: tex,//DataTexture made of the pixels
+								wireframe: false
+							});
+						};
+						if ( onSatelliteMatWrapper ) {
+							onSatelliteMatWrapper( objs );
+						}
+					},
+				);
+			};
 		});
 
 		return ( objs );
@@ -327,8 +331,7 @@ class	RgbModel {
 		tex.needsUpdate = true;
 		if ( onTex ) {
 			onTex( tex );
-		}
-
+		};
 	};
 };
 

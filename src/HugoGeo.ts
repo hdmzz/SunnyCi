@@ -23,7 +23,6 @@ class	HugoGeo {
 
 	public async	getTerrainRgb( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group> {
 		const	meshes = await this.getTerrain(origin, radius, zoom);
-		
 
 		return (HugoGeo.createDemGroups( "dem-rgb", meshes ));
 	}
