@@ -50,8 +50,8 @@ class	RgbModel {
 	public	dataElevationCovered: number[][][];
 	public	apiSatellite: string;
 	public	apiRgb: string;
-	private	onSatelliteMat: ( () => void ) | undefined;
 	private	watcher: (payload: { what: string; data: THREE.Mesh[]; }) => void;
+	private	onSatelliteMat: ( () => void ) | undefined;
 
 	constructor (
 			units: number,
@@ -163,15 +163,18 @@ class	RgbModel {
 	public async	build() {
 		let		satCount = 0;
 		let		onSatelliteMatWrapper = null;
-		if ( this.onSatelliteMat )
+		
+		if ( this.onSatelliteMat !== undefined ) {
 			onSatelliteMatWrapper = ( meshAcc: THREE.Mesh[] ) => {
 				satCount++;
-				if ( satCount === this.dataElevationCovered.length )
-					this.watcher({ what: 'rgb-dem', data: meshAcc });
+				if ( satCount === this.dataElevationCovered.length ) {
+					this.watcher({ what: 'rgb-dem', data: meshAcc })
+				};
 			};
+		};
 
 		const	meshes = this._build( onSatelliteMatWrapper );
-		
+
 		if ( !onSatelliteMatWrapper )
 			this.watcher({ what: 'rgb-dem', data: meshes });
 	};
@@ -210,7 +213,9 @@ class	RgbModel {
 			const	plane = new THREE.Mesh(
 				geom,
 				new THREE.MeshPhongMaterial({
+					color: 0xfff998,
 					wireframe: true,
+					side: 2,
 				})
 			);
 			//plane.castShadow = true;
@@ -218,24 +223,25 @@ class	RgbModel {
 
 			//la raison de mettre plane dans objs est//qu'on en a besoin
 			objs.push( plane );
-
-			this.resolveTexture(
-				zoomPos,
-				apiSatellite,
-				mapBoxToken,
-				( tex ) => {
-					if ( tex ){
-						plane.material = new THREE.MeshPhongMaterial({
-							side: 2,// FrontSide
-							map: tex,//DataTexture made of the pixels
-							wireframe: false
-						});
-					};
-					if ( onSatelliteMatWrapper ) {
-						onSatelliteMatWrapper( objs );
-					}
-				},
-			);
+			if ( onSatelliteMatWrapper !== null ) {
+				this.resolveTexture(
+					zoomPos,
+					apiSatellite,
+					mapBoxToken,
+					( tex ) => {
+						if ( tex ){
+							plane.material = new THREE.MeshPhongMaterial({
+								side: 2,// FrontSide
+								map: tex,//DataTexture made of the pixels
+								wireframe: false
+							});
+						};
+						if ( onSatelliteMatWrapper ) {
+							onSatelliteMatWrapper( objs );
+						}
+					},
+				);
+			};
 		});
 
 		const	mergedGeometrie =  BufferGeometryUtils.mergeGeometries( geometries, false );
@@ -259,15 +265,16 @@ class	RgbModel {
 
 		if (cSegments[0] === constVertices &&
 			cSegments[1] === constVertices) {
-			let arrayNei6 = infoNei["6"];
+			let	arrayNei6 = infoNei["6"];
 			if ( arrayNei6 ) {
 				array.push( arrayNei6[0], arrayNei6[1], arrayNei6[2] );
 			} else {
 				// filling with a degenerated triangle
-				let len = array.length;
+				let	len = array.length;
 				array.push( array[len-3], array[len-2], array[len-1] );
 			};
 		};
+
 		return ( cSegments );
 	};
 
@@ -335,8 +342,7 @@ class	RgbModel {
 		tex.needsUpdate = true;
 		if ( onTex ) {
 			onTex( tex );
-		}
-
+		};
 	};
 };
 

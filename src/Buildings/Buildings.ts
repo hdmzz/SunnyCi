@@ -5,16 +5,16 @@ import { Coordinate } from '../Coordinate/Coordinate';
 import Fetch from '../Fetcher/Fetch';
 import View from '../View/View';
 
-const	coordinateCahe: { [key: string]: Coordinate } = {};
+const	coordinateCache: { [key: string]: Coordinate } = {};
 
 export function	getWorldCoords( lat: number, lon: number, alt: number, center: [number, number] ) {
 	const	cacheKey: string = `${lat},${lon},${alt},${center[0]},${center[1]}`;
 
-	if ( coordinateCahe[cacheKey] ) {
-		return ( coordinateCahe[cacheKey] );
+	if ( coordinateCache[cacheKey] ) {
+		return ( coordinateCache[cacheKey] );
 	} else {
-		coordinateCahe[cacheKey] = new Coordinate({ latitude: lat, longitude: lon, altitude: alt }, center as [number, number]).ComputeWorldCoordinate();
-		return	( coordinateCahe[cacheKey] );
+		coordinateCache[cacheKey] = new Coordinate({ latitude: lat, longitude: lon, altitude: alt }, center as [number, number]).ComputeWorldCoordinate();
+		return	( coordinateCache[cacheKey] );
 	};
 };
 
@@ -52,28 +52,29 @@ class	Buildings {
 	};
 
 	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
-		const	raycaster = new THREE.Raycaster();
-		const	up = new THREE.Vector3( 0, 1, 0 );
-		const	chunkSize = 5;
-		let	altitude = 0;
-
-		for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
-			const	terrainChunk = this.terrain.slice( i, i + chunkSize );
-			raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
-
-			for ( const mesh of terrainChunk ) {
-				const	intersects =  raycaster.intersectObject( mesh );
-				if ( intersects.length > 0 ) {
-					altitude = intersects[0].point.y;
-					break;
+		return new Promise( async ( resolve ) => {
+			const	raycaster = new THREE.Raycaster();
+			const	up = new THREE.Vector3( 0, 1, 0 );
+			const	chunkSize = 5;
+			let	altitude = 0;
+	
+			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
+				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
+				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
+				for ( const mesh of terrainChunk ) {
+					const	intersects =  raycaster.intersectObject( mesh );
+					if ( intersects.length > 0 ) {
+						altitude = intersects[0].point.y;
+						break;
+					}
 				}
+				if ( i + chunkSize < this.terrain.length )  {
+					await new Promise(( resolve ) => setTimeout( resolve, 0 ));
+				}
+				//if ( altitude !== 0 ) break;
 			}
-			if ( i + chunkSize < this.terrain.length )  {
-				await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			}
-		}
-
-		return ( altitude );
+			resolve( altitude );
+		})
 	};
 
 	public async	Building() {
@@ -150,18 +151,20 @@ class	Buildings {
 	};
 
 	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean } ): Promise<THREE.ExtrudeGeometry> {
-		const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-		
-		geometry.rotateX(Math.PI / 2);
-		geometry.rotateZ(Math.PI);
-		geometry.computeBoundingSphere();
-		geometry.rotateY(-0.01)
-		
-		//geometry.translate(-0.01, 0, -0.05);
-		const	altitude = await this.getAltitude( geometry );
-		geometry.translate(0, altitude, 0);
-
-		return ( geometry );
+		return new Promise( async ( resolve ) => {
+			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+			
+			geometry.rotateX(Math.PI / 2);
+			geometry.rotateZ(Math.PI);
+			geometry.computeBoundingSphere();
+			geometry.rotateY(-0.01)
+			
+			//geometry.translate(-0.01, 0, -0.05);
+			const	altitude = await this.getAltitude( geometry );
+			geometry.translate(0, altitude, 0);
+	
+			resolve( geometry );
+		});
 	};
 
 };

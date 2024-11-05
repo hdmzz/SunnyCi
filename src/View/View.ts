@@ -24,11 +24,13 @@ class	View extends THREE.EventDispatcher {
 		this.light.position.set( 10, 20, 10 );
 		this.light.castShadow = true;
 		this.light.shadow.camera.near = 0.1;
-		this.light.shadow.camera.far = 100;
-		this.light.shadow.camera.left = -50;  // Increase shadow area for larger scenes
-		this.light.shadow.camera.right = 50;
+		this.light.shadow.camera.far = 10000;
+		this.light.shadow.camera.left = -100;  // Increase shadow area for larger scenes
+		this.light.shadow.camera.right = 100;
 		this.light.shadow.camera.top = 50;
 		this.light.shadow.camera.bottom = -50;
+		const	lightHelper = new THREE.DirectionalLightHelper( this.light, 1 );
+	
 		const	animate =  () => {
 			this.controls.update();
 			this.renderer.render( this.scene, this.camera );
@@ -36,8 +38,8 @@ class	View extends THREE.EventDispatcher {
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
-		const axesHelper = new THREE.AxesHelper(4);
-		this.scene.add( axesHelper, this.light );
+		const axesHelper = new THREE.AxesHelper( 4 );
+		this.scene.add( axesHelper, this.light, lightHelper );
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		container.appendChild( this.renderer.domElement );
