@@ -162,6 +162,7 @@ class	RgbModel {
 	public async	build() {
 		let		satCount = 0;
 		let		onSatelliteMatWrapper = null;
+		
 		if ( this.onSatelliteMat !== undefined ) {
 			onSatelliteMatWrapper = ( meshAcc: THREE.Mesh[] ) => {
 				satCount++;
