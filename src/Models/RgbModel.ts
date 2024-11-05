@@ -3,6 +3,7 @@ import ndarray from "ndarray";
 import Fetch from "../Fetcher/Fetch";
 import { SphericalMercator } from "@mapbox/sphericalmercator";
 import { BboxType } from "../type";
+import { BufferGeometryUtils } from "three/examples/jsm/Addons.js";
 
 const	constVertices = 128;
 //! Attention ll signifi lon lat ici et pas lat lon
@@ -190,6 +191,8 @@ class	RgbModel {
 		dataEl.forEach(( data, index ) => { dataElIds[data[0].join('/')] = index });
 
 		const	objs: THREE.Mesh[] = [];
+		const	geometries: THREE.BufferGeometry[] = [];
+
 		dataEl.forEach(([ zoomPos, array, _zoomPosEle ]) => {
 			let	cSegments = this.resolveSeams(
 				array, this.getNeighborsInfo( dataEl, dataElIds, zoomPos )
@@ -201,6 +204,8 @@ class	RgbModel {
 				"position",
 				new THREE.Float32BufferAttribute( new Float32Array( array ), 3 )
 			);
+
+			geometries.push( geom );
 
 			const	plane = new THREE.Mesh(
 				geom,
@@ -232,6 +237,9 @@ class	RgbModel {
 				},
 			);
 		});
+
+		const	mergedGeometrie =  BufferGeometryUtils.mergeGeometries( geometries, false );
+		console.log( mergedGeometrie );
 
 		return ( objs );
 	};

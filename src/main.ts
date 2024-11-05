@@ -20,8 +20,6 @@ const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	view =  new View( container )
 
-console.log( terrain );
-
 terrain.rotation.x = -Math.PI/2;
 
 
