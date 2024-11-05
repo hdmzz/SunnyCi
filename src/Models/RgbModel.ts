@@ -209,6 +209,7 @@ class	RgbModel {
 				new THREE.MeshPhongMaterial({
 					color: 0xfff998,
 					wireframe: true,
+					side: 2,
 				})
 			);
 			//plane.castShadow = true;
