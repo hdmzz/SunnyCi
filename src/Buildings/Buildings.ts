@@ -53,6 +53,7 @@ class	Buildings {
 
 	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
 		return new Promise( async ( resolve ) => {
+			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	raycaster = new THREE.Raycaster();
 			const	up = new THREE.Vector3( 0, 1, 0 );
 			const	chunkSize = 5;
@@ -66,15 +67,11 @@ class	Buildings {
 					if ( intersects.length > 0 ) {
 						altitude = intersects[0].point.y;
 						break;
-					}
-				}
-				if ( i + chunkSize < this.terrain.length )  {
-					await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-				}
-				//if ( altitude !== 0 ) break;
-			}
+					};
+				};
+			};
 			resolve( altitude );
-		})
+		});
 	};
 
 	public async	Building() {
