@@ -30,7 +30,7 @@ class	HugoGeo {
 	/**
 	 * @origin = lat lon coordonnées
 	 * @radius dans l'exemple 5 corresond au rayon de la tuile en km
-	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera
+	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera !! log neperien nombre d'images
 	 * le res de la promesse doit etre donne au watcher
 	 */
 	private	getTerrain( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
