@@ -3,8 +3,8 @@ import { GeoJSONFeature, GeoJSONFeatureCollection } from '../type';
 import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
 import Fetch from '../Fetcher/Fetch';
-import View from '../View/View';
 
+import View from '../View/View';
 const	coordinateCache: { [key: string]: Coordinate } = {};
 
 export function	getWorldCoords( lat: number, lon: number, alt: number, center: [number, number] ) {

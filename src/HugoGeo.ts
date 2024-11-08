@@ -3,6 +3,8 @@ import Utils from './Utils/geoUtils';
 import cover from '@mapbox/tile-cover';
 import RgbModel from './Models/RgbModel';
 import { PolygonFeature } from './type';
+import Fetch from './Fetcher/Fetch';
+import GreyModel from './Models/GreyModel';
 
 class	HugoGeo {
 	public	unitsSide: number;
@@ -11,14 +13,16 @@ class	HugoGeo {
 	public	apiRgb: string;
 	public	apiSatellite: string;
 	private	tokenMapBox: string;
+	private	tokenOpenTopo: string;
 
-	constructor( opts: { tokenMapBox: string } ) {
+	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string } ) {
 		this.unitsSide = 10;
 		this.isNode = false;
 		this.apiVector = "mapbox-terrain-vector";
 		this.apiRgb = "mapbox-terrain-rgb";
 		this.apiSatellite = "mapbox-satellite";
 		this.tokenMapBox = opts.tokenMapBox;
+		this.tokenOpenTopo = opts.tokenOpenTopo;
 	};
 
 	public async	getTerrainRgb( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group> {
@@ -140,8 +144,9 @@ class	HugoGeo {
 	
 	private	createWatcher( finalCallBack:(value: THREE.Mesh<THREE.BufferGeometry>[]) => void): (payload: { what: string, data: THREE.Mesh[] }) => void {
 		let		isRgbPending: boolean = true;
+		let		isGreyPending: boolean = true;
 		const	ret: { value: THREE.Mesh[] } = { value: [] }; // rgbDem will contain all the data
-		const	isDone = () => !isRgbPending;
+		const	isDone = () => !isRgbPending || !isGreyPending;
 
 		if ( isDone() ) {
 			finalCallBack( ret.value );
@@ -154,9 +159,28 @@ class	HugoGeo {
 				isRgbPending = false;
 				ret.value = data;
 			};
+			if ( what === 'grey-dem' ) {
+				isGreyPending = false;
+				ret.value = data;
+			};
 			if ( isDone() ) {
 				console.log( 'watcher says all shit is done' );
 				finalCallBack( ret.value );
+			};
+		});
+	};
+
+	//get terrain greyscale
+	public async	getTerrainGrey( origin: [lat: number, lon:  number], radius: number ): Promise<THREE.Mesh[]> {
+		return new Promise(( resolve, reject ) => {
+			try {
+				const	watcher = this.createWatcher( resolve );
+				const	bbox = HugoGeo.getBbox( origin, radius );
+				const	url = Fetch.greyModelUrlBuilder( bbox, this.tokenOpenTopo );
+				const	mesh = await 
+
+			} catch (error) {
+				reject( error );
 			};
 		});
 	};

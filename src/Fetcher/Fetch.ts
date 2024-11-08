@@ -95,5 +95,16 @@ class Fetch {
 		let		ret = await this.getRgbTile({ uri });
 		return ( ret );
 	};
+
+	//https://portal.opentopography.org/apidocs/#/Public/getGlobalDem ==> go get some 
+	static	greyModelUrlBuilder( bbox: BboxType, token: string ): string {
+		const	[n, w] = bbox.northWest;
+		const	[s, e] = bbox.southEast;
+
+		console.log(n, w, s, e);
+		let		res = `https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1&south=${n}&north=${s}&west=${e}&east=${w}&outputFormat=GTiff&API_Key=${token}`;
+		console.log( res );
+		return ( res );
+	}
 };
 export default	Fetch;
