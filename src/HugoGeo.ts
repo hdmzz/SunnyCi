@@ -197,7 +197,7 @@ class	HugoGeo {
 			north,
 			south,
 			est,
-			west
+			west,
 		});
 	};
 
@@ -212,7 +212,6 @@ class	HugoGeo {
 				console.log( bbox2 );
 				const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
 				const	mesh = await new GreyModel( this.tokenOpenTopo, watcher ).fetch( url );
-
 			} catch (error) {
 				reject( error );
 			};

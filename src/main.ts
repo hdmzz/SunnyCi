@@ -25,14 +25,8 @@ const	terrain = await tgeo.getTerrainGrey(
 	RADIUS
 );
 
-console.log( terrain );
-
-
 terrain[0].rotation.x = -Math.PI/2;
-
-
 view.addLayer( gridHelper, terrain[0] );
-////pb avec chamonix il faut que lq cqerq se repositionne a l'altitude correspondante
 //const	start = performance.now()
 //const	buildings =  await new Buildings( CENTER, RADIUS, terrain, view ).Building();
 //const	end = performance.now()

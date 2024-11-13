@@ -9,7 +9,12 @@ rendre universel le getBBox
  vous rapprochez des pôles. Pour une approximation, vous pouvez utiliser la formule suivante :
 
 
-- [ ] degres de longitude = Distancce souhaitee en km / 111 * cos(latitude en radians)
+- [ @hdmzz ] degres de longitude = Distancce souhaitee en km / 111 * cos(latitude en radians)
 Latitude en radians
 =
 Latitude en radian = Latitude en degre * PI/180
+
+//ok 
+
+- [ @hdmzz] ==> essayer de trouver la photo corespondante a la bounding box
+@hdmzz https://geoservices.ign.fr/documentation/services/services-deprecies/images-tuilees-wmts-ogc
