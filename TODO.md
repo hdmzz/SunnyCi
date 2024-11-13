@@ -1,108 +1,15 @@
-[
-    [
-        [
-            [
-                4.83774221,
-                45.77032532,
-                196.3
-            ],
-            [
-                4.83750034,
-                45.77032836,
-                196.3
-            ],
-            [
-                4.83727779,
-                45.77033198,
-                196.3
-            ],
-            [
-                4.83728504,
-                45.77051111,
-                196.3
-            ],
-            [
-                4.8372903,
-                45.77051463,
-                196.3
-            ],
-            [
-                4.83774311,
-                45.77050725,
-                196.3
-            ],
-            [
-                4.83774811,
-                45.77050267,
-                196.3
-            ],
-            [
-                4.83774221,
-                45.77032532,
-                196.3
-            ]
-        ],
-        [
-            [
-                4.83756906,
-                45.77038218,
-                196.3
-            ],
-            [
-                4.83757109,
-                45.7704434,
-                196.3
-            ],
-            [
-                4.83750285,
-                45.77044271,
-                196.3
-            ],
-            [
-                4.83749914,
-                45.77044727,
-                196.3
-            ],
-            [
-                4.83749953,
-                45.77045898,
-                196.3
-            ],
-            [
-                4.83737733,
-                45.77046097,
-                196.3
-            ],
-            [
-                4.83737433,
-                45.77037094,
-                196.3
-            ],
-            [
-                4.83749651,
-                45.77036805,
-                196.3
-            ],
-            [
-                4.8374969,
-                45.77037976,
-                196.3
-            ],
-            [
-                4.83749962,
-                45.77038421,
-                196.3
-            ],
-            [
-                4.83753307,
-                45.77038367,
-                196.3
-            ],
-            [
-                4.83756906,
-                45.77038218,
-                196.3
-            ]
-        ]
-    ]
-]
+rendre universel le getBBox
+==> marche a suivre: 
+
+1. Latitude : La distance en degrés de latitude est relativement
+ constante partout sur le globe. Environ 1 degré de latitude équivaut à 111 km.
+
+ 2. Longitude : La distance en degrés de longitude varie en fonction de la latitude. À l'équateur, 
+ 1 degré de longitude équivaut à environ 111 km, mais cette distance diminue à mesure que vous 
+ vous rapprochez des pôles. Pour une approximation, vous pouvez utiliser la formule suivante :
+
+
+- [ ] degres de longitude = Distancce souhaitee en km / 111 * cos(latitude en radians)
+Latitude en radians
+=
+Latitude en radian = Latitude en degre * PI/180

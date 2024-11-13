@@ -186,7 +186,7 @@ class	HugoGeo {
 	private	calculateBoundingBox( point: {lat: number, lon: number}, radius: number ): BoundingBox {
 		// 1 degree of latitude is approximately 111.32 km
 		const	latDegree = radius / 111; //0.045 environ
-		const	lonDegree = radius / 69;// 0.072
+		const	lonDegree = radius / ( 111 * Math.cos(point.lat * (Math.PI / 180)));// 0.072
 
 		const	north = point.lat + latDegree;
 		const	south = point.lat - latDegree;

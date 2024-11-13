@@ -3,7 +3,7 @@ import HugoGeo from "./HugoGeo";
 import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 
-const	RADIUS = 5.00;
+const	RADIUS = 1.00;
 const	CENTER: [lat: number, lon: number] = [45.75764503445906,4.831880908420443];
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
