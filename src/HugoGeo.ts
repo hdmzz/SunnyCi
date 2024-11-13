@@ -6,6 +6,13 @@ import { PolygonFeature } from './type';
 import Fetch from './Fetcher/Fetch';
 import GreyModel from './Models/GreyModel';
 
+export interface	BoundingBox {
+	north: number;
+	south: number;
+	est: number;
+	west: number;
+}
+
 class	HugoGeo {
 	public	unitsSide: number;
 	public	isNode: boolean;
@@ -170,14 +177,41 @@ class	HugoGeo {
 		});
 	};
 
+/**
+ * Calculate the bounding box of a given point (lat, lon) and radius in kilometers.
+ * @param {LatLon} point - Latitude and Longitude of the point.
+ * @param {number} radius - Radius in kilometers.
+ * @returns {BoundingBox} - The bounding box (minLat, maxLat, minLon, maxLon).
+ */
+	private	calculateBoundingBox( point: {lat: number, lon: number}, radius: number ): BoundingBox {
+		// 1 degree of latitude is approximately 111.32 km
+		const	latDegree = radius / 111; //0.045 environ
+		const	lonDegree = radius / 69;// 0.072
+
+		const	north = point.lat + latDegree;
+		const	south = point.lat - latDegree;
+		const	est = point.lon + lonDegree;
+		const	west = point.lon - lonDegree;
+
+		return ({
+			north,
+			south,
+			est,
+			west
+		});
+	};
+
 	//get terrain greyscale
 	public async	getTerrainGrey( origin: [lat: number, lon:  number], radius: number ): Promise<THREE.Mesh[]> {
-		return new Promise(( resolve, reject ) => {
+		return new Promise( async ( resolve, reject ) => {
 			try {
 				const	watcher = this.createWatcher( resolve );
 				const	bbox = HugoGeo.getBbox( origin, radius );
-				const	url = Fetch.greyModelUrlBuilder( bbox, this.tokenOpenTopo );
-				const	mesh = await 
+				console.log(bbox);
+				const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
+				console.log( bbox2 );
+				const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
+				const	mesh = await new GreyModel( this.tokenOpenTopo, watcher ).fetch( url );
 
 			} catch (error) {
 				reject( error );

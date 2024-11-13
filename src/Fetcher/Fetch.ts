@@ -1,6 +1,7 @@
 import ndarray from 'ndarray';
 import getPixels from './GetPixels';
 import { BboxType } from '../type';
+import { BoundingBox } from '../HugoGeo';
 
 type	Bbox = {
 	feature: {
@@ -97,12 +98,8 @@ class Fetch {
 	};
 
 	//https://portal.opentopography.org/apidocs/#/Public/getGlobalDem ==> go get some 
-	static	greyModelUrlBuilder( bbox: BboxType, token: string ): string {
-		const	[n, w] = bbox.northWest;
-		const	[s, e] = bbox.southEast;
-
-		console.log(n, w, s, e);
-		let		res = `https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1&south=${n}&north=${s}&west=${e}&east=${w}&outputFormat=GTiff&API_Key=${token}`;
+	static	greyModelUrlBuilder( bbox: BoundingBox, token: string ): string {
+		let		res = `https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1&south=${bbox.south}&north=${bbox.north}&west=${bbox.west}&east=${bbox.est}&outputFormat=GTiff&API_Key=${token}`;
 		console.log( res );
 		return ( res );
 	}
