@@ -28,7 +28,7 @@ const	terrain = await tgeo.getTerrainGrey(
 terrain[0].rotation.x = -Math.PI/2;
 view.addLayer( gridHelper, terrain[0] );
 //const	start = performance.now()
-//const	buildings =  await new Buildings( CENTER, RADIUS, terrain, view ).Building();
+const	buildings =  await new Buildings( CENTER, RADIUS, terrain, view ).Building();
 //const	end = performance.now()
 
 //console.log("opration took : ", end-start)

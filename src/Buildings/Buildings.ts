@@ -26,12 +26,12 @@ class	Buildings {
 	terrain: THREE.Mesh[];
 	view: View;
 
-	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Group, view: View ) {
+	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Mesh[], view: View ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
 		this.radius = radius;
-		this.terrain = terrain.children as THREE.Mesh[];
+		this.terrain = terrain;
 		this.view = view;
 	};
 
@@ -80,7 +80,7 @@ class	Buildings {
 		const	buildings = await this.getBuildings( url );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
-		const	unitsPerMeters = HugoGeo.getUnitsPerMeters( 10, 5.00 );
+
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 100 : 0.01;
@@ -91,6 +91,7 @@ class	Buildings {
 
 		for ( let i = 0; i < geometries.length; i++ ) {
 			const	mesh = new THREE.Mesh( geometries[i], mat );
+
 			mesh.castShadow = true;
 			meshes.push( mesh );
 		};
