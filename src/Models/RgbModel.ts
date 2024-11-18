@@ -207,7 +207,7 @@ class	RgbModel {
 				"position",
 				new THREE.Float32BufferAttribute( new Float32Array( array ), 3 )
 			);
-
+			geom.computeBoundingBox();
 			geometries.push( geom );
 
 			const	plane = new THREE.Mesh(
@@ -220,6 +220,7 @@ class	RgbModel {
 			);
 			//plane.castShadow = true;
 			plane.receiveShadow = true;
+			plane.userData = {isRgb: true};
 
 			//la raison de mettre plane dans objs est//qu'on en a besoin
 			objs.push( plane );

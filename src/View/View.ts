@@ -48,6 +48,29 @@ class	View extends THREE.EventDispatcher {
 		window.addEventListener('resize', () => {
 			this.onResize();
 		});
+		// Raycaster and Mouse
+		//const raycaster = new THREE.Raycaster();
+		//const mouse = new THREE.Vector2();
+
+		//// Event Listener
+		//window.addEventListener('click', (event) => {
+		//	// Convert mouse position to normalized device coordinates
+		//	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+		//	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+		//	// Set raycaster from camera and mouse
+		//	raycaster.setFromCamera(mouse, this.camera);
+
+		//	// Calculate intersections
+		//	const intersects = raycaster.intersectObjects(this.scene.children);
+
+		//	if (intersects.length > 0) {
+		//			const intersected = intersects[0];
+		//			console.log('Intersection:', intersected);
+
+		//			// Highlight the intersected object
+		//	};
+		//});
 	};
 
 	public addLayer(...layers: THREE.Object3D[]) {

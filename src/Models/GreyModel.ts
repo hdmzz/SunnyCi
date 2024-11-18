@@ -50,7 +50,7 @@ class	GreyModel {
 			plane.attributes.position.setZ( index, (( data[index] as number / 15 )) )
 		});
 		const	mesh = new Mesh( plane, this.terrainMat );
-		
+		mesh.userData = {isGrey: true};
 
 		return ([ mesh ]);
 	};

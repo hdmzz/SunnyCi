@@ -51,27 +51,39 @@ class	Buildings {
 		return ( data.features );
 	};
 
-	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
-		return new Promise( async ( resolve ) => {
-			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			const	raycaster = new THREE.Raycaster();
-			const	up = new THREE.Vector3( 0, 1, 0 );
-			const	chunkSize = 5;
-			let	altitude = 0;
-	
-			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
-				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
-				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
-				for ( const mesh of terrainChunk ) {
-					const	intersects =  raycaster.intersectObject( mesh );
-					if ( intersects.length > 0 ) {
-						altitude = intersects[0].point.y;
-						break;
-					};
-				};
+	public	shortest( point: THREE.Vector3, terrain: THREE.Mesh): number {
+		const	terrainVertices = terrain.geometry.getAttribute('position').array;
+		let		res: number | boolean = 0;
+		let		resDis = 100000;
+		
+		for ( let i = 0; i < terrainVertices.length; i += 3 ) {
+			//terrainVertices[i]  = x = abscisse;
+			//terrainVertices[i + 1] = y = altitude;
+			//terrian[i + 2] = z = ordonnee;
+			let	dis = Math.sqrt((( point.x - terrainVertices[i] ) ** 2 ) + (( point.z - terrainVertices[i + 1] ) ** 2 ));
+			if ( dis <= resDis ) {
+				resDis = dis;
+				res = terrainVertices[i + 2];
 			};
-			resolve( altitude );
-		});
+		};
+		console.log("the shortest: ", res);
+
+		return ( res );
+	};
+
+	
+
+	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
+		let	i = 0;
+		let	demAlt = 0;
+		while ( i < this.terrain.length ) {
+			const	demAltBuff = this.shortest( building.boundingSphere?.center as THREE.Vector3, this.terrain[i] );
+			if ( demAltBuff < demAlt )
+				demAlt = demAltBuff;
+			i++;
+;		}
+
+		return ( demAlt )
 	};
 
 	public async	Building() {

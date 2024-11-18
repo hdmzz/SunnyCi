@@ -99,7 +99,7 @@ class Fetch {
 
 	//https://portal.opentopography.org/apidocs/#/Public/getGlobalDem ==> go get some 
 	static	greyModelUrlBuilder( bbox: BoundingBox, token: string ): string {
-		let		res = `https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1&south=${bbox.south}&north=${bbox.north}&west=${bbox.west}&east=${bbox.est}&outputFormat=GTiff&API_Key=${token}`;
+		let		res = `https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1_E&south=${bbox.south}&north=${bbox.north}&west=${bbox.west}&east=${bbox.est}&outputFormat=GTiff&API_Key=${token}`;
 		console.log( res );
 		return ( res );
 	}
