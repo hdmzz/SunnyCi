@@ -5,6 +5,7 @@ import { Coordinate } from '../Coordinate/Coordinate';
 import Fetch from '../Fetcher/Fetch';
 
 import View from '../View/View';
+import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js';
 const	coordinateCache: { [key: string]: Coordinate } = {};
 
 export function	getWorldCoords( lat: number, lon: number, alt: number, center: [number, number] ) {
@@ -71,19 +72,38 @@ class	Buildings {
 		return ( res );
 	};
 
+	public async	getAltitudeWithRaycast( building: THREE.ExtrudeGeometry ): Promise<number> {
+		return new Promise( async ( resolve ) => {
+			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
+			const	raycaster = new THREE.Raycaster();
+			const	up = new THREE.Vector3( 0, 1, 0 );
+			const	chunkSize = 5;
+			let	altitude = 0;
 	
+			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
+				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
+				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
+				for ( const mesh of terrainChunk ) {
+					const	intersects =  raycaster.intersectObject( mesh );
+					if ( intersects.length > 0 ) {
+						altitude = intersects[0].point.y;
+						break;
+					};
+				};
+			};
+			resolve( altitude );
+		});
+	};
 
 	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
-		let	i = 0;
-		let	demAlt = 0;
-		while ( i < this.terrain.length ) {
-			const	demAltBuff = this.shortest( building.boundingSphere?.center as THREE.Vector3, this.terrain[i] );
-			if ( demAltBuff < demAlt )
-				demAlt = demAltBuff;
-			i++;
-;		}
+		let	altitude = 0;
 
-		return ( demAlt )
+		if ( this.terrain[0].userData.isRgb === true )
+			altitude = await this.getAltitudeWithRaycast( building );
+		else if ( this.terrain[0].userData.isGrey === true )
+			altitude = this.shortest( building.boundingSphere?.center as THREE.Vector3, this.terrain[0] );
+
+		return ( altitude );
 	};
 
 	public async	Building() {

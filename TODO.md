@@ -18,3 +18,5 @@ Latitude en radian = Latitude en degre * PI/180
 
 - [ @hdmzz] ==> essayer de trouver la photo corespondante a la bounding box
 @hdmzz https://geoservices.ign.fr/documentation/services/services-deprecies/images-tuilees-wmts-ogc
+
+@hdmzz trouver un moyen de rapatrier un fichier d'une autre branche 
