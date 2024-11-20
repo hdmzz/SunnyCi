@@ -211,7 +211,7 @@ class	HugoGeo {
 				const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
 				console.log( bbox2 );
 				const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
-				const	mesh = await new GreyModel( this.tokenOpenTopo, watcher ).fetch( url );
+				const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin ).fetch( url );
 			} catch (error) {
 				reject( error );
 			};

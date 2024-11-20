@@ -30,7 +30,7 @@ export class Coordinate {
 	constructor ( coor: { latitude: number, longitude: number, altitude: number }, center: [number, number] ) {
 		this.world = { x: 0, y: 0, z: 0 };
 		this.gps = new GPSCoordinate( coor.latitude, coor.longitude, coor.altitude );
-		this.scale = 1;
+		this.scale = 30;
 		this.center = {latitude: center[0], longitude: center[1] };
 	};
 

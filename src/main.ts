@@ -14,21 +14,21 @@ const	tgeo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
 	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
 });
-const	terrain = await tgeo.getTerrainRgb(
-	CENTER,
-	RADIUS,
-	15,
-);
-
-//const	terrain = await tgeo.getTerrainGrey(
+//const	terrain = await tgeo.getTerrainRgb(
 //	CENTER,
-//	RADIUS
+//	RADIUS,
+//	15,
 //);
 
-terrain.rotation.x = -Math.PI/2;
-view.addLayer( gridHelper, terrain );
+const	terrain = await tgeo.getTerrainGrey(
+	CENTER,
+	RADIUS
+);
+
+terrain[0].rotation.x = -Math.PI/2;
+view.addLayer( gridHelper, terrain[0] );
 //const	start = performance.now()
-const	buildings =  await new Buildings( CENTER, RADIUS, terrain.children as THREE.Mesh[], view ).Building();
+const	buildings =  await new Buildings( CENTER, RADIUS, terrain, view ).Building();
 //const	end = performance.now()
 
 //console.log("opration took : ", end-start)

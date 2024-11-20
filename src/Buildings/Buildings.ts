@@ -67,7 +67,6 @@ class	Buildings {
 				res = terrainVertices[i + 2];
 			};
 		};
-		console.log("the shortest: ", res);
 
 		return ( res );
 	};
@@ -115,7 +114,7 @@ class	Buildings {
 
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
-			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 100 : 0.01;
+			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height );
 
 			geometries.push( building );
@@ -125,6 +124,7 @@ class	Buildings {
 			const	mesh = new THREE.Mesh( geometries[i], mat );
 
 			mesh.castShadow = true;
+			mesh.receiveShadow = true;
 			meshes.push( mesh );
 		};
 
