@@ -8,6 +8,7 @@ class	View extends THREE.EventDispatcher {
 	controls: OrbitControls;
 	container: HTMLDivElement;
 	light: THREE.DirectionalLight;
+	layers: THREE.Object3D[];
 
 	constructor( container: HTMLDivElement ) {
 		super();
@@ -20,6 +21,7 @@ class	View extends THREE.EventDispatcher {
 			antialias: true,
 		});
 		this.renderer.shadowMap.enabled = true;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.light = new THREE.DirectionalLight( 0xffffff, 1 );
 		this.light.position.set( 0, 10, 20 );
 		this.light.castShadow = true;
@@ -32,6 +34,7 @@ class	View extends THREE.EventDispatcher {
 		this.light.shadow.bias = -0.0005;
 		this.light.shadow.mapSize.width = 2048;
 		this.light.shadow.mapSize.height = 2048;
+		this.layers = [];
 		const	lightHelper = new THREE.DirectionalLightHelper( this.light, 1 );
 	
 		const	animate =  () => {
@@ -51,41 +54,33 @@ class	View extends THREE.EventDispatcher {
 		window.addEventListener('resize', () => {
 			this.onResize();
 		});
-		// Raycaster and Mouse
-		//const raycaster = new THREE.Raycaster();
-		//const mouse = new THREE.Vector2();
-
-		//// Event Listener
-		//window.addEventListener('click', (event) => {
-		//	// Convert mouse position to normalized device coordinates
-		//	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-		//	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-		//	// Set raycaster from camera and mouse
-		//	raycaster.setFromCamera(mouse, this.camera);
-
-		//	// Calculate intersections
-		//	const intersects = raycaster.intersectObjects(this.scene.children);
-
-		//	if (intersects.length > 0) {
-		//			const intersected = intersects[0];
-		//			console.log('Intersection:', intersected);
-
-		//			// Highlight the intersected object
-		//	};
-		//});
 	};
 
-	public addLayer(...layers: THREE.Object3D[]) {
+	private	onResize() {
+			this.camera.aspect = window.innerWidth / window.innerHeight;
+			this.camera.updateProjectionMatrix();
+			this.renderer.setSize( window.innerWidth, window.innerHeight );
+		};
+
+	public	addLayer(...layers: THREE.Object3D[]) {
 		layers.forEach(layer => {
+			this.layers.push(layer);
 			this.scene.add(layer);
 		});
+		this.render();
 	};
 
-	onResize() {
-		this.camera.aspect = window.innerWidth / window.innerHeight;
-		this.camera.updateProjectionMatrix();
-		this.renderer.setSize( window.innerWidth, window.innerHeight );
+	public	removeLayer() {
+		this.layers.forEach(( layer ) => {
+			this.scene.remove( layer );
+
+		});
+		this.layers = [];
+		this.render();
+	};
+
+	private	render() {
+		this.renderer.render( this.scene, this.camera );
 	};
 };
 

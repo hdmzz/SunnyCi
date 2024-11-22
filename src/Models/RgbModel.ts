@@ -213,8 +213,8 @@ class	RgbModel {
 			const	plane = new THREE.Mesh(
 				geom,
 				new THREE.MeshPhongMaterial({
-					color: 0xfff998,
-					wireframe: true,
+					color: 'white',
+					//wireframe: true,
 					side: 2,
 				})
 			);

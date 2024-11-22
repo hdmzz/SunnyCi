@@ -57,7 +57,7 @@ class	HugoGeo {
 				const	bbox = HugoGeo.getBbox( origin, radius );
 				const	zoomPositionCovered = HugoGeo.getZoomPositionCovered( bbox.feature, zoom );
 				const	onSatMat = () => {}; //dummy function to trigger the satelite image fetch
-				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher );
+				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher, onSatMat );
 
 				rgbModel.fetch( zoomPositionCovered, bbox );
 			} catch ( error ) {
