@@ -3,6 +3,7 @@ import HugoGeo from "./HugoGeo";
 import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 import WFSSource from "./Source/WFSSource";
+import WMTSSource from "./Source/WMTSSource";
 
 const	RADIUS = 5.00;
 let	CENTER: [lat: number, lon: number] = [45.75764503445906,4.831880908420443];
@@ -42,6 +43,8 @@ async function	loadTerrain() {
 	
 	view.addLayer(  buildings );
 };
+
+const	wmtsSource = new WMTSSource(CENTER, RADIUS).urlBuilder();
 
 loadTerrain();
 
