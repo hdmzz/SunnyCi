@@ -20,3 +20,11 @@ Latitude en radian = Latitude en degre * PI/180
 @hdmzz https://geoservices.ign.fr/documentation/services/services-deprecies/images-tuilees-wmts-ogc
 
 @hdmzz trouver un moyen de rapatrier un fichier d'une autre branche 
+
+@hdmzz trouver  les url utiliser par itowns et recompose celle aui nous interesse
+- list
+	- https://data.geopf.fr/wmts?LAYER=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=15&TILEROW=11736&TILECOL=16964
+	
+	-https://data.geopf.fr/wmts?LAYER=ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS&FORMAT=image/x-bil;bits=32&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=WGS84G&TILEMATRIX=17&TILEROW=32487&TILECOL=135697
+	
+

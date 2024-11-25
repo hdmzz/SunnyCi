@@ -15,7 +15,7 @@ class	GreyModel {
 		this.token = token;
 		this.watcher = watcher;
 		this.data = {} as ReadRasterResult;
-		this.terrainMat = new MeshPhongMaterial({ color: 'white', side: 2 });
+		this.terrainMat = new MeshPhongMaterial({ color: 'white', side: 2, wireframe: true });
 		this.terrainRasterBbox = [];
 		this.center = center;
 	};
