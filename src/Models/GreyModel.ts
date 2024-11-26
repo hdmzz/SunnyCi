@@ -1,5 +1,6 @@
 import { BufferGeometry, Material, Mesh, MeshPhongMaterial, NormalBufferAttributes, Object3DEventMap, PlaneGeometry } from "three";
 import { fromArrayBuffer, ReadRasterResult } from "geotiff";
+import WMSSource from "../Source/WMSSource";
 
 class	GreyModel {
 	private	token: string;
@@ -8,14 +9,16 @@ class	GreyModel {
 	private	terrainMat: MeshPhongMaterial;
 	private	terrainRasterBbox: number[];
 	private	center: [lat: number, lon: number];
+	private	source: WMSSource | undefined;
 
-	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number] ) {
+	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source?: WMSSource ) {
 		this.token = token;
 		this.watcher = watcher;
 		this.data = {} as ReadRasterResult;
 		this.terrainMat = new MeshPhongMaterial({ color: 'white', side: 2, wireframe: true });
 		this.terrainRasterBbox = [];
 		this.center = center;
+		this.source = source;
 	};
 
 	public async	fetch( url: string ) {

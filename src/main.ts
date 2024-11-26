@@ -45,7 +45,8 @@ async function	loadTerrain() {
 	view.addLayer(  buildings );
 };
 
-const	WMSTest = new WMSSource( CENTER, RADIUS ).urlBuilder();;
+const	elevationSource = new WMSSource( CENTER, RADIUS, "ELEVATION" );
+console.log( elevationSource );
 
 loadTerrain();
 
