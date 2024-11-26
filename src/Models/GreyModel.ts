@@ -1,7 +1,5 @@
 import { BufferGeometry, Material, Mesh, MeshPhongMaterial, NormalBufferAttributes, Object3DEventMap, PlaneGeometry } from "three";
 import { fromArrayBuffer, ReadRasterResult } from "geotiff";
-import { longitudeKeys } from "geolib";
-import { Coordinate } from "../Coordinate/Coordinate";
 
 class	GreyModel {
 	private	token: string;

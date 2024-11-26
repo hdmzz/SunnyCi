@@ -9,6 +9,9 @@ class	WFSSource {
 		this.radius = radius;
 	};
 
+	public	wfsUrlBuilder( lat: number, lon: number, zoom: number = 18 ) {
+
+	};
 	public	createMultipolygonFromPoint() {
 		const	radiusMeters = this.radius * 1000;
 		const	centerPoint = turf.point([this.center[1], this.center[0]]);//lon lat
