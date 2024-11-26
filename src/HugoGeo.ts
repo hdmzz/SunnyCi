@@ -5,8 +5,7 @@ import RgbModel from './Models/RgbModel';
 import { PolygonFeature } from './type';
 import Fetch from './Fetcher/Fetch';
 import GreyModel from './Models/GreyModel';
-import WMSSource from './Source/WMSSource';
-
+import WMSSource from './Source/WMSSource'
 export interface	BoundingBox {
 	north: number;
 	south: number;
@@ -33,6 +32,10 @@ class	HugoGeo {
 		this.tokenMapBox = opts.tokenMapBox;
 		this.tokenOpenTopo = opts.tokenOpenTopo;
 		this.source = opts.source;
+	};
+
+	public	addSource( source: WMSSource ) {
+		this.source = source;
 	};
 
 	public async	getTerrainRgb( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group> {
@@ -209,11 +212,16 @@ class	HugoGeo {
 		return new Promise( async ( resolve, reject ) => {
 			try {
 				const	watcher = this.createWatcher( resolve );
-				const	bbox = HugoGeo.getBbox( origin, radius );
-				const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
-				console.log( bbox2 );
-				const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
-				const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source ).fetch( url );
+				if ( this.source && this.source.format  ===  "png" ) {
+					console.log("icicicicici")
+					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source ).fetchPNG( this.source.url as string );
+				} else {
+					const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
+					console.log( bbox2 );
+					const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
+					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source ).fetchTIF( url );
+				}
+
 			} catch (error) {
 				reject( error );
 			};

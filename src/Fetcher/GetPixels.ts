@@ -7,7 +7,7 @@ import ndarray from 'ndarray';
 //puis onn peut construire un n-dimension-array avec les donnees
 /**
  * 
- * @param url of the image from ;;apbox
+ * @param url of the image from mapbox
  * @param type not mandatoruy for now i doont care
  * @param cb cll back take  error to  define in the when we call the function
  *! e. g : getPixels( url, 'png', ( err, res ) => return ( res ) );

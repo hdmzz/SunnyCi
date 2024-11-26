@@ -27,10 +27,18 @@ async function	loadTerrain() {
 	//	RADIUS,
 	//	15,
 	//);
+	const	elevationSource = new WMSSource( CENTER, RADIUS, {
+		format: "png",
+		requestType: "ELEVATION",
+	});
+
+	tgeo.addSource( elevationSource );
+
+	console.log( elevationSource );
 	
 	const	terrain = await tgeo.getTerrainGrey(
 		CENTER,
-		RADIUS
+		RADIUS,
 	);
 	
 	terrain[0].rotation.x = -Math.PI/2;
@@ -45,8 +53,6 @@ async function	loadTerrain() {
 	view.addLayer(  buildings );
 };
 
-const	elevationSource = new WMSSource( CENTER, RADIUS, "ELEVATION" );
-console.log( elevationSource );
 
 loadTerrain();
 

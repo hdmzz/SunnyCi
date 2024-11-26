@@ -4,11 +4,13 @@ class	WMSSource {
 	center: [lat: number, lon: number];
 	radius: number;
 	url: string | undefined;
+	format: string;
 
-	constructor( center: [lat: number, lon: number], radius: number, requestType: string ) {
-		this.center = center;
+	constructor( center: [lat: number, lon: number], radius: number, opts: {format: string, requestType: string}) {
 		this.radius = radius;
-		this.url = this.urlBuilder( requestType );
+		this.center = center;
+		this.url = this.urlBuilder( opts.requestType );
+		this.format = opts.format;
 	};
 /* 
 	genere une bbox compatible WMS protocol
