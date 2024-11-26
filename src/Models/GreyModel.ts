@@ -1,8 +1,34 @@
-import { BufferGeometry, Material, Mesh, MeshPhongMaterial, NormalBufferAttributes, Object3DEventMap, PlaneGeometry } from "three";
+import { BufferGeometry, DataTexture, DoubleSide, Material, Mesh, MeshPhongMaterial, NormalBufferAttributes, Object3DEventMap, PlaneGeometry, RGBAFormat } from "three";
 import { fromArrayBuffer, ReadRasterResult } from "geotiff";
 import WMSSource from "../Source/WMSSource";
 import getPixels from "../Fetcher/GetPixels";
+import Fetch from "../Fetcher/Fetch";
+import { color } from "three/webgpu";
 
+async function	getPNGPixels( url: string ): Promise<ImageData> {
+	try {
+		const	imageData = await fetch( url ).then(( res ) => res.blob());
+		const	image = await new Promise<HTMLImageElement>((resolve) => {
+			const	img = new Image();
+			img.src = URL.createObjectURL( imageData );
+			img.onload = () => resolve( img );
+		});
+	
+		const	canvas = document.createElement( "canvas" );
+		const	ctxt = canvas.getContext( "2d" );
+	
+		canvas.width = image.width;
+		canvas.height = image.height;
+		ctxt?.drawImage( image, 0, 0 );
+	
+		const	imgData = ctxt?.getImageData( 0, 0, image.width, image.height );
+	
+		return ( imgData as ImageData );
+	} catch ( error ) {
+		console.log( error );
+		throw new Error( "une erreur est survenue getPng Pixel GReyModel" );
+	};
+};
 class	GreyModel {
 	private	token: string;
 	private	data: ReadRasterResult | undefined;
@@ -45,26 +71,15 @@ class	GreyModel {
 
 	public async	fetchPNG( url: string ) { //image width et imageheight correpsone au parametre de ll'url
 		try {
-			const	imageData = await fetch( url ).then(( res ) => res.blob());
-			const	image = await new Promise<HTMLImageElement>((resolve) => {
-				const	img = new Image();
-				img.src = URL.createObjectURL( imageData );
-				img.onload = () => resolve( img );
-			});
+			const	imgData = await getPNGPixels( url );
 
-			const	canvas = document.createElement( "canvas" );
-			const	ctxt = canvas.getContext( "2d" );
-			canvas.width = image.width;
-			canvas.height = image.height;
-			ctxt?.drawImage( image, 0, 0 );
-
-			const	imgData = ctxt?.getImageData( 0, 0, image.width, image.height );
 			this.dataPng = imgData?.data;
+
 			if ( this.dataPng ) {
-				console.log("hello")
 				this.build();
 			};
 		} catch ( err ) {
+			console.log( err );
 			throw new Error( "Fecth png grey model failed" );
 		};
 	};
@@ -101,12 +116,12 @@ class	GreyModel {
 		return ([ mesh ]);
 	};
 
-	private smoothElevation(x: number, y: number, width: number, _height: number): number {
+	private smoothElevation(x: number, y: number, width: number, height: number): number {
 		const getPixel = (i: number, j: number) => {
-			if (i < 0 || i >= width || j < 0 || j >= _height) {
-				return 0;
-			};
 			const index = (i + j * width) * 4;
+			if (i < 0 || i >= width || j < 0 || j >= height) {
+				return ( 0 );
+			};
 			return this.dataPng ? this.dataPng[index] : 0;
 		};
 
@@ -116,30 +131,56 @@ class	GreyModel {
 			getPixel(x - 1, y + 1), getPixel(x, y + 1), getPixel(x + 1, y + 1)
 		];
 
-		const	sum = neighbors.reduce(( a, b ) => a + b, 0);
-		const	average = sum / neighbors.length;
-		return ( average / 255 * 100 );
+		const sum = neighbors.reduce(( a, b ) => a + b, 0);
+		const average = sum / neighbors.length;
+		return (average / 255 * 100);
 	}
 
 	private async	_buildPng() {
 		if ( !this.dataPng ) {
 			throw new Error("dataPng is undefined");
 		};
+		const	data = this.dataPng;
 		const	width = 512, height = 512;
-		const	plane = new PlaneGeometry( width, height, width - 1, height - 1 );
-		const	positionAttribute = plane.attributes.position;
+		const	planeGeom = new PlaneGeometry( width, height, width - 1, height - 1 );
+		const	positionAttribute = planeGeom.attributes.position;
+
 		for (let i = 0; i < width; i++) {
 			for (let j = 0; j < height; j++) {
+				const	index = ( i + j * width ) * 4;
 				const	elevation = this.smoothElevation(i, j, width, height);
+				//const	elevation = data[index] / 255 * 100;
 				const	vertexIndex = i + j * width;
 				positionAttribute.setZ( vertexIndex, elevation );
-			}
+			};
 		};
-		const	mesh = new Mesh( plane, this.terrainMat );
-		mesh.userData = {isGrey: true};
-		mesh.receiveShadow = true;
 
-		return ([ mesh ]);
+		const	plane = new Mesh( planeGeom, this.terrainMat );
+		this.resolveTexture(( tex ) => {
+			if ( tex ) {
+				plane.material = new MeshPhongMaterial({
+					side: DoubleSide,
+					map: tex,
+					wireframe: false,
+				});
+			};
+		});
+		plane.userData = {isGrey: true};
+		plane.receiveShadow = true;
+
+		return ([ plane ]);
+	};
+
+	private async	resolveTexture( onTex: ( texture: DataTexture ) => void ) {
+		const	colorSourceUrl = this.source?.wmsColorUrlBuilder();
+		const	pixels = await Fetch.fetchPngMap( colorSourceUrl as string );
+		const	tex = new DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], RGBAFormat );
+
+		tex.flipY = true;
+		tex.needsUpdate = true;
+		if ( onTex ) {
+			onTex( tex );
+		};
 	};
 };
 

@@ -13,12 +13,13 @@
 			height: 100%;
 		}*/
 	</style>
-	<div id="input">
-		<label for="coordsINput">LatLon coords please</label>
-		<input type="text" id="coordsInput">
-		<button type="submit" id="goButton">Go!</button>
-	</div>
-		<div id="viewerDiv"></div>
+		<div id="viewerDiv">
+			<div id="input" style="position: absolute; top: 0; left: 0; z-index: 1000; background-color: transparent; padding: 10px; color: antiquewhite;">
+				<label for="coordsInput">LatLon coords please</label>
+				<input type="text" id="coordsInput">
+				<button type="submit" id="goButton">Go!</button>
+			</div>
+		</div>
 		<script type="module" src="/src/main.ts"></script>
 	</body>
 </html>

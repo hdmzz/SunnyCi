@@ -91,16 +91,34 @@ class Fetch {
 		});
 	};
 
+	static async	getPngMap( url: string ): Promise<ndarray.NdArray<Uint8Array>> {
+		return new Promise(( resolve, reject ) => {
+			getPixels ( url, ( err: any, pixels: ndarray.NdArray<Uint8Array> ) => {
+				if ( err ) {
+					reject( err );
+				} else {
+					resolve( pixels );
+				};
+			});
+		})
+	}
+
 	static async	fetchTile( zoomPos: number[], token: string, api: string ) {
 		const	uri: string  = this.getUri( zoomPos, token, api );
 		let		ret = await this.getRgbTile({ uri });
 		return ( ret );
 	};
 
+	static async	fetchPngMap( url: string ) {
+		let	ret = await this.getPngMap( url );
+
+		return( ret );
+	};
+
 	//https://portal.opentopography.org/apidocs/#/Public/getGlobalDem ==> go get some 
 	static	greyModelUrlBuilder( bbox: BoundingBox, token: string ): string {
 		let		res = `https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1_E&south=${bbox.south}&north=${bbox.north}&west=${bbox.west}&east=${bbox.est}&outputFormat=GTiff&API_Key=${token}`;
-		console.log( res );
+
 		return ( res );
 	}
 };

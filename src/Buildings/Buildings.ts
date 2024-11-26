@@ -114,7 +114,7 @@ class	Buildings {
 
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
-			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur / 20: 0.01;
+			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height );
 
 			geometries.push( building );
