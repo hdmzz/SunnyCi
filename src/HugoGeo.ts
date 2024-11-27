@@ -5,7 +5,7 @@ import RgbModel from './Models/RgbModel';
 import { PolygonFeature } from './type';
 import Fetch from './Fetcher/Fetch';
 import GreyModel from './Models/GreyModel';
-import WMSSource from './Source/WMSSource'
+import WMSSource from './Source/WMSRSource'
 export interface	BoundingBox {
 	north: number;
 	south: number;
@@ -106,6 +106,7 @@ class	HugoGeo {
 
 	/**
 	 * @param origin lat lon
+	 * @param radius in kilometre ==> 0.5 === 500 metres
 	 */
 	static	getBbox( origin: [lat: number, lon: number], radius: number ): {
 		feature: {

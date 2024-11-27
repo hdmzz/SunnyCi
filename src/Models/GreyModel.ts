@@ -1,9 +1,10 @@
 import { BufferGeometry, DataTexture, DoubleSide, Material, Mesh, MeshPhongMaterial, NormalBufferAttributes, Object3DEventMap, PlaneGeometry, RGBAFormat } from "three";
 import { fromArrayBuffer, ReadRasterResult } from "geotiff";
-import WMSSource from "../Source/WMSSource";
+import WMSSource from "../Source/WMSRSource";
 import getPixels from "../Fetcher/GetPixels";
 import Fetch from "../Fetcher/Fetch";
 import { color } from "three/webgpu";
+import WMSRSource from "../Source/WMSRSource";
 
 async function	getPNGPixels( url: string ): Promise<ImageData> {
 	try {
@@ -37,9 +38,9 @@ class	GreyModel {
 	private	terrainMat: MeshPhongMaterial;
 	private	terrainRasterBbox: number[];
 	private	center: [lat: number, lon: number];
-	private	source: WMSSource | undefined;
+	private	source: WMSRSource | undefined;
 
-	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source?: WMSSource ) {
+	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source?: WMSRSource ) {
 		this.token = token;
 		this.watcher = watcher;
 		this.data = undefined;
@@ -172,7 +173,7 @@ class	GreyModel {
 	};
 
 	private async	resolveTexture( onTex: ( texture: DataTexture ) => void ) {
-		const	colorSourceUrl = this.source?.wmsColorUrlBuilder();
+		const	colorSourceUrl = this.source?.wmsrColorUrlBuilder();
 		const	pixels = await Fetch.fetchPngMap( colorSourceUrl as string );
 		const	tex = new DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], RGBAFormat );
 

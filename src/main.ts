@@ -4,7 +4,9 @@ import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 import WFSSource from "./Source/WFSSource";
 import WMTSSource from "./Source/WMTSSource";
-import WMSSource from "./Source/WMSSource";
+import WMSSource from "./Source/WMSRSource";
+import WMSRSource from "./Source/WMSRSource";
+import WMSVSource from "./Source/WMSVSource";
 
 const	RADIUS = 5.00;
 let	CENTER: [lat: number, lon: number] = [45.76230212963389,4.822418255768315];
@@ -13,9 +15,6 @@ const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	view = new View( container )
 
-const	wfsSource = new WFSSource(CENTER, RADIUS);
-const buff = wfsSource.createMultipolygonFromPoint();
-console.log(buff);
 const	tgeo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
 	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
@@ -27,14 +26,19 @@ async function	loadTerrain() {
 	//	RADIUS,
 	//	15,
 	//);
-	const	elevationSource = new WMSSource( CENTER, RADIUS, {
+	const	elevationSource = new WMSRSource( CENTER, RADIUS, {
 		format: "png",
 		requestType: "ELEVATION",
 	});
 
+	const testWmts = new WMTSSource( CENTER, RADIUS ).wmtsUrlBuilderOrtho();
+	console.log( testWmts );
+
+	const	testSource = new WFSSource( CENTER, RADIUS ).wfsUrlBuilder();
+
+	console.log( testSource);
 	tgeo.addSource( elevationSource );
 
-	console.log( elevationSource );
 	
 	const	terrain = await tgeo.getTerrainGrey(
 		CENTER,
