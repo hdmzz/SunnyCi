@@ -21,23 +21,12 @@ class	WMTSSource {
 		this.url = "";
 	};
 
-	public	findTileindex( lat: number, lon: number, zoom = 14 ) {
-		const	R = 6378137;
-		const	lt = lat * Math.PI / 180;
-		const	ln = lon * Math.PI / 180;
-		const	x = R * ln;
-		const	y = R * Math.log( Math.tan(( Math.PI / 4 ) + ( lt / 2 )));
-		const	xTile = Math.floor((( x + R ) / ( 2 * R )) * 2**zoom );
-		const	yTile = Math.floor((( R - y ) / ( 2 * R )) * 2**zoom );
-		console.log( xTile, yTile );
-		return { xTile, yTile, zoom };
-	};
 
 	public	wmtsUrlBuilderOrtho() {
 		const	zoom = 18;
 		const	{ tileX, tileY } = latLonToTile(...this.center, zoom);
 
-		this.url = `https://data.geopf.fr/wmts?LAYER=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
+		this.url = `https://data.geopf.fr/wmts?LAYER=HR.ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
 		console.log( this.url );
 		return ( this.url );
 	};
