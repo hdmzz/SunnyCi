@@ -7,9 +7,10 @@ import WMTSSource from "./Source/WMTSSource";
 import WMSSource from "./Source/WMSRSource";
 import WMSRSource from "./Source/WMSRSource";
 import WMSVSource from "./Source/WMSVSource";
+import { color } from "three/webgpu";
 
 const	RADIUS = 5.00;
-let	CENTER: [lat: number, lon: number] = [45.76230212963389,4.822418255768315];
+let	CENTER: [lat: number, lon: number] = [45.75334909950519,4.831304997135941];
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
@@ -30,6 +31,15 @@ async function	loadTerrain() {
 		format: "png",
 		requestType: "ELEVATION",
 	});
+
+	const	colorSource =  new WMSRSource(CENTER, RADIUS, {
+		format: "image/jpeg",
+		requestType: "",
+	});
+
+	//const urlColorOI = colorSource.wmsrColorUrlBuilder( "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326" );
+
+	//console.log(urlColorOI);
 
 	const testWmts = new WMTSSource( CENTER, RADIUS ).wmtsUrlBuilderOrtho();
 	console.log( testWmts );
@@ -54,7 +64,7 @@ async function	loadTerrain() {
 	//console.log("opration took : ", end-start)
 	////buildings.rotateY(0.1)
 	
-	view.addLayer(  buildings );
+	//view.addLayer(  buildings );
 };
 
 
