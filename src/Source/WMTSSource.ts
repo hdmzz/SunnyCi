@@ -22,11 +22,10 @@ class	WMTSSource {
 	};
 
 
-	public	wmtsUrlBuilderOrtho() {
-		const	zoom = 18;
+	public	wmtsUrlBuilderOrtho( layer: string = "HR.ORTHOIMAGERY.ORTHOPHOTOS", format: string = "image/jpeg", tileMatrixSet: string = "PM", zoom: number = 18 ) {
 		const	{ tileX, tileY } = latLonToTile(...this.center, zoom);
 
-		this.url = `https://data.geopf.fr/wmts?LAYER=HR.ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
+		this.url = `https://data.geopf.fr/wmts?LAYER=${layer}&FORMAT=${format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=${tileMatrixSet}&TILEMATRIX=${zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
 		console.log( this.url );
 		return ( this.url );
 	};
