@@ -41,9 +41,9 @@ class	GreyModel {
 	private	terrainMat: MeshPhongMaterial;
 	private	terrainRasterBbox: number[];
 	private	center: [lat: number, lon: number];
-	private	source: WMSRSource | undefined;
+	private	source: WMSRSource;
 
-	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source?: WMSRSource ) {
+	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source: WMSRSource ) {
 		this.token = token;
 		this.watcher = watcher;
 		this.data = undefined;
@@ -156,20 +156,35 @@ class	GreyModel {
 		const	planeGeom = new PlaneGeometry( width, height, width - 1, height - 1 );
 		const	positionAttribute = planeGeom.attributes.position;
 		const	lonRange = this.source && this.source.bbox ? this.source.bbox[3] - this.source.bbox[1] : 0;
-		const	latRan = this.source && this.source.bbox ? this.source.bbox[2] - this.source.bbox[0] : 0;
+		const	latRange = this.source && this.source.bbox ? this.source.bbox[2] - this.source.bbox[0] : 0;
 		console.log(data);
 
+		//positionAttribute.forEach(( _, index ) => {
+		//	const	i = index / 3;
+		//	const	x = ( i % width ) / width;
+		//	const	y = Math.floor( i / width ) / height;
 
-		for (let i = 0; i < width; i++) {
-			for (let j = 0; j < height; j++) {
+		//	const	lon = this.source?.bbox[1] + x * lonRange;
+		//	const	lat = this.source && this.source.bbox ? this.source.bbox[0] + y * latRange : 0;
+		//	const	elevation = data[index] / 255 * 50;
+		//	planeGeom.attributes.position.setZ( i, elevation );
+		//})
+
+		//planeGeom.computeVertexNormals();
+
+
+		for (let i = 0; i < width; i++) {//col
+			for (let j = 0; j < height; j++) {//row
 				const	index = ( i + j * width ) * 4;
 				//const	elevation = this.smoothElevation(i, j, width, height);
 				const	elevation = data[index] / 255 * 50;
+				const	lon = this.source?.bbox[1] + (i / width) * lonRange;
+				const	lat = this.source?.bbox[0] + (j / height) * latRange;
+				const mercator = new Coordinate({latitude: lat, longitude: lon, altitude: 0}, this.center).ComputeWorldCoordinate();
 				const	vertexIndex = i + j * width;
-				positionAttribute.setZ( vertexIndex, elevation );//elevation ok mais quaand est ill des x et y il  faut les covertir en coordonnees relative a leur bbox
+				positionAttribute.setXYZ( vertexIndex, mercator.world.y, mercator.world.x, elevation );//elevation ok mais quaand est ill des x et y il  faut les covertir en coordonnees relative a leur bbox
 			};
 		};
-		console.log(positionAttribute);
 
 		const	plane = new Mesh( planeGeom, this.terrainMat );
 		this.resolveTexture(( tex ) => {
@@ -188,7 +203,7 @@ class	GreyModel {
 	};
 
 	private async	resolveTexture( onTex: ( texture: DataTexture ) => void ) {
-		const	colorSourceUrl = this.source?.wmsrColorUrlBuilder( 0.02, "ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
+		const	colorSourceUrl = this.source?.wmsrColorUrlBuilder( 0.02, "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
 		const	pixels = await Fetch.fetchPngMap( colorSourceUrl as string );
 		const	tex = new DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], RGBAFormat );
 

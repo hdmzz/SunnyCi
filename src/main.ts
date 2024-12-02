@@ -22,17 +22,28 @@ const	tgeo = new HugoGeo({
 	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
 });
 
+const testWmts = new WMTSSource( CENTER, RADIUS, {
+	layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3",
+	format: "image/x-bil;bits=32",
+	style: "normal",
+	tileMatrixSet: "WGS84G_1_10",
+	zoom: 7,
+});
+
+
+
 async function	loadTerrain() {
 	//let	terrain = await tgeo.getTerrainRgb(
-	//	CENTER,
-	//	RADIUS,
-	//	15,
-	//);
-	const	elevationSource = new WMSRSource( CENTER, RADIUS, {
-		format: "png",
-		requestType: "ELEVATION",
-	});
-
+		//	CENTER,
+		//	RADIUS,
+		//	15,
+		//);
+		const	elevationSource = new WMSRSource( CENTER, RADIUS, {
+			format: "png",
+			requestType: "ELEVATION",
+		});
+		
+	const	eleLayerTestWmts = new ElevationLayer( testWmts );
 	const	colorSource =  new WMSRSource(CENTER, RADIUS, {
 		format: "image/jpeg",
 		requestType: "",
@@ -42,13 +53,6 @@ async function	loadTerrain() {
 
 	//console.log(urlColorOI);
 
-	const testWmts = new WMTSSource( CENTER, RADIUS, {
-		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3",
-		format: "image/x-bil;bits=32",
-		style: "normal",
-		tileMatrixSet: "WGS84G_1_10",
-		zoom: 7,
-	});
 
 	const geometry = new THREE.SphereGeometry(100, 16, 16); // Small sphere
 	const geometry2 = new THREE.SphereGeometry(100, 16, 16); // Small sphere
@@ -56,10 +60,9 @@ async function	loadTerrain() {
 	const point = new THREE.Mesh(geometry, material);
 	const point2 = new THREE.Mesh(geometry2, new THREE.MeshBasicMaterial({ color: 'green' }));
 
-// Set the position of the point
-		point.position.set(-222.63898156654456, -319.16378431660603, 0);
-		point2.position.set(222.63898156654456, 319.16378431660603, 0);
-		view.addLayer(point, point2);
+	point.position.set(-222.63898156654456, -319.16378431660603, 0);
+	point2.position.set(222.63898156654456, 319.16378431660603, 0);
+	view.addLayer(point, point2);
 
 
 
@@ -76,16 +79,9 @@ async function	loadTerrain() {
 		RADIUS,
 	);
 	
-	//terrain[0].rotation.x = -Math.PI/2;
-	//terrain[0].rotateZ(0.185)
+	terrain[0].rotation.x = -Math.PI/2;
 	view.addLayer( gridHelper, terrain[0] );
-	//const	start = performance.now()
 	const	buildings =  await new Buildings( CENTER, RADIUS, terrain as THREE.Mesh[], view, buildingSource ).Building();
-	//buildings.rotateY(-0.1)
-	//const	end = performance.now()
-	
-	//console.log("opration took : ", end-start)
-	////buildings.rotateY(0.1)
 	
 	view.addLayer(  buildings );
 };
