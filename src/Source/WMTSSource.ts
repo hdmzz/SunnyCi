@@ -1,25 +1,33 @@
-import proj4 from "proj4";
-
-function	toRad( x: number ) {
-	return ( x * Math.PI / 180 );
-};
-
-function secant(x: number) {
-	return ( 1 / Math.cos( x ) );
-};
-
-function lon2tile(lon: number,zoom: number) { return (Math.floor((lon+180)/360*Math.pow(2,zoom))); }
-function lat2tile(lat: number,zoom: number)  { return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom))); }
+//https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities
 class	WMTSSource {
 	center: [lat: number, lon: number];
 	radius: number;
 	url: string;
 	heightNeighborsCoordinates: { tileX: number, tileY: number }[];
-	constructor( center: [lat: number, lon: number], radius: number ) {
+	layer: string
+	format: string
+	style: string
+	tileMatrixSet: string
+	zoom: number
+
+	constructor( center: [lat: number, lon: number], radius: number, opts: {
+		layer: string;
+		format: string;
+		style: string;
+		tileMatrixSet: string;
+		zoom: number;
+	} ) {
 		this.center = center;
 		this.radius = radius;
 		this.url = "";
 		this.heightNeighborsCoordinates = [];
+		this.layer = opts.layer ? opts.layer : "HR.ORTHOIMAGERY.ORTHOPHOTOS";
+		this.format = opts.format ? opts.format : "image/jpeg";
+		this.style = opts.style ? opts.style : "normal";
+		this.tileMatrixSet = opts.tileMatrixSet ? opts.tileMatrixSet : "PM";
+		this.zoom = opts.zoom ? opts.zoom : 8;
+
+		this.wmtsUrlBuilder();
 	};
 	//!tile row = y tile col = x
 	private	getNeighborsCoordinates( originaleTileRow: number, originaleTileCol: number ): { tileX: number, tileY: number }[] {
@@ -41,17 +49,18 @@ class	WMTSSource {
 	};
 
 //! Pour la donnees d'elevation il n'est pas necessaire de connaitre les 8 connected tiles, le filtre peux se faire avec le format, en effet les donnees d'elevation sont au format x-bil 32 bits et JAMAIS en jpeg ou png
-	public	wmtsUrlBuilderOrtho( layer: string = "HR.ORTHOIMAGERY.ORTHOPHOTOS", format: string = "image/jpeg", tileMatrixSet: string = "PM", zoom: number = 18 ) {
-		const	{ tileX, tileY } = latLonToTile(...this.center, zoom);
+	public	wmtsUrlBuilder() {
+		const	{ tileX, tileY } = latLonToTile( ...this.center, this.zoom );
 
-		if ( format==="image/jpeg" ) {
+		if ( this.format === "image/jpeg" ) {
 			this.heightNeighborsCoordinates = this.getNeighborsCoordinates(tileY, tileX);
 			console.log( this.heightNeighborsCoordinates );
 		};
-		this.url = `https://data.geopf.fr/wmts?LAYER=${layer}&FORMAT=${format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=${tileMatrixSet}&TILEMATRIX=${zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
+		this.url = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${this.zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
 		console.log( this.url );
 		return ( this.url );
 	};
+
 };
 
 export default	WMTSSource;

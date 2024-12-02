@@ -214,7 +214,6 @@ class	HugoGeo {
 			try {
 				const	watcher = this.createWatcher( resolve );
 				if ( this.source && this.source.format  ===  "png" ) {
-					console.log("icicicicici")
 					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source ).fetchPNG( this.source.url as string );
 				} else {
 					const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );

@@ -5,6 +5,7 @@ import getPixels from "../Fetcher/GetPixels";
 import Fetch from "../Fetcher/Fetch";
 import { color } from "three/webgpu";
 import WMSRSource from "../Source/WMSRSource";
+import { Coordinate } from "../Coordinate/Coordinate";
 
 async function	getPNGPixels( url: string ): Promise<ImageData> {
 	try {
@@ -14,6 +15,7 @@ async function	getPNGPixels( url: string ): Promise<ImageData> {
 			img.src = URL.createObjectURL( imageData );
 			img.onload = () => resolve( img );
 		});
+
 	
 		const	canvas = document.createElement( "canvas" );
 		const	ctxt = canvas.getContext( "2d" );
@@ -49,6 +51,7 @@ class	GreyModel {
 		this.terrainRasterBbox = [];
 		this.center = center;
 		this.source = source;
+		console.log( source );
 	};
 	public async	fetchTIF( url: string ) {
 		const	arrayBuffer = await fetch( url ).then(( res ) => {
@@ -62,6 +65,7 @@ class	GreyModel {
 		const	rawData = await fromArrayBuffer( arrayBuffer );
 		const	tifImg = await rawData.getImage();
 		this.terrainRasterBbox = tifImg.getBoundingBox();
+		console.log(this.terrainRasterBbox)
 		const	data = await tifImg.readRasters({ interleave: true });
 
 		this.data = data;
@@ -104,7 +108,7 @@ class	GreyModel {
 		const	data = this.data as ReadRasterResult;
 		const	{ width, height } = data;
 
-		const	plane = new PlaneGeometry( width, height, width - 1, height - 1 );
+		const	plane = new PlaneGeometry( 1, 1, width - 1, height - 1 );
 		const	arrBuff = new Array( plane.attributes.position.count );//pour la taille de  l'array==> raion de performance autant travailler comme a l'epoque cest bien plus opti
 		const	arr = arrBuff.fill( 1 );
 		arr.forEach(( _element, index ) => {
@@ -118,7 +122,7 @@ class	GreyModel {
 	};
 
 	private smoothElevation(x: number, y: number, width: number, height: number): number {
-		const getPixel = (i: number, j: number) => {
+		const	getPixel = (i: number, j: number) => {
 			const index = (i + j * width) * 4;
 			if (i < 0 || i >= width || j < 0 || j >= height) {
 				return ( 0 );
@@ -126,35 +130,47 @@ class	GreyModel {
 			return this.dataPng ? this.dataPng[index] : 0;
 		};
 
-		const neighbors = [
+		const	neighbors = [
 			getPixel(x - 1, y - 1), getPixel(x, y - 1), getPixel(x + 1, y - 1),
 			getPixel(x - 1, y), getPixel(x, y), getPixel(x + 1, y),
 			getPixel(x - 1, y + 1), getPixel(x, y + 1), getPixel(x + 1, y + 1)
 		];
 
-		const sum = neighbors.reduce(( a, b ) => a + b, 0);
-		const average = sum / neighbors.length;
-		return (average / 255 * 100);
+		const	sum = neighbors.reduce(( a, b ) => a + b, 0 );
+		const	average = sum / neighbors.length;
+		return ( average / 255 * 100 );
 	}
 
 	private async	_buildPng() {
 		if ( !this.dataPng ) {
 			throw new Error("dataPng is undefined");
 		};
+
+		console.log( this.source?.bbox);
+		const	projectedMin = new Coordinate({latitude: this.source?.bbox[0] as number, longitude: this.source?.bbox[1] as number, altitude: 0}, this.center).ComputeWorldCoordinate();
+		const	projectedMax = new Coordinate({latitude: this.source?.bbox[2] as number, longitude: this.source?.bbox[3] as number, altitude: 0}, this.center).ComputeWorldCoordinate();
+
+		
+		console.log(projectedMin.world, projectedMax.world);
 		const	data = this.dataPng;
 		const	width = 512, height = 512;
 		const	planeGeom = new PlaneGeometry( width, height, width - 1, height - 1 );
 		const	positionAttribute = planeGeom.attributes.position;
+		const	lonRange = this.source && this.source.bbox ? this.source.bbox[3] - this.source.bbox[1] : 0;
+		const	latRan = this.source && this.source.bbox ? this.source.bbox[2] - this.source.bbox[0] : 0;
+		console.log(data);
+
 
 		for (let i = 0; i < width; i++) {
 			for (let j = 0; j < height; j++) {
 				const	index = ( i + j * width ) * 4;
-				const	elevation = this.smoothElevation(i, j, width, height);
-				//const	elevation = data[index] / 255 * 100;
+				//const	elevation = this.smoothElevation(i, j, width, height);
+				const	elevation = data[index] / 255 * 50;
 				const	vertexIndex = i + j * width;
-				positionAttribute.setZ( vertexIndex, elevation );
+				positionAttribute.setZ( vertexIndex, elevation );//elevation ok mais quaand est ill des x et y il  faut les covertir en coordonnees relative a leur bbox
 			};
 		};
+		console.log(positionAttribute);
 
 		const	plane = new Mesh( planeGeom, this.terrainMat );
 		this.resolveTexture(( tex ) => {
@@ -166,14 +182,14 @@ class	GreyModel {
 				});
 			};
 		});
-		plane.userData = {isGrey: true};
+		plane.userData = {isRgb: true};
 		plane.receiveShadow = true;
 
 		return ([ plane ]);
 	};
 
 	private async	resolveTexture( onTex: ( texture: DataTexture ) => void ) {
-		const	colorSourceUrl = this.source?.wmsrColorUrlBuilder( 0.02, "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
+		const	colorSourceUrl = this.source?.wmsrColorUrlBuilder( 0.02, "ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
 		const	pixels = await Fetch.fetchPngMap( colorSourceUrl as string );
 		const	tex = new DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], RGBAFormat );
 

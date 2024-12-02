@@ -1,12 +1,12 @@
-import WMSSource from "./WMSSource";
+import Source from "./Source";
 //https://data.geopf.fr/wms-v/ows?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
-class	WMSVSource extends WMSSource {
+class	WMSVSource extends Source {
 	url: string | undefined;
 	urlColor: string | undefined;
 	buildingUrl: string | undefined;
 
 	constructor( center: [lat: number, lon: number], radius: number, opts: {format: string, requestType: string}) {
-		super( center, radius, opts );
+		super( center, radius );
 		this.url = this.urlBuilder( opts.requestType );
 	};
 

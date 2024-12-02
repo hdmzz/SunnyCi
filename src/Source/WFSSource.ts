@@ -1,34 +1,30 @@
-import axios from "axios";
-import turf from "turf";
 import { BboxType } from "../type";
-import Utils from "../Utils/geoUtils";
 import HugoGeo from "../HugoGeo";
+import Source from "./Source";
 
-class	WFSSource {
+class	WFSSource extends Source {
 	center: [lat: number, lon: number];
 	radius: number;
-	url: string | undefined;
-	bbox: BboxType;
+	layerName: string;
 
-	constructor( center: [lat: number, lon: number], radius: number ) {
+	constructor( center: [lat: number, lon: number], radius: number, opts: {
+		layer: string,
+	} ) {
+		super(center, radius, )
 		this.center = center;
-		this.radius = radius;
-		this.bbox = HugoGeo.getBbox( center, this.radius  );
+		this.radius = 0.005;
+		super.generateBboxFromCenter( "EPSG:4326", ...center, this.radius  );
+		this.layerName = opts.layer;
+		this.url = this.wfsUrlBuilder();
 	};
 
 //source of  feature to fecth  https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetCapabilities
 //ELEVATION.CONTOUR.LINES ==> isohypse elevation ~~
 //! interessant BDTOPO_V3:pleins_de_trucs_la_dedans
-	public	wfsUrlBuilder( typename: string = "ORTHOIMAGERY.ORTHOPHOTOS.GRAPHE.2016-2020:graphe_bdortho" ) {
-		this.url = `https://data.geopf.fr/wfs/ows?SERVICE=WFS
-		&REQUEST=GetFeature
-		&typeName=${typename}
-		&VERSION=2.0.0
-		&SRSNAME=EPSG:4326
-		&outputFormat=application/json
-		&BBOX=${this.bbox.northWest[0]},${this.bbox.southEast[1]},${this.bbox.southEast[0]},${this.bbox.northWest[1]},EPSG:4326`;
+	private	wfsUrlBuilder() {
+		let	url = `https://data.geopf.fr/wfs/ows?SERVICE=WFS&REQUEST=GetFeature&typeName=${this.layerName}&VERSION=2.0.0&SRSNAME=EPSG:4326&outputFormat=application/json&BBOX=${this.bbox[1]},${this.bbox[0]},${this.bbox[3]},${this.bbox[2]},EPSG:4326`;
 
-		return ( this.url );
+		return ( url );
 	};
 };
 

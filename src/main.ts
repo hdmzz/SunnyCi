@@ -8,9 +8,10 @@ import WMSSource from "./Source/WMSRSource";
 import WMSRSource from "./Source/WMSRSource";
 import WMSVSource from "./Source/WMSVSource";
 import { color } from "three/webgpu";
+import ElevationLayer from "./Layer/ElevationLayer";
 
 const	RADIUS = 5.00;
-let	CENTER: [lat: number, lon: number] = [45.75334909950519,4.831304997135941];
+let	CENTER: [lat: number, lon: number] = [45.7576556,4.8324322];
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
@@ -41,12 +42,20 @@ async function	loadTerrain() {
 
 	//console.log(urlColorOI);
 
-	const testWmts = new WMTSSource( CENTER, RADIUS ).wmtsUrlBuilderOrtho();
-	console.log( testWmts );
+	const testWmts = new WMTSSource( CENTER, RADIUS, {
+		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3",
+		format: "image/x-bil;bits=32",
+		style: "normal",
+		tileMatrixSet: "WGS84G_1_10",
+		zoom: 7,
+	});
 
-	const	testSource = new WFSSource( CENTER, RADIUS ).wfsUrlBuilder();
 
-	console.log( testSource);
+	const	buildingSource = new WFSSource( CENTER, RADIUS, {
+		layer: "BDTOPO_V3:batiment",
+	});
+
+	console.log( buildingSource);
 	tgeo.addSource( elevationSource );
 
 	
@@ -56,15 +65,17 @@ async function	loadTerrain() {
 	);
 	
 	terrain[0].rotation.x = -Math.PI/2;
+	//terrain[0].rotateZ(0.185)
 	view.addLayer( gridHelper, terrain[0] );
 	//const	start = performance.now()
-	const	buildings =  await new Buildings( CENTER, RADIUS, terrain as THREE.Mesh[], view ).Building();
+	const	buildings =  await new Buildings( CENTER, RADIUS, terrain as THREE.Mesh[], view, buildingSource ).Building();
+	//buildings.rotateY(-0.1)
 	//const	end = performance.now()
 	
 	//console.log("opration took : ", end-start)
 	////buildings.rotateY(0.1)
 	
-	//view.addLayer(  buildings );
+	view.addLayer(  buildings );
 };
 
 

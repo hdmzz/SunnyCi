@@ -3,9 +3,9 @@ import { GeoJSONFeature, GeoJSONFeatureCollection } from '../type';
 import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
 import Fetch from '../Fetcher/Fetch';
-
 import View from '../View/View';
-import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js';
+import Source from '../Source/Source';
+
 const	coordinateCache: { [key: string]: Coordinate } = {};
 
 export function	getWorldCoords( lat: number, lon: number, alt: number, center: [number, number] ) {
@@ -26,14 +26,16 @@ class	Buildings {
 	radius: number;
 	terrain: THREE.Mesh[];
 	view: View;
+	source: Source;
 
-	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Mesh[], view: View ) {
+	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Mesh[], view: View, source: Source ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
 		this.radius = radius;
 		this.terrain = terrain;
 		this.view = view;
+		this.source = source;
 	};
 
 	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
@@ -107,8 +109,9 @@ class	Buildings {
 
 	public async	Building() {
 		const	mat = new THREE.MeshPhongMaterial({ color: 'red', side: 2, wireframe: false });
-		const	url = Fetch.urlBuilder(HugoGeo.getBbox( [...this.center], 0.5 ));
-		const	buildings = await this.getBuildings( url );
+		const	url = this.source.url;
+		console.log(url);
+		const	buildings = await this.getBuildings( url as string );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
 
@@ -187,10 +190,10 @@ class	Buildings {
 			geometry.rotateX(Math.PI / 2);
 			geometry.rotateZ(Math.PI);
 			geometry.computeBoundingSphere();
-			geometry.rotateY(-0.01)
+			//geometry.rotateY(-0.01)
 			
 			//geometry.translate(-0.01, 0, -0.05);
-			const	altitude = await this.getAltitude( geometry );
+			const	altitude = 34;
 			geometry.translate(0, altitude, 0);
 	
 			resolve( geometry );

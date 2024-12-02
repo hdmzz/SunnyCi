@@ -14,9 +14,9 @@ class	View extends THREE.EventDispatcher {
 		super();
 		this.scene = new THREE.Scene();
 		//this.scene.background = new THREE.Color( "white" );
-		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 1000 );
-		this.camera.position.z = 1;
-		this.camera.position.y = 1.5;
+		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 100000 );
+		this.camera.position.z = 5;
+		this.camera.position.y = 180;
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: true,
 		});
