@@ -1,13 +1,15 @@
-class	Source {
+abstract class	Source {
 	center: [lat: number, lon: number];
 	radius: number;
 	url: string | undefined;
+	format: string;
 	public  bbox: [minLat: number, minLon: number, maxLat: number, maxLon: number];
 
-	constructor( center: [lat: number, lon: number], radius: number ) {
+	constructor( center: [lat: number, lon: number], radius: number, format: string ) {
 		this.radius = radius;
 		this.center = center;
 		this.bbox = [0, 0, 0, 0];
+		this.format = format;
 	};
 /* 
 	genere une bbox compatible WMS protocol
@@ -50,6 +52,9 @@ class	Source {
 			throw new Error( `CRS non supporté : ${crs}` );
 		};
 	};
+
+	abstract wmsrColorUrlBuilder( radius: number, layerName: string, epsg: string, style: string ) : string;
+
 };
 
 export default Source;

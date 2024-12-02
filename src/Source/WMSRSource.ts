@@ -6,7 +6,7 @@ class	WMSRSource extends Source {
 	format: string;
 
 	constructor( center: [lat: number, lon: number], radius: number, opts: {format: string, requestType: string}) {
-		super( center, radius );
+		super( center, radius, opts.format );
 		this.format = opts.format;
 		this.url = this.urlBuilder( opts.requestType );
 	};
@@ -17,7 +17,7 @@ class	WMSRSource extends Source {
 
 	private	wmsrUrlBuilder( lat: number, lon: number, _requestType: string ) {
 		const	bbox = super.generateBboxFromCenter( "EPSG:4326", lat, lon, 0.02 );
-		this.url = `https://data.geopf.fr/wms-r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES&STYLES=normal&CRS=EPSG:4326&BBOX=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}&WIDTH=512&HEIGHT=512&FORMAT=image/png`;
+		this.url = `https://data.geopf.fr/wms-r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3&STYLES=normal&CRS=EPSG:4326&BBOX=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}&WIDTH=512&HEIGHT=512&FORMAT=image/png`;
 
 		return ( this.url );
 	};

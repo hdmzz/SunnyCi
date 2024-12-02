@@ -11,16 +11,12 @@ import { color } from "three/webgpu";
 import ElevationLayer from "./Layer/ElevationLayer";
 
 const	RADIUS = 5.00;
-let	CENTER: [lat: number, lon: number] = [45.7576556,4.8324322];
+let	CENTER: [lat: number, lon: number] = [45.76236212191979,4.822462974822614];
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	view = new View( container )
 
-const	tgeo = new HugoGeo({
-	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
-	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
-});
 
 const testWmts = new WMTSSource( CENTER, RADIUS, {
 	layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3",
@@ -30,6 +26,11 @@ const testWmts = new WMTSSource( CENTER, RADIUS, {
 	zoom: 7,
 });
 
+const	tgeo = new HugoGeo({
+	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
+	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
+
+});
 
 
 async function	loadTerrain() {
@@ -43,7 +44,7 @@ async function	loadTerrain() {
 			requestType: "ELEVATION",
 		});
 		
-	const	eleLayerTestWmts = new ElevationLayer( testWmts );
+		const	eleLayerTestWmts = new ElevationLayer( testWmts );
 	const	colorSource =  new WMSRSource(CENTER, RADIUS, {
 		format: "image/jpeg",
 		requestType: "",

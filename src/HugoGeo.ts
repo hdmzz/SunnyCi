@@ -6,6 +6,7 @@ import { PolygonFeature } from './type';
 import Fetch from './Fetcher/Fetch';
 import GreyModel from './Models/GreyModel';
 import WMSSource from './Source/WMSRSource'
+import Source from './Source/Source';
 export interface	BoundingBox {
 	north: number;
 	south: number;
@@ -21,9 +22,9 @@ class	HugoGeo {
 	public	apiSatellite: string;
 	private	tokenMapBox: string;
 	private	tokenOpenTopo: string;
-	private	source: WMSSource | undefined;
+	private	source?: Source;
 
-	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string, source?: WMSSource } ) {
+	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string, source?: Source } ) {
 		this.unitsSide = 10;
 		this.isNode = false;
 		this.apiVector = "mapbox-terrain-vector";
@@ -219,7 +220,7 @@ class	HugoGeo {
 					const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
 					console.log( bbox2 );
 					const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
-					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source ).fetchTIF( url );
+					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as Source ).fetchTIF( url );
 				}
 
 			} catch (error) {

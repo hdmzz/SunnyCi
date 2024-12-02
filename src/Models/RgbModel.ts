@@ -99,6 +99,7 @@ class	RgbModel {
 		let	elevations =  [];
 		//ici extrcction de l'elevation
 		if ( tile ) {
+			console.log( tile );
 			let	R, G, B;
 			for ( let i = 0; i < tile.data.length; i += 4 ) {//on avance de 4 car la  quatrieme valeur est la valeur alpha du pixel
 				R = tile.data[i];

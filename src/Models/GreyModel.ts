@@ -7,6 +7,7 @@ import Fetch from "../Fetcher/Fetch";
 import { color } from "three/webgpu";
 import WMSRSource from "../Source/WMSRSource";
 import { Coordinate } from "../Coordinate/Coordinate";
+import Source from "../Source/Source";
 
 async function	getPNGPixels( url: string ): Promise<ImageData> {
 	try {
@@ -41,9 +42,9 @@ class	GreyModel {
 	private	terrainMat: MeshPhongMaterial;
 	private	terrainRasterBbox: number[];
 	private	center: [lat: number, lon: number];
-	private	source: WMSRSource;
+	private	source: Source;
 
-	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source: WMSRSource ) {
+	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source: Source ) {
 		this.token = token;
 		this.watcher = watcher;
 		this.data = undefined;
@@ -102,7 +103,7 @@ class	GreyModel {
 		this.watcher({ what: 'grey-dem', data: mesh });
 	};
 
-	private async	_build( heightScale = 30 ): Promise<Mesh[]> {
+	private async	_build( heightScale = 1 ): Promise<Mesh[]> {
 		if ( !this.data ) {
 			throw new Error("Data is undefined");
 		};
@@ -158,20 +159,6 @@ class	GreyModel {
 		const	lonRange = this.source && this.source.bbox ? this.source.bbox[3] - this.source.bbox[1] : 0;
 		const	latRange = this.source && this.source.bbox ? this.source.bbox[2] - this.source.bbox[0] : 0;
 		console.log(data);
-
-		//positionAttribute.forEach(( _, index ) => {
-		//	const	i = index / 3;
-		//	const	x = ( i % width ) / width;
-		//	const	y = Math.floor( i / width ) / height;
-
-		//	const	lon = this.source?.bbox[1] + x * lonRange;
-		//	const	lat = this.source && this.source.bbox ? this.source.bbox[0] + y * latRange : 0;
-		//	const	elevation = data[index] / 255 * 50;
-		//	planeGeom.attributes.position.setZ( i, elevation );
-		//})
-
-		//planeGeom.computeVertexNormals();
-
 
 		for (let i = 0; i < width; i++) {//col
 			for (let j = 0; j < height; j++) {//row

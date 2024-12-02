@@ -115,10 +115,11 @@ class	Buildings {
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
 
-		for ( let i = 0; i < buildings.length; i++ ) {
+		for ( let i = 0; i < buildings.length; i++ ) {//!pb a regler asynchrone toute les altitude ne sont pas calcuees du premier coup 
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
-			const	building = await this.addBuilding( featureElement.geometry.coordinates, height );
+			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
+			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
 
 			geometries.push( building );
 		};
@@ -136,7 +137,7 @@ class	Buildings {
 		return ( buildingGroup );
 	};
 
-	public async	addBuilding( coords: number[][][][], height: number ): Promise<THREE.ExtrudeGeometry> {
+	public async	addBuilding( coords: number[][][][], height: number, altitude: number ): Promise<THREE.ExtrudeGeometry> {
 		const	holes = [];
 		let		shape: THREE.Shape | undefined;
 
@@ -158,7 +159,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false } );
+		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false, altitude } );
 
 		return ( geometry );
 	};
@@ -183,19 +184,17 @@ class	Buildings {
 		return ( shape );
 	};
 
-	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean } ): Promise<THREE.ExtrudeGeometry> {
+	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): Promise<THREE.ExtrudeGeometry> {
 		return new Promise( async ( resolve ) => {
+			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 			
 			geometry.rotateX(Math.PI / 2);
 			geometry.rotateZ(Math.PI);
-			geometry.rotateY(-Math.PI /2)
+			geometry.rotateY(-Math.PI /2);
+			geometry.translate(0, extrudeSettings.altitude, 0);
+
 			geometry.computeBoundingSphere();
-			//geometry.rotateY(-0.01)
-			
-			//geometry.translate(-0.01, 0, -0.05);
-			const	altitude = 34;
-			geometry.translate(0, altitude, 0);
 	
 			resolve( geometry );
 		});
