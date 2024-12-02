@@ -1,5 +1,6 @@
 import { BufferGeometry, DataTexture, DoubleSide, Material, Mesh, MeshPhongMaterial, NormalBufferAttributes, Object3DEventMap, PlaneGeometry, RGBAFormat } from "three";
 import { fromArrayBuffer, ReadRasterResult } from "geotiff";
+import * as THREE from 'three';
 import WMSSource from "../Source/WMSRSource";
 import getPixels from "../Fetcher/GetPixels";
 import Fetch from "../Fetcher/Fetch";
@@ -148,10 +149,8 @@ class	GreyModel {
 
 		console.log( this.source?.bbox);
 		const	projectedMin = new Coordinate({latitude: this.source?.bbox[0] as number, longitude: this.source?.bbox[1] as number, altitude: 0}, this.center).ComputeWorldCoordinate();
-		const	projectedMax = new Coordinate({latitude: this.source?.bbox[2] as number, longitude: this.source?.bbox[3] as number, altitude: 0}, this.center).ComputeWorldCoordinate();
-
-		
-		console.log(projectedMin.world, projectedMax.world);
+		const	projectedMax = new Coordinate({latitude: this.source?.bbox[2] as number, longitude: this.source?.bbox[3] as number, altitude: 0}, this.center).ComputeWorldCoordinate()
+		console.log(projectedMax.world, projectedMin.world);
 		const	data = this.dataPng;
 		const	width = 512, height = 512;
 		const	planeGeom = new PlaneGeometry( width, height, width - 1, height - 1 );

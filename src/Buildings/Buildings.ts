@@ -187,7 +187,7 @@ class	Buildings {
 		return new Promise( async ( resolve ) => {
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 			
-			geometry.rotateX(Math.PI / 2);
+			//geometry.rotateX(Math.PI / 2);
 			geometry.rotateZ(Math.PI);
 			geometry.computeBoundingSphere();
 			//geometry.rotateY(-0.01)

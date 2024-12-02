@@ -50,6 +50,18 @@ async function	loadTerrain() {
 		zoom: 7,
 	});
 
+	const geometry = new THREE.SphereGeometry(100, 16, 16); // Small sphere
+	const geometry2 = new THREE.SphereGeometry(100, 16, 16); // Small sphere
+	const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color
+	const point = new THREE.Mesh(geometry, material);
+	const point2 = new THREE.Mesh(geometry2, new THREE.MeshBasicMaterial({ color: 'green' }));
+
+// Set the position of the point
+		point.position.set(-222.63898156654456, -319.16378431660603, 0);
+		point2.position.set(222.63898156654456, 319.16378431660603, 0);
+		view.addLayer(point, point2);
+
+
 
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
@@ -64,7 +76,7 @@ async function	loadTerrain() {
 		RADIUS,
 	);
 	
-	terrain[0].rotation.x = -Math.PI/2;
+	//terrain[0].rotation.x = -Math.PI/2;
 	//terrain[0].rotateZ(0.185)
 	view.addLayer( gridHelper, terrain[0] );
 	//const	start = performance.now()
