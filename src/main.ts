@@ -18,61 +18,38 @@ const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 const	view = new View( container )
 
 
-const testWmts = new WMTSSource( CENTER, RADIUS, {
-	layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3",
-	format: "image/x-bil;bits=32",
-	style: "normal",
-	tileMatrixSet: "WGS84G_1_10",
-	zoom: 7,
-});
 
 const	tgeo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
 	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
-
+	
 });
 
 
 async function	loadTerrain() {
-	//let	terrain = await tgeo.getTerrainRgb(
-		//	CENTER,
-		//	RADIUS,
-		//	15,
-		//);
-		const	elevationSource = new WMSRSource( CENTER, RADIUS, {
-			format: "png",
-			requestType: "ELEVATION",
-		});
-		
-		const	eleLayerTestWmts = new ElevationLayer( testWmts );
-	const	colorSource =  new WMSRSource(CENTER, RADIUS, {
-		format: "image/jpeg",
-		requestType: "",
+	
+	//const	elevationSource = new WMSRSource( CENTER, RADIUS, {
+	//	format: "png",
+	//	requestType: "ELEVATION",
+	//});
+	
+	const testWmts = new WMTSSource( CENTER, RADIUS, {
+		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+		format: "image/x-bil;bits=32",
+		style: "normal",
+		tileMatrixSet: "WGS84G",
+		zoom: 14,
 	});
 
-	//const urlColorOI = colorSource.wmsrColorUrlBuilder( "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326" );
+		
+	const	eleLayerTestWmts = new ElevationLayer( testWmts );
 
-	//console.log(urlColorOI);
-
-
-	const geometry = new THREE.SphereGeometry(100, 16, 16); // Small sphere
-	const geometry2 = new THREE.SphereGeometry(100, 16, 16); // Small sphere
-	const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color
-	const point = new THREE.Mesh(geometry, material);
-	const point2 = new THREE.Mesh(geometry2, new THREE.MeshBasicMaterial({ color: 'green' }));
-
-	point.position.set(-222.63898156654456, -319.16378431660603, 0);
-	point2.position.set(222.63898156654456, 319.16378431660603, 0);
-	view.addLayer(point, point2);
-
-
+	console.log(eleLayerTestWmts) ;
 
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});
 
-	console.log( buildingSource);
-	tgeo.addSource( elevationSource );
 
 	
 	const	terrain = await tgeo.getTerrainGrey(

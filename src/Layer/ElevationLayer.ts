@@ -12,9 +12,9 @@ class	ElevationLayer {
 		const	bilResponse = await fetch( this.source.url );
 		const	bilBuffer = await  bilResponse.arrayBuffer();
 
-		this.parseBil( bilBuffer );
+		const grid = this.parseBil( bilBuffer );
 
-		console.log(bilBuffer);
+		console.log(grid);
 	};
 
 	private			parseBil( buffer: ArrayBuffer )  {
@@ -23,15 +23,16 @@ class	ElevationLayer {
 			nrows: 3601,
 			cellsize: 0.000833333,
 			nodata_value: -99999,
+			elements: 262144,//ok pas besoin car valeur dans buffer.bytelenght
 		};
-		const	size = Math.sqrt( buffer.byteLength / 4 );//! / 4  car bil vient au format32 bits si 16 alors / 2.
-		console.log(size);
-		const	elevation = new	Int32Array( buffer );
-
+		const	fileSize = buffer.byteLength / 4;//! / 4  car bil vient au format32 bits si 16 alors / 2; pour connaitre le nombre de row et de col on fait racine carre puisqu fileSize est egat a nrow *  ncol
+		const	gridSize = Math.sqrt( fileSize );
+		const	data =  buffer ;
+		console.log( data );
+		
 		const	grid = [];
-		for ( let y = 0; y < size; y++ ) {
-			grid.push( elevation.slice( y * size, ( y + 1 ) * size ) );
-		};
+		
+		return ( grid );
 	};
 };
 

@@ -50,12 +50,12 @@ class	WMTSSource {
 
 //! Pour la donnees d'elevation il n'est pas necessaire de connaitre les 8 connected tiles, le filtre peux se faire avec le format, en effet les donnees d'elevation sont au format x-bil 32 bits et JAMAIS en jpeg ou png
 	public	wmtsUrlBuilder() {
-		const	{ tileX, tileY } = latLonToTile( ...this.center, this.zoom );
+		const	{ tileX, tileY } = latLonToTile( ...this.center, this.zoom, this.tileMatrixSet );
 
 		if ( this.format === "image/jpeg" ) {
 			this.heightNeighborsCoordinates = this.getNeighborsCoordinates(tileY, tileX);
 			console.log( this.heightNeighborsCoordinates );
-		};
+		};//!!!!!!!!!!!!!!!!!!!!!!!!!!!proleme de tilematrixset WGS84G et pas PM!!!! Projection mercator !=== a WGS refaire coordonnees de tuile a partir de WGS coords 
 		this.url = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${this.zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
 		console.log( this.url );
 		return ( this.url );
@@ -68,6 +68,16 @@ export default	WMTSSource;
 const TILE_SIZE = 256; // Taille des tuiles en pixels
 const INITIAL_RESOLUTION = 2 * Math.PI * 6378137 / TILE_SIZE; // Résolution initiale à zoom 0
 const ORIGIN_SHIFT = 2 * Math.PI * 6378137 / 2.0; // Décalage pour EPSG:3857
+
+const EPSG4326_TILE_SIZE = 256; // Taille des tuiles en pixels pour EPSG:4326
+const EPSG4326_INITIAL_RESOLUTION = 180 / EPSG4326_TILE_SIZE; // Résolution initiale à zoom 0 pour EPSG:4326
+
+function	latLonToTileEPSG4326(lat: number, lon: number, zoom: number): { tileX: number, tileY: number } {
+	const	resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow(2, zoom); // Résolution pour le niveau de zoom donné
+	const	tileX = Math.floor((lon + 180) / resolution / EPSG4326_TILE_SIZE); // Indice de la tuile X
+	const	tileY = Math.floor((90 - lat) / resolution / EPSG4326_TILE_SIZE); // Indice de la tuile Y
+	return { tileX, tileY };
+}
 
 /**
  * Convertit une latitude et une longitude en coordonnées Mercator (EPSG:3857).
@@ -105,7 +115,22 @@ function metersToTile(x: number, y: number, zoom: number): { tileX: number, tile
  * @param zoom Niveau de zoom.
  * @returns Les indices de la tuile x et y.
  */
-function latLonToTile(lat: number, lon: number, zoom: number): { tileX: number, tileY: number } {
-	const meters = latLonToMeters(lat, lon); // Conversion de latitude/longitude en mètres
-	return metersToTile(meters.x, meters.y, zoom); // Conversion des mètres en indices de tuile
+function latLonToTile( lat: number, lon: number, zoom: number, tileMatrixSet: string ): { tileX: number, tileY: number } {
+	let	units;
+	if ( tileMatrixSet === "PM" ) {
+		units = latLonToMeters(lat, lon); // Conversion de latitude/longitude en mètres
+		return metersToTile( units.x as number, units.y as number, zoom ); // Conversion des mètres en indices de tuile
+	} else {
+		return ( latLonToTileEPSG4326( lat, lon, zoom ) );
+	};
 };
+
+
+/**
+ * 
+ * <ows:WGS84BoundingBox>
+<ows:LowerCorner>-62.9528 -13.0078</ows:LowerCorner>
+<ows:UpperCorner>45.3043 51.1053</ows:UpperCorner>
+</ows:WGS84BoundingBox>
+ */
+
