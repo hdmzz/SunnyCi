@@ -19,7 +19,7 @@ const	ORIGIN_SHIFT = 2 * Math.PI * 6378.137 / 2.0; // Décalage pour EPSG:3857
  * @param lon Longitude en degrés.
  * @returns Un objet avec les coordonnées x et y en mètres.
  */
-function	latLonToMeters(lat: number, lon: number): { x: number, y: number } {
+export function	latLonToMeters(lat: number, lon: number): { x: number, y: number } {
 	const	x = lon * ORIGIN_SHIFT / 180.0;
 	const	y = Math.log(Math.tan((90 + lat) * Math.PI / 360.0)) / (Math.PI / 180.0);
 	return { x, y: y * ORIGIN_SHIFT / 180.0 };

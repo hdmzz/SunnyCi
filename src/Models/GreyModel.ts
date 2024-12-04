@@ -148,10 +148,8 @@ class	GreyModel {
 			throw new Error("dataPng is undefined");
 		};
 
-		console.log( this.source?.bbox);
 		const	projectedMin = new Coordinate({latitude: this.source?.bbox[0] as number, longitude: this.source?.bbox[1] as number, altitude: 0}, this.center).ComputeWorldCoordinate();
 		const	projectedMax = new Coordinate({latitude: this.source?.bbox[2] as number, longitude: this.source?.bbox[3] as number, altitude: 0}, this.center).ComputeWorldCoordinate()
-		console.log(projectedMax.world, projectedMin.world);
 		const	data = this.dataPng;
 		const	width = 512, height = 512;
 		const	planeGeom = new PlaneGeometry( width, height, width - 1, height - 1 );
@@ -167,7 +165,7 @@ class	GreyModel {
 				const	elevation = data[index] / 255 * 50;
 				const	lon = this.source?.bbox[1] + (i / width) * lonRange;
 				const	lat = this.source?.bbox[0] + (j / height) * latRange;
-				const mercator = new Coordinate({latitude: lat, longitude: lon, altitude: 0}, this.center).ComputeWorldCoordinate();
+				const	mercator = new Coordinate({latitude: lat, longitude: lon, altitude: 0}, this.center).ComputeWorldCoordinate();
 				const	vertexIndex = i + j * width;
 				positionAttribute.setXYZ( vertexIndex, mercator.world.y, mercator.world.x, elevation );//elevation ok mais quaand est ill des x et y il  faut les covertir en coordonnees relative a leur bbox
 			};

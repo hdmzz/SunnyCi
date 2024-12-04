@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { GeoJSONFeature, GeoJSONFeatureCollection } from '../type';
 import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
-import Fetch from '../Fetcher/Fetch';
 import View from '../View/View';
 import Source from '../Source/Source';
 
@@ -24,16 +23,14 @@ class	Buildings {
 	buildingsArray: [];
 	center: [lat: number, lon: number];
 	radius: number;
-	terrain: THREE.Mesh[];
 	view: View;
 	source: Source;
 
-	constructor( center: [lat:number, lon: number], radius: number, terrain: THREE.Mesh[], view: View, source: Source ) {
+	constructor( center: [lat:number, lon: number], radius: number, view: View, source: Source ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
 		this.radius = radius;
-		this.terrain = terrain;
 		this.view = view;
 		this.source = source;
 	};
@@ -60,10 +57,8 @@ class	Buildings {
 		let		resDis = 100000;
 		
 		for ( let i = 0; i < terrainVertices.length; i += 3 ) {
-			//terrainVertices[i]  = x = abscisse;
-			//terrainVertices[i + 1] = y = altitude;
-			//terrian[i + 2] = z = ordonnee;
 			let	dis = Math.sqrt((( point.x - terrainVertices[i] ) ** 2 ) + (( point.z - terrainVertices[i + 1] ) ** 2 ));
+
 			if ( dis <= resDis ) {
 				resDis = dis;
 				res = terrainVertices[i + 2];
@@ -71,40 +66,6 @@ class	Buildings {
 		};
 
 		return ( res );
-	};
-
-	public async	getAltitudeWithRaycast( building: THREE.ExtrudeGeometry ): Promise<number> {
-		return new Promise( async ( resolve ) => {
-			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			const	raycaster = new THREE.Raycaster();
-			const	up = new THREE.Vector3( 0, 1, 0 );
-			const	chunkSize = 5;
-			let	altitude = 0;
-	
-			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
-				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
-				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
-				for ( const mesh of terrainChunk ) {
-					const	intersects =  raycaster.intersectObject( mesh );
-					if ( intersects.length > 0 ) {
-						altitude = intersects[0].point.y;
-						break;
-					};
-				};
-			};
-			resolve( altitude );
-		});
-	};
-
-	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
-		let	altitude = 0;
-
-		if ( this.terrain[0].userData.isRgb === true )
-			altitude = await this.getAltitudeWithRaycast( building );
-		else if ( this.terrain[0].userData.isGrey === true )
-			altitude = this.shortest( building.boundingSphere?.center as THREE.Vector3, this.terrain[0] );
-
-		return ( altitude );
 	};
 
 	public async	Building() {
@@ -168,7 +129,7 @@ class	Buildings {
 		const	shape = new THREE.Shape();
 
 		for ( let i = 0; i < points.length; i++ ) {
-			const	elPoint = points[i];//
+			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
 				const	normPnt = getWorldCoords( point[1], point[0], point[2], this.center );
@@ -176,7 +137,7 @@ class	Buildings {
 				if ( y === 0 ) {
 					shape.moveTo( normPnt.world.x, normPnt.world.y );
 				} else {
-					shape.lineTo( normPnt.world.x, normPnt.world.y );
+					shape.lineTo( normPnt.world.x, normPnt.world.y);
 				};
 			});
 		};
@@ -189,9 +150,9 @@ class	Buildings {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 			
-			geometry.rotateX(Math.PI / 2);
-			geometry.rotateZ(Math.PI);
-			geometry.rotateY(-Math.PI /2);
+			geometry.rotateX(Math.PI /2 );
+			//geometry.rotateZ(Math.PI / 2);
+			//geometry.rotateY(Math.PI * 4);
 			geometry.translate(0, extrudeSettings.altitude, 0);
 
 			geometry.computeBoundingSphere();

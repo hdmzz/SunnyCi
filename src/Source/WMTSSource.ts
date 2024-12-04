@@ -8,7 +8,9 @@ class	WMTSSource {
 	format: string
 	style: string
 	tileMatrixSet: string
-	zoom: number
+	zoom: number;
+	tileRow: number | undefined;
+	tileCol: number | undefined;
 
 	constructor( center: [lat: number, lon: number], radius: number, opts: {
 		layer: string;
@@ -35,7 +37,6 @@ class	WMTSSource {
 
 		
 		for ( let dx = -1; dx <= 1; dx++ ) {
-			console.log(dx);
 			for ( let dy = -1; dy <= 1; dy++ ) {
 				if ( dx === 0 && dy === 0 ) continue; //original tile coordinate ~~~
 				const	tileX = originaleTileCol + dx;
@@ -51,7 +52,8 @@ class	WMTSSource {
 //! Pour la donnees d'elevation il n'est pas necessaire de connaitre les 8 connected tiles, le filtre peux se faire avec le format, en effet les donnees d'elevation sont au format x-bil 32 bits et JAMAIS en jpeg ou png
 	public	wmtsUrlBuilder() {
 		const	{ tileX, tileY } = latLonToTile( ...this.center, this.zoom, this.tileMatrixSet );
-
+		this.tileCol = tileX;
+		this.tileRow = tileY;
 		if ( this.format === "image/jpeg" ) {
 			this.heightNeighborsCoordinates = this.getNeighborsCoordinates(tileY, tileX);
 			console.log( this.heightNeighborsCoordinates );
@@ -60,6 +62,18 @@ class	WMTSSource {
 		console.log( this.url );
 		return ( this.url );
 	};
+
+	public	tileToBBox(): { minLat: number, minLon: number, maxLat: number, maxLon: number } {
+		const resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow(2, 14);
+		if (this.tileCol === undefined || this.tileRow === undefined) {
+			throw new Error("tileCol or tileRow is undefined");
+		}
+		const minLon = this.tileCol * resolution * EPSG4326_TILE_SIZE - 180;
+		const maxLon = (this.tileCol + 1) * resolution * EPSG4326_TILE_SIZE - 180;
+		const minLat = 90 - (this.tileRow + 1) * resolution * EPSG4326_TILE_SIZE;
+		const maxLat = 90 - this.tileRow * resolution * EPSG4326_TILE_SIZE;
+		return { minLat, minLon, maxLat, maxLon };
+	}
 
 };
 
@@ -124,13 +138,4 @@ function latLonToTile( lat: number, lon: number, zoom: number, tileMatrixSet: st
 		return ( latLonToTileEPSG4326( lat, lon, zoom ) );
 	};
 };
-
-
-/**
- * 
- * <ows:WGS84BoundingBox>
-<ows:LowerCorner>-62.9528 -13.0078</ows:LowerCorner>
-<ows:UpperCorner>45.3043 51.1053</ows:UpperCorner>
-</ows:WGS84BoundingBox>
- */
 

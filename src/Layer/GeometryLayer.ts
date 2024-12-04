@@ -13,5 +13,5 @@ class GeometryLayer {
 		this.source = source;
 	};
 
-	
+
 };
