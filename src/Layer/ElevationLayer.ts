@@ -2,28 +2,34 @@ import WMTSSource from "../Source/WMTSSource";
 import { fromArrayBuffer } from "geotiff";
 import * as THREE from 'three';
 import { Coordinate } from "../Coordinate/Coordinate";
+import Source from "../Source/Source";
 
 class	ElevationLayer {
-	source: WMTSSource;
+	source: Source;
 	terrain: THREE.Mesh | undefined;
 
-	constructor ( source: WMTSSource ) {
+	constructor ( source: Source ) {
 		this.source = source;
 	};
 
 	public async	fetchBil() {
 		return new Promise<THREE.Mesh>( async ( resolve, reject ) => {
-			const	bilResponse = await fetch( this.source.url );
-			const	bilBuffer = await  bilResponse.arrayBuffer();
-	
-			const grid = this.parseBil( bilBuffer );
-	
-			console.log(grid);
-			const	mesh = await this.createMesh(grid, resolve);
-		})
+
+			if ( this.source.isWmtsSource ) {
+				const	bilResponse = await fetch( this.source.url );
+				const	bilBuffer = await  bilResponse.arrayBuffer();
+		
+				const grid = this.parseBil( bilBuffer );
+		
+				console.log(grid);
+				const	mesh = await this.createMesh(grid, resolve);
+			} else if ( this.source.isWmsrSource ) {
+
+			};
+		});
 	};
 
-	private			parseBil( buffer: ArrayBuffer )  {
+	private		parseBil( buffer: ArrayBuffer )  {
 		const	elevationData = new DataView(buffer);
 		const	grid = [];
 		const	ncols = 256;
@@ -46,8 +52,6 @@ class	ElevationLayer {
 		const	nrows = grid.length;
 		const geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
 		const	bbox = this.source.tileToBBox();
-		const	projectedMin = new Coordinate({ latitude: bbox.minLat, longitude: bbox.minLon, altitude:0 }, this.source.center );
-		const	projectedMax = new Coordinate({ latitude: bbox.maxLat, longitude: bbox.maxLon, altitude:0 }, this.source.center );
 
 		const	lonRange = bbox.maxLon - bbox.minLon;
 		const	latRange = bbox.maxLat - bbox.minLat;

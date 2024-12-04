@@ -29,10 +29,10 @@ const	tgeo = new HugoGeo({
 
 async function	loadTerrain() {
 	
-	//const	elevationSource = new WMSRSource( CENTER, RADIUS, {
-	//	format: "png",
-	//	requestType: "ELEVATION",
-	//});
+	const	elevationSource = new WMSRSource( CENTER, RADIUS, {
+		format: "png",
+		requestType: "ELEVATION",
+	});
 	
 	const testWmts = new WMTSSource( CENTER, RADIUS, {
 		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",

@@ -1,7 +1,8 @@
 import Source from "./Source";
+import WMSSource from "./WMSSource";
 //https://data.geopf.fr/wms-r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
-class	WMSRSource extends Source {
-	url: string | undefined;
+class	WMSRSource extends WMSSource {
+	url: string;
 	urlColor: string | undefined;
 	format: string;
 
