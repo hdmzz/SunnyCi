@@ -3,13 +3,6 @@ import HugoGeo from "./HugoGeo";
 import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 import WFSSource from "./Source/WFSSource";
-import WMTSSource from "./Source/WMTSSource";
-import WMSSource from "./Source/WMSRSource";
-import WMSRSource from "./Source/WMSRSource";
-import WMSVSource from "./Source/WMSVSource";
-import { color } from "three/webgpu";
-import ElevationLayer from "./Layer/ElevationLayer";
-import { Coordinate, latLonToMeters } from "./Coordinate/Coordinate";
 import { GeolocationService } from "./Services/GeolocationService";
 
 const	RADIUS = 1.00;

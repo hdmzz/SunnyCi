@@ -9,5 +9,7 @@ class ColorLayer {
 
 	public async	fetchColorWmts() {
 		
-	}
-}
+	};
+};
+
+export default	ColorLayer;

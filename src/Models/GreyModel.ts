@@ -1,13 +1,8 @@
 import { BufferGeometry, DataTexture, DoubleSide, Material, Mesh, MeshPhongMaterial, NormalBufferAttributes, Object3DEventMap, PlaneGeometry, RGBAFormat } from "three";
 import { fromArrayBuffer, ReadRasterResult } from "geotiff";
-import * as THREE from 'three';
-import WMSSource from "../Source/WMSRSource";
-import getPixels from "../Fetcher/GetPixels";
 import Fetch from "../Fetcher/Fetch";
-import { color } from "three/webgpu";
-import WMSRSource from "../Source/WMSRSource";
 import { Coordinate } from "../Coordinate/Coordinate";
-import Source from "../Source/Source";
+import WMSRSource from "../Source/WMSRSource";
 
 async function	getPNGPixels( url: string ): Promise<ImageData> {
 	try {
@@ -35,16 +30,16 @@ async function	getPNGPixels( url: string ): Promise<ImageData> {
 	};
 };
 class	GreyModel {
-	private	token: string;
+	public	token: string;
 	private	data: ReadRasterResult | undefined;
-	private	dataPng: Uint8ClampedArray<ArrayBufferLike> | undefined;
+	private	dataPng: Uint8ClampedArray | undefined;
 	private	watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void;
 	private	terrainMat: MeshPhongMaterial;
 	private	terrainRasterBbox: number[];
 	private	center: [lat: number, lon: number];
-	private	source: Source;
+	private	source: WMSRSource;
 
-	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source: Source ) {
+	constructor( token: string, watcher: (payload: { what: string; data: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[]; }) => void, center: [lat: number, lon: number], source: WMSRSource ) {
 		this.token = token;
 		this.watcher = watcher;
 		this.data = undefined;
@@ -123,33 +118,31 @@ class	GreyModel {
 		return ([ mesh ]);
 	};
 
-	private smoothElevation(x: number, y: number, width: number, height: number): number {
-		const	getPixel = (i: number, j: number) => {
-			const index = (i + j * width) * 4;
-			if (i < 0 || i >= width || j < 0 || j >= height) {
-				return ( 0 );
-			};
-			return this.dataPng ? this.dataPng[index] : 0;
-		};
+	//private smoothElevation(x: number, y: number, width: number, height: number): number {
+	//	const	getPixel = (i: number, j: number) => {
+	//		const index = (i + j * width) * 4;
+	//		if (i < 0 || i >= width || j < 0 || j >= height) {
+	//			return ( 0 );
+	//		};
+	//		return this.dataPng ? this.dataPng[index] : 0;
+	//	};
 
-		const	neighbors = [
-			getPixel(x - 1, y - 1), getPixel(x, y - 1), getPixel(x + 1, y - 1),
-			getPixel(x - 1, y), getPixel(x, y), getPixel(x + 1, y),
-			getPixel(x - 1, y + 1), getPixel(x, y + 1), getPixel(x + 1, y + 1)
-		];
+	//	const	neighbors = [
+	//		getPixel(x - 1, y - 1), getPixel(x, y - 1), getPixel(x + 1, y - 1),
+	//		getPixel(x - 1, y), getPixel(x, y), getPixel(x + 1, y),
+	//		getPixel(x - 1, y + 1), getPixel(x, y + 1), getPixel(x + 1, y + 1)
+	//	];
 
-		const	sum = neighbors.reduce(( a, b ) => a + b, 0 );
-		const	average = sum / neighbors.length;
-		return ( average / 255 * 100 );
-	}
+	//	const	sum = neighbors.reduce(( a, b ) => a + b, 0 );
+	//	const	average = sum / neighbors.length;
+	//	return ( average / 255 * 100 );
+	//};
 
 	private async	_buildPng() {
 		if ( !this.dataPng ) {
 			throw new Error("dataPng is undefined");
 		};
 
-		const	projectedMin = new Coordinate({latitude: this.source?.bbox[0] as number, longitude: this.source?.bbox[1] as number, altitude: 0}, this.center).ComputeWorldCoordinate();
-		const	projectedMax = new Coordinate({latitude: this.source?.bbox[2] as number, longitude: this.source?.bbox[3] as number, altitude: 0}, this.center).ComputeWorldCoordinate()
 		const	data = this.dataPng;
 		const	width = 512, height = 512;
 		const	planeGeom = new PlaneGeometry( width, height, width - 1, height - 1 );

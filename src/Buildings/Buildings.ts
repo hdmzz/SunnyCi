@@ -193,15 +193,15 @@ class	Buildings {
 		});
 	};
 
-	private createRayHelper(ray: THREE.Ray): THREE.Line {
-		const length = 100; // Longueur du rayon
-		const geometry = new THREE.BufferGeometry().setFromPoints([
-			ray.origin,
-			ray.origin.clone().add(ray.direction.clone().multiplyScalar(length))
-		]);
-		const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-		return new THREE.Line(geometry, material);
-	}
+	//private createRayHelper(ray: THREE.Ray): THREE.Line {
+	//	const length = 100; // Longueur du rayon
+	//	const geometry = new THREE.BufferGeometry().setFromPoints([
+	//		ray.origin,
+	//		ray.origin.clone().add(ray.direction.clone().multiplyScalar(length))
+	//	]);
+	//	const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+	//	return new THREE.Line(geometry, material);
+	//}
 };
 
 export default	Buildings;

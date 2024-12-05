@@ -3,19 +3,6 @@ import getPixels from './GetPixels';
 import { BboxType } from '../type';
 import { BoundingBox } from '../HugoGeo';
 
-type	Bbox = {
-	feature: {
-		type: string;
-		geometry: {
-			properties: {};
-			type: string;
-			coordinates: [number[][]];
-		};
-	};
-	northWest: number[];//[number, number]
-	southEast: number[];//[number, number]
-}
-
 class Fetch {
 	/**
   * Calculates the unique zoom positions covered by the provided zoom positions.

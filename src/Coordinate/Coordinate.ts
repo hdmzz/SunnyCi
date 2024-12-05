@@ -1,16 +1,3 @@
-function mercator(lat: number, lon: number) {
-	const mercator = { x: 0, y: 0 };
-	const earthRad = 6378.137; // WGS84 spheroid radius in meters
-	const a = lat * Math.PI / 180;
-
-	mercator.x = lon * Math.PI / 180 * earthRad;
-	mercator.y = earthRad * Math.log(Math.tan((Math.PI / 4) + (a / 2)));
-
-	return mercator;
-};
-
-const	TILE_SIZE = 256; // Taille des tuiles en pixels
-const	INITIAL_RESOLUTION = 2 * Math.PI * 6378137 / TILE_SIZE; // Résolution initiale à zoom 0
 const	ORIGIN_SHIFT = 2 * Math.PI * 6378.137 / 2.0; // Décalage pour EPSG:3857
 
 /**
@@ -24,17 +11,6 @@ export function	latLonToMeters(lat: number, lon: number): { x: number, y: number
 	const	y = Math.log(Math.tan((90 + lat) * Math.PI / 360.0)) / (Math.PI / 180.0);
 	return { x, y: y * ORIGIN_SHIFT / 180.0 };
 }
-
-//function	mercator( lat: number, lon: number ) {
-//	const	mercator = { x: 0, y: 0 };
-//	const	earthRad = 6378.137;
-//	const	a = lat * Math.PI / 180;
-
-//	mercator.x = lon * Math.PI / 180 * earthRad;
-//	mercator.y = earthRad / 2 * Math.log((1.0 + Math.sin(a)) / (1.0 - Math.sin(a)));
-	
-//	return ( mercator );
-//};
 
 class GPSCoordinate {
 	latitude: number;

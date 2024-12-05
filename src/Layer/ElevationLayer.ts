@@ -1,5 +1,4 @@
 import WMTSSource from "../Source/WMTSSource";
-import { fromArrayBuffer } from "geotiff";
 import * as THREE from 'three';
 import { Coordinate } from "../Coordinate/Coordinate";
 
@@ -20,6 +19,8 @@ class	ElevationLayer {
 	
 			console.log(grid);
 			const	mesh = await this.createMesh(grid, resolve);
+			if ( mesh === undefined)
+				reject();
 		})
 	};
 
@@ -43,12 +44,8 @@ class	ElevationLayer {
 
 	private createMesh(grid: number[][], res: (payload : THREE.Mesh) => void) {
 		const	ncols = grid[0].length;
-		const	nrows = grid.length;
 		const geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
 		const	bbox = this.source.tileToBBox();
-		const	projectedMin = new Coordinate({ latitude: bbox.minLat, longitude: bbox.minLon, altitude:0 }, this.source.center );
-		const	projectedMax = new Coordinate({ latitude: bbox.maxLat, longitude: bbox.maxLon, altitude:0 }, this.source.center );
-
 		const	lonRange = bbox.maxLon - bbox.minLon;
 		const	latRange = bbox.maxLat - bbox.minLat;
 
@@ -73,27 +70,3 @@ class	ElevationLayer {
 };
 
 export default	ElevationLayer;
-
-/**
- * Calcule la bounding box d'une tuile dans EPSG:4326.
- * @param x Indice de la tuile (colonne).
- * @param y Indice de la tuile (ligne).
- * @param z Niveau de zoom.
- * @returns Bounding box au format [lonMin, latMin, lonMax, latMax].
- */
-function calculateBoundingBox(x: number, y: number, z: number): [number, number, number, number] {
-	// Largeur d'une tuile en degrés de longitude
-	const deltaLon = 360 / Math.pow(2, z);
-	// Hauteur d'une tuile en degrés de latitude
-	const deltaLat = 180 / Math.pow(2, z);
-
-	// Calcul de la longitude minimale et maximale
-	const lonMin = -180 + x * deltaLon;
-	const lonMax = lonMin + deltaLon;
-
-	// Calcul de la latitude maximale et minimale
-	const latMax = 90 - y * deltaLat;
-	const latMin = latMax - deltaLat;
-
-	return [lonMin, latMin, lonMax, latMax];
-}

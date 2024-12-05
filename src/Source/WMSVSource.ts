@@ -6,7 +6,7 @@ class	WMSVSource extends Source {
 	buildingUrl: string | undefined;
 
 	constructor( center: [lat: number, lon: number], radius: number, opts: {format: string, requestType: string}) {
-		super( center, radius );
+		super( center, radius, opts.format );
 		this.url = this.urlBuilder( opts.requestType );
 	};
 

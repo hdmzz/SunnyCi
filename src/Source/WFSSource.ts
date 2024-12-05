@@ -1,5 +1,3 @@
-import { BboxType } from "../type";
-import HugoGeo from "../HugoGeo";
 import Source from "./Source";
 
 class	WFSSource extends Source {

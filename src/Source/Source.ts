@@ -53,8 +53,6 @@ abstract class	Source {
 		};
 	};
 
-	abstract wmsrColorUrlBuilder( radius: number, layerName: string, epsg: string, style: string ) : string;
-
 };
 
 export default Source;

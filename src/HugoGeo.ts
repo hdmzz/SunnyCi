@@ -7,6 +7,7 @@ import Fetch from './Fetcher/Fetch';
 import GreyModel from './Models/GreyModel';
 import WMSSource from './Source/WMSRSource'
 import Source from './Source/Source';
+import WMSRSource from './Source/WMSRSource';
 export interface	BoundingBox {
 	north: number;
 	south: number;
@@ -216,14 +217,19 @@ class	HugoGeo {
 			try {
 				const	watcher = this.createWatcher( resolve );
 				if ( this.source && this.source.format  ===  "png" ) {
-					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source ).fetchPNG( this.source.url as string );
+					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource ).fetchPNG( this.source.url as string );
+					if ( mesh === undefined ) {
+						throw new Error("Error mesh");
+					}
 				} else {
 					const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
 					console.log( bbox2 );
 					const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
-					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as Source ).fetchTIF( url );
-				}
-
+					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource ).fetchTIF( url );
+					if ( mesh === undefined ) {
+						throw new Error("Error mesh");
+					}
+				};
 			} catch (error) {
 				reject( error );
 			};
