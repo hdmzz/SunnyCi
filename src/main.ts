@@ -10,15 +10,15 @@ import WMSVSource from "./Source/WMSVSource";
 import { color } from "three/webgpu";
 import ElevationLayer from "./Layer/ElevationLayer";
 import { Coordinate, latLonToMeters } from "./Coordinate/Coordinate";
+import { GeolocationService } from "./Services/GeolocationService";
 
-const	RADIUS = 5.00;
-let	CENTER: [lat: number, lon: number] = [45.7736192,4.8398336];
-const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
+const	RADIUS = 1.00;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
+const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 const	view = new View( container )
 
-
+view.addLayer( gridHelper );
 
 const	tgeo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
@@ -29,9 +29,16 @@ const	tgeo = new HugoGeo({
 
 const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
 
+let	CENTER: [lat: number, lon: number] = [45.7736192,4.8398336];
 async function	loadTerrain() {
-	
-	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 14 )
+
+	const position = await GeolocationService.getCurrentPosition();
+	const { latitude, longitude } = position.coords;
+	if ( latitude && longitude ) {
+		CENTER = [ latitude, longitude ];
+	};
+
+	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 18 )
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});

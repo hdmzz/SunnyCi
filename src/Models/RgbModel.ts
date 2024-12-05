@@ -100,7 +100,6 @@ class	RgbModel {
 		let	elevations =  [];
 		//ici extrcction de l'elevation
 		if ( tile ) {
-			console.log( tile );
 			let	R, G, B;
 			for ( let i = 0; i < tile.data.length; i += 4 ) {//on avance de 4 car la  quatrieme valeur est la valeur alpha du pixel
 				R = tile.data[i];
@@ -148,7 +147,6 @@ class	RgbModel {
 						zoomPos[1] * 128 + col,
 						zoomPos[2] * 128 + row
 					], zoomPos[0]);
-					if ( col === 2 && row === 2 ) console.log(lonlatPixel, this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] ))
 					array.push(
 						...this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] ),
 						elev[dataIndex] * this.unitsPerMeter);

@@ -126,7 +126,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -0.1 * height, bevelEnabled: false, altitude } );
+		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -0.5 * height, bevelEnabled: false, altitude } );
 
 		return ( geometry );
 	};

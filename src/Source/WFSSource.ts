@@ -12,7 +12,7 @@ class	WFSSource extends Source {
 	} ) {
 		super(center, radius, "" )
 		this.center = center;
-		this.radius = 0.01;
+		this.radius = 0.005;
 		super.generateBboxFromCenter( "EPSG:4326", ...center, this.radius );
 		this.layerName = opts.layer;
 		this.url = this.wfsUrlBuilder();
