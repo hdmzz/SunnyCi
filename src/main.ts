@@ -37,11 +37,13 @@ async function	loadTerrain() {
 	});
 	terrain.rotation.x =  -Math.PI/2
 
-	const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource  ).Building();
+	view.addLayer( terrain );
+
+	const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource, terrain  ).Building();
 
 	//buildings.rotateY(Math.PI)
 	
-	view.addLayer( buildings, terrain );
+	view.addLayer( buildings );
 };
 
 

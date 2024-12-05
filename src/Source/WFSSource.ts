@@ -10,10 +10,10 @@ class	WFSSource extends Source {
 	constructor( center: [lat: number, lon: number], radius: number, opts: {
 		layer: string,
 	} ) {
-		super(center, radius, )
+		super(center, radius, "" )
 		this.center = center;
-		this.radius = 0.005;
-		super.generateBboxFromCenter( "EPSG:4326", ...center, this.radius  );
+		this.radius = 0.01;
+		super.generateBboxFromCenter( "EPSG:4326", ...center, this.radius );
 		this.layerName = opts.layer;
 		this.url = this.wfsUrlBuilder();
 	};

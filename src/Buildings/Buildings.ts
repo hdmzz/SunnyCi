@@ -27,8 +27,9 @@ class	Buildings {
 	view: View;
 	source: Source;
 	bbox: BboxType;
+	terrain: THREE.Mesh[];
 
-	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source ) {
+	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain:THREE.Group ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
@@ -37,6 +38,7 @@ class	Buildings {
 		this.source = source;
 		this.bbox = HugoGeo.getBbox( center, radius );
 		this.unitsPerMeter  = unitsPerMeter;
+		this.terrain = terrain.children as THREE.Mesh[];
 	};
 
 	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
@@ -92,8 +94,8 @@ class	Buildings {
 		for ( let i = 0; i < geometries.length; i++ ) {
 			const	mesh = new THREE.Mesh( geometries[i], mat );
 
-			//mesh.castShadow = true;
-			//mesh.receiveShadow = true;
+			mesh.castShadow = true;
+			mesh.receiveShadow = true;
 			meshes.push( mesh );
 		};
 
@@ -158,14 +160,48 @@ class	Buildings {
 			geometry.rotateX(Math.PI / 2 );
 			//geometry.rotateZ(Math.PI);
 			geometry.rotateY(Math.PI /2);
-			geometry.translate(0, extrudeSettings.altitude * this.unitsPerMeter , 0);
-
 			geometry.computeBoundingSphere();
-	
+			const	altitude = await this.getAltitude( geometry );
+
+			geometry.translate(0, altitude , 0);
 			resolve( geometry );
 		});
 	};
+	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
+		return new Promise( async ( resolve ) => {
+			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
+			const	raycaster = new THREE.Raycaster();
+			const	up = new THREE.Vector3( 0, 1, 0 );
+			const	chunkSize = 5;
+			let	altitude = 0;
+			//const ray = new THREE.Ray(building.boundingSphere?.center, up )
+			//const rayHelper = this.createRayHelper(ray);
+			//this.view.scene.add(rayHelper);
+	
+			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
+				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
+				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
+				for ( const mesh of terrainChunk ) {
+					const	intersects =  raycaster.intersectObject( mesh );
+					if ( intersects.length > 0 ) {
+						altitude = intersects[0].point.y;
+						break;
+					};
+				};
+			};
+			resolve( altitude );
+		});
+	};
 
+	private createRayHelper(ray: THREE.Ray): THREE.Line {
+		const length = 100; // Longueur du rayon
+		const geometry = new THREE.BufferGeometry().setFromPoints([
+			ray.origin,
+			ray.origin.clone().add(ray.direction.clone().multiplyScalar(length))
+		]);
+		const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+		return new THREE.Line(geometry, material);
+	}
 };
 
 export default	Buildings;
