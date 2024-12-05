@@ -23,38 +23,25 @@ const	view = new View( container )
 const	tgeo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
 	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
+	unitsSide: 1000,
 	
 });
 
+const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
 
 async function	loadTerrain() {
 	
-	//const	elevationSource = new WMSRSource( CENTER, RADIUS, {
-	//	format: "png",
-	//	requestType: "ELEVATION",
-	//});
-	
-	const testWmts = new WMTSSource( CENTER, RADIUS, {
-		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
-		format: "image/x-bil;bits=32",
-		style: "normal",
-		tileMatrixSet: "WGS84G",
-		zoom: 14,
-	});
-
-	const	eleLayerTestWmts = await new ElevationLayer( testWmts ).fetchBil();
-
-	//view.addLayer(eleLayerTestWmts.terrain as THREE.Mesh)
-
+	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 14 )
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});
+	terrain.rotation.x =  -Math.PI/2
 
-	const	buildings =  await new Buildings( CENTER, RADIUS, view, buildingSource ).Building();
-	buildings.rotateY(Math.PI)
+	const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource  ).Building();
+
 	//buildings.rotateY(Math.PI)
 	
-	view.addLayer( buildings, eleLayerTestWmts);
+	view.addLayer( buildings, terrain );
 };
 
 

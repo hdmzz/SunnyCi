@@ -89,6 +89,7 @@ class	RgbModel {
 			};
 
 			count++;
+
 			if ( count === zoomPositionElevation.length ) {
 				this.build();
 			};
@@ -142,11 +143,12 @@ class	RgbModel {
 			let	dataIndex = 0;
 			for ( let row = 0; row < constVertices; row++ ) {
 				for ( let col = 0; col < constVertices; col++ ) {
+					//lonLat longitude latitude en degres 
 					let lonlatPixel = constTilePixels.ll([
 						zoomPos[1] * 128 + col,
 						zoomPos[2] * 128 + row
 					], zoomPos[0]);
-
+					if ( col === 2 && row === 2 ) console.log(lonlatPixel, this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] ))
 					array.push(
 						...this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] ),
 						elev[dataIndex] * this.unitsPerMeter);
@@ -173,6 +175,7 @@ class	RgbModel {
 				};
 			};
 		};
+
 
 		const	meshes = this._build( onSatelliteMatWrapper );
 
@@ -346,7 +349,20 @@ class	RgbModel {
 			onTex( tex );
 		};
 	};
-};
 
+	public	georeference(bbox: BboxType): void {
+		this.dataElevationCovered.forEach(data => {
+			const [zoomPos, array] = data;
+			for (let i = 0; i < array.length; i += 3) {
+				const [x, y, z] = array.slice(i, i + 3);
+				const lonlatPixel = constTilePixels.ll([x, y], zoomPos[0]);
+				const [lon, lat] = this.projectCoords(lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number]);
+				array[i] = lon;
+				array[i + 1] = lat;
+				array[i + 2] = z;
+			}
+		});
+	}
+}
 
 export default	RgbModel;

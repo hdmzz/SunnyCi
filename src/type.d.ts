@@ -7,8 +7,8 @@ export type	BboxType = {
 			coordinates: [number[][]];
 		};
 	};
-	northWest: number[];
-	southEast: number[];
+	northWest: [number, number];
+	southEast: [number, number];
 };
 
 export type	PolygonFeature = {

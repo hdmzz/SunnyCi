@@ -16,13 +16,14 @@ class	View extends THREE.EventDispatcher {
 		//this.scene.background = new THREE.Color( "white" );
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 100000 );
 		this.camera.position.z = 5;
-		this.camera.position.y = 180;
+		this.camera.position.y = 10;
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: true,
 		});
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.light = new THREE.DirectionalLight( 0xffffff, 1 );
+		this.scene.add(new THREE.AmbientLight())
 		this.light.position.set( 0, 10, 20 );
 		this.light.castShadow = true;
 		this.light.shadow.camera.left = -50;

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GeoJSONFeature, GeoJSONFeatureCollection } from '../type';
+import { BboxType, GeoJSONFeature, GeoJSONFeatureCollection } from '../type';
 import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
 import View from '../View/View';
@@ -23,16 +23,20 @@ class	Buildings {
 	buildingsArray: [];
 	center: [lat: number, lon: number];
 	radius: number;
+	unitsPerMeter: number;
 	view: View;
 	source: Source;
+	bbox: BboxType;
 
-	constructor( center: [lat:number, lon: number], radius: number, view: View, source: Source ) {
+	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
 		this.radius = radius;
 		this.view = view;
 		this.source = source;
+		this.bbox = HugoGeo.getBbox( center, radius );
+		this.unitsPerMeter  = unitsPerMeter;
 	};
 
 	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
@@ -88,8 +92,8 @@ class	Buildings {
 		for ( let i = 0; i < geometries.length; i++ ) {
 			const	mesh = new THREE.Mesh( geometries[i], mat );
 
-			mesh.castShadow = true;
-			mesh.receiveShadow = true;
+			//mesh.castShadow = true;
+			//mesh.receiveShadow = true;
 			meshes.push( mesh );
 		};
 
@@ -120,7 +124,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: 0.1 * height, bevelEnabled: false, altitude } );
+		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -0.1 * height, bevelEnabled: false, altitude } );
 
 		return ( geometry );
 	};
@@ -132,12 +136,13 @@ class	Buildings {
 			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
-				const	normPnt = getWorldCoords( point[1], point[0], point[2], this.center );
+				const	projectionRgb = HugoGeo.projectCoord( 1000, [point[0], point[1]], this.bbox.northWest, this.bbox.southEast );
+				//const	normPnt = getWorldCoords( point[1], point[0], point[2], this.center );
 
 				if ( y === 0 ) {
-					shape.moveTo( normPnt.world.x, normPnt.world.y );
+					shape.moveTo( projectionRgb[1], projectionRgb[0] );
 				} else {
-					shape.lineTo( normPnt.world.x, normPnt.world.y);
+					shape.lineTo( projectionRgb[1], projectionRgb[0]);
 				};
 			});
 		};
@@ -150,10 +155,10 @@ class	Buildings {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 			
-			geometry.rotateX(Math.PI /2 );
-			//geometry.rotateZ(Math.PI / 2);
-			//geometry.rotateY(Math.PI * 4);
-			geometry.translate(0, extrudeSettings.altitude, 0);
+			geometry.rotateX(Math.PI / 2 );
+			//geometry.rotateZ(Math.PI);
+			geometry.rotateY(Math.PI /2);
+			geometry.translate(0, extrudeSettings.altitude * this.unitsPerMeter , 0);
 
 			geometry.computeBoundingSphere();
 	

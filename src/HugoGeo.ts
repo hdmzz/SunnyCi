@@ -24,8 +24,8 @@ class	HugoGeo {
 	private	tokenOpenTopo: string;
 	private	source?: Source;
 
-	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string, source?: Source } ) {
-		this.unitsSide = 10;
+	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string, source?: Source, unitsSide: number } ) {
+		this.unitsSide = opts.unitsSide;
 		this.isNode = false;
 		this.apiVector = "mapbox-terrain-vector";
 		this.apiRgb = "mapbox-terrain-rgb";
@@ -43,7 +43,7 @@ class	HugoGeo {
 		const	meshes = await this.getTerrain(origin, radius, zoom);
 
 		return (HugoGeo.createDemGroups( "dem-rgb", meshes ));
-	}
+	};
 
 	/**
 	 * @origin = lat lon coordonnées
@@ -58,10 +58,11 @@ class	HugoGeo {
 				const	unitsSide = this.unitsSide;
 				const	unitsPerMeters = HugoGeo.getUnitsPerMeters( this.unitsSide, radius );
 				const	projectCoords = ( coord: [number, number], nw: [number, number], se: [number, number] ) => {
-					return HugoGeo.projectCoord( unitsSide, coord, nw, se );
+					return HugoGeo.projectCoord( unitsSide, coord, nw, se );//coords en lonlat
 				};
 				const	{ tokenMapBox: token, apiSatellite, apiRgb } = this;
 				const	bbox = HugoGeo.getBbox( origin, radius );
+				console.log("ici hugogeobbox", bbox)
 				const	zoomPositionCovered = HugoGeo.getZoomPositionCovered( bbox.feature, zoom );
 				const	onSatMat = () => {}; //dummy function to trigger the satelite image fetch
 				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher, onSatMat );
@@ -88,20 +89,20 @@ class	HugoGeo {
 				group.add( objects[i] );
 			} else {
 				console.warn(`Object at index ${i} is not a THREE.Mesh`);
-			}
-		}
+			};
+		};
 
-		return group;
+		return ( group );
 	};
 
 	static	getUnitsPerMeters( unitsSide: number, radius: number ): number {
 		return ( unitsSide / ( radius * ( 2**0.5 ) * 1000 ) );
 	};
-
+//!!!!!!!!coords en lonLat
 	static	projectCoord( unitsSide: number, coord: [number, number], nw: [number, number], se: [number, number]) {
 		return [
-			unitsSide * (-0.5 + (coord[0]-nw[0]) / (se[0]-nw[0])),
-			unitsSide * (-0.5 - (coord[1]-se[1]) / (se[1]-nw[1]))
+			unitsSide * ( -0.5 + ( coord[0] - nw[0] ) / ( se[0] - nw[0] )),
+			unitsSide * ( -0.5 - ( coord[1] - se[1] ) / ( se[1] - nw[1] ))
 		];
 	};
 
@@ -118,8 +119,8 @@ class	HugoGeo {
 				coordinates: [number[][]];
 			};
 		};
-		northWest: number[];
-		southEast: number[];
+		northWest: [number, number];
+		southEast: [number, number];
 	} {
 		const testPolygon = {
 			"type": "FeatureCollection",
@@ -134,7 +135,7 @@ class	HugoGeo {
 		};
 		const polygon = testPolygon.features[0];
 		const [w, s, e, n] = Utils.originRadiusToBbox(origin, radius);
-		const nw = [w, n], se = [e, s];
+		const nw: [number, number] = [w, n], se: [number, number] = [e, s];
 		polygon.geometry.coordinates[0] = [
 			nw, [se[0], nw[1]], se, [nw[0], se[1]], nw
 		];
