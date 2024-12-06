@@ -31,7 +31,7 @@ async function	loadTerrain() {
 		CENTER = [ latitude, longitude ];
 	};
 
-	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 18 )
+	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 14 )
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});
