@@ -8,6 +8,18 @@ import GreyModel from './Models/GreyModel';
 import WMSSource from './Source/WMSRSource'
 import Source from './Source/Source';
 import WMSRSource from './Source/WMSRSource';
+export interface refBboxType {
+	feature: {
+		type: string;
+		geometry: {
+			properties: {};
+			type: string;
+			coordinates: [number[][]];
+		};
+	};
+	northWest: [number, number];
+	southEast: [number, number];
+}
 export interface	BoundingBox {
 	north: number;
 	south: number;
@@ -24,8 +36,9 @@ class	HugoGeo {
 	private	tokenMapBox: string;
 	private	tokenOpenTopo: string;
 	private	source?: Source;
+	public	bbox: { feature: { type: string; geometry: { properties: {}; type: string; coordinates: [number[][]]; }; }; northWest: [number, number]; southEast: [number, number]; }
 
-	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string, source?: Source, unitsSide: number } ) {
+	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string, source?: Source, unitsSide: number, center: [lat: number, lon:number], radius: number } ) {
 		this.unitsSide = opts.unitsSide;
 		this.isNode = false;
 		this.apiVector = "mapbox-terrain-vector";
@@ -34,6 +47,7 @@ class	HugoGeo {
 		this.tokenMapBox = opts.tokenMapBox;
 		this.tokenOpenTopo = opts.tokenOpenTopo;
 		this.source = opts.source;
+		this.bbox = HugoGeo.getBbox( opts.center, opts.radius );
 	};
 
 	public	addSource( source: WMSSource ) {
@@ -100,7 +114,7 @@ class	HugoGeo {
 		return ( unitsSide / ( radius * ( 2**0.5 ) * 1000 ) );
 	};
 //!!!!!!!!coords en lonLat
-	static	projectCoord( unitsSide: number, coord: [number, number], nw: [number, number], se: [number, number]) {
+	static	projectCoord( unitsSide: number, coord: [lon: number, lat: number], nw: [number, number], se: [number, number]) {
 		return [
 			unitsSide * ( -0.5 + ( coord[0] - nw[0] ) / ( se[0] - nw[0] )),
 			unitsSide * ( -0.5 - ( coord[1] - se[1] ) / ( se[1] - nw[1] ))
@@ -234,6 +248,10 @@ class	HugoGeo {
 				reject( error );
 			};
 		});
+	};
+
+	get refBbox() {
+		return ( this.bbox );
 	};
 };
 
