@@ -41,7 +41,6 @@ async function	loadTerrain() {
 
 	const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource, terrain  ).Building();
 
-	//buildings.rotateY(Math.PI)
 	
 	view.addLayer( buildings );
 };
