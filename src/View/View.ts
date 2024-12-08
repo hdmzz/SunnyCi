@@ -74,7 +74,6 @@ class	View extends THREE.EventDispatcher {
 	public	removeLayer() {
 		this.layers.forEach(( layer ) => {
 			this.scene.remove( layer );
-
 		});
 		this.layers = [];
 		this.render();
