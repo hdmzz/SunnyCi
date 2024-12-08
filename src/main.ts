@@ -25,7 +25,8 @@ const	tgeo = new HugoGeo({
 	radius: RADIUS
 });
 
-const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
+const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( UNITS_SIDE , RADIUS );
+
 
 async function	loadTerrain() {
 
@@ -35,20 +36,20 @@ async function	loadTerrain() {
 		CENTER = [ latitude, longitude ];
 	};
 
-	//const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 18 )
+	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 15 )
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});
-	//terrain.rotation.x =  -Math.PI/2
+	terrain.rotation.x =  -Math.PI/2
 
-	//view.addLayer( terrain );
+	view.addLayer( terrain );
 
-	//const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource, terrain ).Building();
-
+	
 	const	geomSource = new OSMSource(CENTER, RADIUS, "tree");
 	console.log( geomSource )
-	const	geomLayer = new GeometryLayer( geomSource, tgeo.refBbox );
-	//view.addLayer( buildings );
+	const	geomLayer = new GeometryLayer( geomSource, tgeo.refBbox, view );
+	const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource, terrain, tgeo.refBbox ).Building();
+	view.addLayer( buildings );
 };
 
 
