@@ -21,14 +21,16 @@ const	tgeo = new HugoGeo({
 });
 
 const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
-const position = await GeolocationService.getCurrentPosition();
-const { latitude, longitude } = position.coords;
-let	CENTER: [lat: number, lon: number] = [45.7736192,4.8398336];
-if ( latitude && longitude ) {
-	CENTER = [ latitude, longitude ];
-};
+let	CENTER: [lat: number, lon: number] = [0,0];
 
 async function	loadTerrain() {
+	if ( CENTER[0] === 0 && CENTER[1] === 0 ) {
+		const position = await GeolocationService.getCurrentPosition();
+		const { latitude, longitude } = position.coords;
+		if ( latitude && longitude ) {
+			CENTER = [ latitude, longitude ];
+		};
+	};
 	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 14 )
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
