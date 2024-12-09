@@ -26,16 +26,12 @@ const	tgeo = new HugoGeo({
 });
 
 const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( UNITS_SIDE , RADIUS );
-
-
+const position = await GeolocationService.getCurrentPosition();
+const { latitude, longitude } = position.coords;
+if ( latitude && longitude ) {
+	CENTER = [ latitude, longitude ];
+};
 async function	loadTerrain() {
-
-	const position = await GeolocationService.getCurrentPosition();
-	const { latitude, longitude } = position.coords;
-	if ( latitude && longitude ) {
-		CENTER = [ latitude, longitude ];
-	};
-
 	const	terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 15 )
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
@@ -45,9 +41,6 @@ async function	loadTerrain() {
 	view.addLayer( terrain );
 
 	
-	const	geomSource = new OSMSource(CENTER, RADIUS, "tree");
-	console.log( geomSource )
-	const	geomLayer = new GeometryLayer( geomSource, tgeo.refBbox, view );
 	const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource, terrain, tgeo.refBbox ).Building();
 	view.addLayer( buildings );
 };

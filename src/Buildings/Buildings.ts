@@ -76,7 +76,7 @@ class	Buildings {
 	};
 
 	public async	Building() {
-		const	mat = new THREE.MeshPhongMaterial({ color: 'red', side: 2, wireframe: false });
+		const	mat = new THREE.MeshPhongMaterial({ color: 'white', side: 2, wireframe: false });
 		const	url = this.source.url;
 		const	buildings = await this.getBuildings( url as string );
 		const	geometries: THREE.ExtrudeGeometry[] = [];

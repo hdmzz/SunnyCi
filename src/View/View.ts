@@ -13,8 +13,8 @@ class	View extends THREE.EventDispatcher {
 	constructor( container: HTMLDivElement ) {
 		super();
 		this.scene = new THREE.Scene();
-		//this.scene.background = new THREE.Color( "white" );
-		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.001, 100000 );
+		this.scene.background = new THREE.CubeTextureLoader().setPath("http://localhost:5173/SunnyCi/").load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 5000 );
 		this.camera.position.z = 5;
 		this.camera.position.y = 10;
 		this.renderer = new THREE.WebGLRenderer({
@@ -22,19 +22,19 @@ class	View extends THREE.EventDispatcher {
 		});
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-		this.light = new THREE.DirectionalLight( 0xffffff, 1 );
-		this.scene.add(new THREE.AmbientLight())
-		this.light.position.set( 0, 10, 20 );
+		this.scene.add( new THREE.AmbientLight( 'white', 1.7 ));
+		this.light = new THREE.DirectionalLight( 'white', 1 );
+		this.light.position.set( 300, 300, 300 );
 		this.light.castShadow = true;
-		this.light.shadow.camera.left = -50;
-		this.light.shadow.camera.right = 50;
-		this.light.shadow.camera.top = 50;
-		this.light.shadow.camera.bottom = -50;
-		this.light.shadow.camera.near = 0.5;
-		this.light.shadow.camera.far = 500;
-		this.light.shadow.bias = -0.0005;
-		this.light.shadow.mapSize.width = 2048;
-		this.light.shadow.mapSize.height = 2048;
+		this.light.shadow.camera.left = -500;
+		this.light.shadow.camera.right = 500;
+		this.light.shadow.camera.top = 500;
+		this.light.shadow.camera.bottom = -500;
+		this.light.shadow.camera.near = 1;
+		this.light.shadow.camera.far = 1000;
+		this.light.shadow.bias = -0.05;
+		this.light.shadow.mapSize.width = 1024;
+		this.light.shadow.mapSize.height = 1024;
 		this.layers = [];
 		const	lightHelper = new THREE.DirectionalLightHelper( this.light, 1 );
 	
@@ -45,7 +45,7 @@ class	View extends THREE.EventDispatcher {
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
-		const axesHelper = new THREE.AxesHelper( 4 );
+		const axesHelper = new THREE.AxesHelper( 1000 );
 		this.scene.add( axesHelper, this.light, lightHelper );
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
