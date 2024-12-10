@@ -4,11 +4,17 @@ import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 import WFSSource from "./Source/WFSSource";
 import { GeolocationService } from "./Services/GeolocationService";
-import SunPath from "./View/SunPath";
 
 const	RADIUS = 1.00;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
+let	CENTER: [lat: number, lon: number] = [0, 0];
+const position = await GeolocationService.getCurrentPosition();
+const { latitude, longitude } = position.coords;
+if ( latitude && longitude ) {
+	CENTER = [ latitude, longitude ];
+};
+const	view = new View( container, CENTER )
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
 
 
@@ -20,9 +26,7 @@ const	tgeo = new HugoGeo({
 });
 
 const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
-export let	CENTER: [lat: number, lon: number, alt: number] = [0, 0, 0];
 
-const	view = new View( container )
 view.addLayer( gridHelper );
 
 async function	loadTerrain() {

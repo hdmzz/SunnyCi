@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import SunPath from './SunPath';
-import { CENTER } from '../main';
 
 class	View extends THREE.EventDispatcher {
 	scene: THREE.Scene;
@@ -12,9 +11,11 @@ class	View extends THREE.EventDispatcher {
 	sunLight: THREE.DirectionalLight;
 	layers: THREE.Object3D[];
 	sunPath: SunPath;
+	center: [lat: number, lon: number];
 
-	constructor( container: HTMLDivElement ) {
+	constructor( container: HTMLDivElement, center: [lat: number, lon: number] ) {
 		super();
+		this.center = center
 		this.scene = new THREE.Scene();
 		this.scene.background = new THREE.CubeTextureLoader().setPath('http://localhost:5173/SunnyCi/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000 );
@@ -28,14 +29,14 @@ class	View extends THREE.EventDispatcher {
 		this.sunLight = new THREE.DirectionalLight( 'white', 4 );
 		this.scene.add( new THREE.AmbientLight( 'white', 0.5 ))
 
-		this.sunPath = new SunPath( 500, this.sunLight, CENTER );//maybe passer center en argument
+		this.sunPath = new SunPath( 1500, this.sunLight, this.center );//maybe passer center en argument
 		this.sunLight.castShadow = true;
-		this.sunLight.shadow.camera.left = -1000;
-		this.sunLight.shadow.camera.right = 1000;
-		this.sunLight.shadow.camera.top = 1000;
-		this.sunLight.shadow.camera.bottom = -1000;
+		this.sunLight.shadow.camera.left = -2500;
+		this.sunLight.shadow.camera.right = 2500;
+		this.sunLight.shadow.camera.top = 2500;
+		this.sunLight.shadow.camera.bottom = -2500;
 		this.sunLight.shadow.camera.near = 0.5;
-		this.sunLight.shadow.camera.far = 1000;
+		this.sunLight.shadow.camera.far = 2500;
 		this.sunLight.shadow.bias = -0.005;
 		this.sunLight.shadow.mapSize.width = 2048;
 		this.sunLight.shadow.mapSize.height = 2048;

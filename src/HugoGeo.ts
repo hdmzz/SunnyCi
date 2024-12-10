@@ -92,7 +92,7 @@ class	HugoGeo {
 				console.warn(`Object at index ${i} is not a THREE.Mesh`);
 			};
 		};
-
+		group.position.set(0,0,0)
 		return ( group );
 	};
 

@@ -12,9 +12,9 @@ class	SunPath {
  */
 	constructor( radius: number = 5, sunLight: DirectionalLight, sceneCenter: [lat: number, lon: number]) {
 		this.sunLight = sunLight;
-		this.date = new Date(2024,11,9);
+		this.date = new Date();
 		this.date.setMonth( this.date.getMonth() );
-		this.date.setHours( 7,30,0,0 );
+		this.date.setHours( this.date.getHours() );
 		this.radius = radius;
 		this.sceneCenter = sceneCenter;
 		this.updateSunPosition();
