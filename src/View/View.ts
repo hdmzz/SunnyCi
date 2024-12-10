@@ -17,7 +17,7 @@ class	View extends THREE.EventDispatcher {
 		super();
 		this.center = center
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.CubeTextureLoader().setPath('http://localhost:5173/SunnyCi/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+		this.scene.background = new THREE.CubeTextureLoader().setPath('https://hdmzz.github.io/SunnyCi/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000 );
 		this.camera.position.z = 5;
 		this.camera.position.y = 10;
