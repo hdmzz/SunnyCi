@@ -3,7 +3,6 @@ import ndarray from "ndarray";
 import Fetch from "../Fetcher/Fetch";
 import { SphericalMercator } from "@mapbox/sphericalmercator";
 import { BboxType } from "../type";
-import { BufferGeometryUtils } from "three/examples/jsm/Addons.js";
 
 const	constVertices = 128;
 //! Attention ll signifi lon lat ici et pas lat lon
