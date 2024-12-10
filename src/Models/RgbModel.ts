@@ -247,8 +247,13 @@ class	RgbModel {
 			};
 		});
 
-		const	mergedGeometrie =  BufferGeometryUtils.mergeGeometries( geometries, false );
-		console.log( mergedGeometrie );
+		//const	mergedGeometrie =  BufferGeometryUtils.mergeGeometries( geometries, false );
+		//console.log( mergedGeometrie );
+		//const  mergedMeshes = new THREE.Mesh(mergedGeometrie, new THREE.MeshPhongMaterial({
+		//	color: 'white',
+		//	//wireframe: true,
+		//	side: 2,
+		//}));
 
 		return ( objs );
 	};
