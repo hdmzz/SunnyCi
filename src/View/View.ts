@@ -1,6 +1,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import SunPath from './SunPath';
+import GUI from 'three/examples/jsm/libs/lil-gui.module.min.js';
+
+const	sunParams = {
+	minute: new Date().getMinutes(),
+	hour: new Date().getHours(),
+	day: new Date().getDate(),
+	month: new Date().getMonth() + 1,
+	radius: 1500,
+};
 
 class	View extends THREE.EventDispatcher {
 	scene: THREE.Scene;
@@ -12,6 +21,7 @@ class	View extends THREE.EventDispatcher {
 	layers: THREE.Object3D[];
 	sunPath: SunPath;
 	center: [lat: number, lon: number];
+	sunSphere: THREE.Mesh;
 
 	constructor( container: HTMLDivElement, center: [lat: number, lon: number] ) {
 		super();
@@ -30,7 +40,7 @@ class	View extends THREE.EventDispatcher {
 		this.sunLight = new THREE.DirectionalLight( 'white', 4 );
 		this.scene.add( new THREE.AmbientLight( 'white' ))
 
-		this.sunPath = new SunPath( 1500, this.sunLight, this.center );//maybe passer center en argument
+		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );//la classe modifie  la position de la lumiere du soleildonc ajouter une fonction qui prend en arguent un delta( + || - )
 		this.sunLight.castShadow = true;
 		this.sunLight.shadow.camera.left = -2500;
 		this.sunLight.shadow.camera.right = 2500;
@@ -43,17 +53,30 @@ class	View extends THREE.EventDispatcher {
 		this.sunLight.shadow.mapSize.height = 2048;
 		
 		this.layers = [];
-		const	lightHelper = new THREE.DirectionalLightHelper( this.sunLight, 1 );
+
+		// Créer une sphère jaune pour représenter le soleil
+		const sunGeometry = new THREE.SphereGeometry(50, 32, 32);
+		const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+		this.sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
+		this.sunSphere.position.copy(this.sunLight.position);
+		this.scene.add(this.sunSphere);
 	
 		const	animate =  () => {
 			this.controls.update();
 			this.renderer.render( this.scene, this.camera );
+			this.sunSphere.position.copy(this.sunLight.position); // Mettre à jour la position de la sphère
 		};
+
+		const	gui = new GUI();
+
+		const	sunLightFolder = gui.addFolder( 'SunLight' );
+		sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+		sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
 		const axesHelper = new THREE.AxesHelper( 1000 );
-		this.scene.add( axesHelper, this.sunLight, lightHelper );
+		this.scene.add( axesHelper, this.sunLight );
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		container.appendChild( this.renderer.domElement );

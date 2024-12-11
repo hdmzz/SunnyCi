@@ -6,23 +6,23 @@ class	SunPath {
 	date: Date;
 	radius: number;
 	sceneCenter: [lat: number, lon: number]
-
+	params: { minute: number; hour: number; day: number; month: number; radius: number; };//en modifiant params qui est passe en argument  sun path je devrais pouvoir modifier l'heure depuis le GUI de la view
 /**
  * radius is the radius of the trajectory of the sun not the radius of the bbox putaing!
  */
-	constructor( radius: number = 5, sunLight: DirectionalLight, sceneCenter: [lat: number, lon: number]) {
+	constructor( params: { minute: number; hour: number; day: number; month: number; radius: number; }, sunLight: DirectionalLight, sceneCenter: [lat: number, lon: number]) {
+		this.params = params;
 		this.sunLight = sunLight;
 		this.date = new Date();
-		this.date.setMonth( this.date.getMonth() );
-		this.date.setHours( this.date.getHours() );
-		this.radius = radius;
+		this.date.setMonth( params.month );
+		this.date.setHours( params.hour );
+		this.radius = params.radius;
 		this.sceneCenter = sceneCenter;
 		this.updateSunPosition();
 	};
 
-	getSunPosition( lat: number, lon: number ): [x: number, y:number, z: number] {
+	getSunPosition( lat: number, lon: number, _delta: number = 0 ): [x: number, y:number, z: number] {
 		const	sunPosition = getPosition( this.date, lat, lon );
-		console.log( sunPosition );
 		const	x = this.radius * ( Math.cos( sunPosition.altitude )) * ( Math.cos( sunPosition.azimuth ));
 		const	z = this.radius * ( Math.cos( sunPosition.altitude )) * ( Math.sin( sunPosition.azimuth ));
 		const	y = this.radius * ( Math.sin( sunPosition.altitude ));
@@ -37,6 +37,12 @@ class	SunPath {
 	private	updateSunPosition() {
 		const	sunPosition = this.getSunPosition( ...this.sceneCenter );
 		this.sunLight.position.set( ...sunPosition );
+	};
+
+	public	updateHour() {
+		this.date.setHours( this.params.hour );
+		this.date.setMinutes( this.params.minute );
+		this.updateSunPosition();
 	};
 };
 
