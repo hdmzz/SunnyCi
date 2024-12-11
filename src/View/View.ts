@@ -17,7 +17,8 @@ class	View extends THREE.EventDispatcher {
 		super();
 		this.center = center
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.CubeTextureLoader().setPath('https://hdmzz.github.io/SunnyCi/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+		//!!changer url local host ou github pour deploy
+		this.scene.background = new THREE.CubeTextureLoader().setPath('http://localhost:5173/SunnyCi/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000 );
 		this.camera.position.z = 5;
 		this.camera.position.y = 10;
@@ -27,7 +28,7 @@ class	View extends THREE.EventDispatcher {
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.sunLight = new THREE.DirectionalLight( 'white', 4 );
-		this.scene.add( new THREE.AmbientLight( 'white', 0.5 ))
+		this.scene.add( new THREE.AmbientLight( 'white' ))
 
 		this.sunPath = new SunPath( 1500, this.sunLight, this.center );//maybe passer center en argument
 		this.sunLight.castShadow = true;

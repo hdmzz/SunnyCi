@@ -43,7 +43,7 @@ class	HugoGeo {
 	public async	getTerrainRgb( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group> {
 		const	meshes = await this.getTerrain(origin, radius, zoom);
 
-		return (HugoGeo.createDemGroups( "dem-rgb", meshes ));
+		return ( HugoGeo.createDemGroups( "dem-rgb", meshes ));
 	};
 
 	/**
@@ -92,7 +92,6 @@ class	HugoGeo {
 				console.warn(`Object at index ${i} is not a THREE.Mesh`);
 			};
 		};
-		group.position.set(0,0,0)
 		return ( group );
 	};
 

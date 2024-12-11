@@ -213,7 +213,7 @@ class	RgbModel {
 
 			const	plane = new THREE.Mesh(
 				geom,
-				new THREE.MeshPhongMaterial({
+				new THREE.MeshPhysicalMaterial({
 					color: 'white',
 					//wireframe: true,
 					side: 2,
@@ -232,10 +232,10 @@ class	RgbModel {
 					mapBoxToken,
 					( tex ) => {
 						if ( tex ){
-							plane.material = new THREE.MeshPhongMaterial({
+							plane.material = new THREE.MeshPhysicalMaterial({
 								side: 2,// FrontSide
 								map: tex,//DataTexture made of the pixels
-								wireframe: false
+								wireframe: false,
 							});
 						};
 						if ( onSatelliteMatWrapper ) {

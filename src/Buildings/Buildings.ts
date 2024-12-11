@@ -75,7 +75,7 @@ class	Buildings {
 	};
 
 	public async	Building() {
-		const	mat = new THREE.MeshPhongMaterial({ color: 'white', side: 2, wireframe: false });
+		const	mat = new THREE.MeshPhysicalMaterial({ color: 'white', side: 2, wireframe: false });
 		const	url = this.source.url;
 		console.log(url);
 		const	buildings = await this.getBuildings( url as string );
