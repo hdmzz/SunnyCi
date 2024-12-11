@@ -44,6 +44,11 @@ class	SunPath {
 		this.date.setMinutes( this.params.minute );
 		this.updateSunPosition();
 	};
+	public	updateMonth() {
+		this.date.setMonth( this.params.month - 1 );
+		this.date.setDate( this.params.day );
+		this.updateSunPosition();
+	};
 };
 
 export default	SunPath;

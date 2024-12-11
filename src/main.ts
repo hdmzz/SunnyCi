@@ -12,7 +12,7 @@ async function main() {
 	document.addEventListener('DOMContentLoaded', async () => {
 		const container = document.getElementById('viewerDiv') as HTMLDivElement;
 
-		let CENTER: [lat: number, lon: number] = [0, 0];
+		let CENTER: [lat: number, lon: number] = [45.756073929704456,4.8401463179085225];
 		const position = await GeolocationService.getCurrentPosition();
 		const { latitude, longitude } = position.coords;
 		if (latitude && longitude) {

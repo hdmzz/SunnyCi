@@ -19,7 +19,7 @@ class	View extends THREE.EventDispatcher {
 	container: HTMLDivElement;
 	sunLight: THREE.DirectionalLight;
 	layers: THREE.Object3D[];
-	sunPath: SunPath;
+	sunPath!: SunPath;
 	center: [lat: number, lon: number];
 	sunSphere: THREE.Mesh;
 
@@ -40,18 +40,8 @@ class	View extends THREE.EventDispatcher {
 		this.sunLight = new THREE.DirectionalLight( 'white', 4 );
 		this.scene.add( new THREE.AmbientLight( 'white' ))
 
-		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );//la classe modifie  la position de la lumiere du soleildonc ajouter une fonction qui prend en arguent un delta( + || - )
-		this.sunLight.castShadow = true;
-		this.sunLight.shadow.camera.left = -2500;
-		this.sunLight.shadow.camera.right = 2500;
-		this.sunLight.shadow.camera.top = 2500;
-		this.sunLight.shadow.camera.bottom = -2500;
-		this.sunLight.shadow.camera.near = 0.5;
-		this.sunLight.shadow.camera.far = 2500;
-		this.sunLight.shadow.bias = -0.005;
-		this.sunLight.shadow.mapSize.width = 2048;
-		this.sunLight.shadow.mapSize.height = 2048;
-		
+		this.initSun();
+
 		this.layers = [];
 
 		// Créer une sphère jaune pour représenter le soleil
@@ -72,6 +62,8 @@ class	View extends THREE.EventDispatcher {
 		const	sunLightFolder = gui.addFolder( 'SunLight' );
 		sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
 		sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+		sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
+		sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
@@ -107,6 +99,20 @@ class	View extends THREE.EventDispatcher {
 		});
 		this.layers = [];
 		this.render();
+	};
+
+	private	initSun() {
+		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );//la classe modifie  la position de la lumiere du soleildonc ajouter une fonction qui prend en arguent un delta( + || - )
+		this.sunLight.castShadow = true;
+		this.sunLight.shadow.camera.left = -2500;
+		this.sunLight.shadow.camera.right = 2500;
+		this.sunLight.shadow.camera.top = 2500;
+		this.sunLight.shadow.camera.bottom = -2500;
+		this.sunLight.shadow.camera.near = 0.5;
+		this.sunLight.shadow.camera.far = 2500;
+		this.sunLight.shadow.bias = -0.005;
+		this.sunLight.shadow.mapSize.width = 2048;
+		this.sunLight.shadow.mapSize.height = 2048;
 	};
 
 	private	render() {
