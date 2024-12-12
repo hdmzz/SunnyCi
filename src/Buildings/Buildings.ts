@@ -83,11 +83,11 @@ class	Buildings {
 		const	meshes: THREE.Mesh[] = [];
 		const	materials: THREE.Material[] = [];
 
-		for ( let i = 1; i < buildings.length; i++ ) {//!pb a regler asynchrone toute les altitude ne sont pas calcuees du premier coup 
+		for ( let i = 0; i < buildings.length /10 ; i++ ) {//!pb a regler asynchrone toute les altitude ne sont pas calcuees du premier coup 
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
 			const	uniforms = {
-				numFloors: { value: featureElement.properties.nombre_d_etages },
+				numFloors: { value: featureElement.properties.nombre_d_etages + 1},
 				buildingHeight: { value: height }
 			}
 			const material = new THREE.ShaderMaterial({
@@ -105,18 +105,27 @@ class	Buildings {
 			
 					void	main() {
 						float	normalizedHeight = vPosition.y / buildingHeight;
-						float	floorIndex = floor(normalizedHeight * numFloors);
-						float	colorToggle = mod(floorIndex, 2.0);
-						vec3	color = mix(vec3(0.8, 0.8, 0.8), vec3(0.2, 0.2, 0.2), colorToggle);
-						gl_FragColor = vec4(color, 1.0);
+						float	floorPosition = fract(normalizedHeight * numFloors);
+						float	lineThickness = 0.1;
+						if ( floorPosition < lineThickness ) {
+							gl_FragColor = vec4(0.0, 0.0, 0.0, 0.7);
+						} else {
+							gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+						}
 					}
 				`,
 				uniforms: uniforms,
-				side:2
+				side:2,
+				shadowSide: 2,
+
 			});
 			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
-			materials.push( material );
+			if ( featureElement.properties.nombre_d_etages ) {
+				materials.push( material );
+			} else {
+				materials.push( mat );
+			};
 			geometries.push( building );
 		};
 
