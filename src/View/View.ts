@@ -9,6 +9,7 @@ const	sunParams = {
 	day: new Date().getDate(),
 	month: new Date().getMonth() + 1,
 	radius: 1500,
+	bias: -0.005,
 };
 
 class	View extends THREE.EventDispatcher {
@@ -28,7 +29,7 @@ class	View extends THREE.EventDispatcher {
 		this.center = center
 		this.scene = new THREE.Scene();
 		//!!changer url local host ou github pour deploy
-		this.scene.background = new THREE.CubeTextureLoader().setPath('http://localhost:5173/SunnyCi/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
+		this.scene.background = new THREE.CubeTextureLoader().setPath('https://hdmzz.github.io/SunnyCi/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']);
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000 );
 		this.camera.position.z = 5;
 		this.camera.position.y = 10;
@@ -108,9 +109,9 @@ class	View extends THREE.EventDispatcher {
 		this.sunLight.shadow.camera.right = 2500;
 		this.sunLight.shadow.camera.top = 2500;
 		this.sunLight.shadow.camera.bottom = -2500;
-		this.sunLight.shadow.camera.near = 0.5;
+		this.sunLight.shadow.camera.near = 0.1;
 		this.sunLight.shadow.camera.far = 2500;
-		this.sunLight.shadow.bias = -0.005;
+		this.sunLight.shadow.bias = sunParams.bias;
 		this.sunLight.shadow.mapSize.width = 2048;
 		this.sunLight.shadow.mapSize.height = 2048;
 	};

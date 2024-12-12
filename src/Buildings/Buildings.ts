@@ -81,18 +81,47 @@ class	Buildings {
 		const	buildings = await this.getBuildings( url as string );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
+		const	materials: THREE.Material[] = [];
 
-		for ( let i = 0; i < buildings.length; i++ ) {//!pb a regler asynchrone toute les altitude ne sont pas calcuees du premier coup 
+		for ( let i = 1; i < buildings.length; i++ ) {//!pb a regler asynchrone toute les altitude ne sont pas calcuees du premier coup 
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
+			const	uniforms = {
+				numFloors: { value: featureElement.properties.nombre_d_etages },
+				buildingHeight: { value: height }
+			}
+			const material = new THREE.ShaderMaterial({
+				vertexShader: `
+					varying vec3	vPosition;
+					void	main() {
+						vPosition = position;
+						gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+					}
+				`,
+				fragmentShader: `
+					uniform float	numFloors;
+					uniform float	buildingHeight;
+					varying vec3	vPosition;
+			
+					void	main() {
+						float	normalizedHeight = vPosition.y / buildingHeight;
+						float	floorIndex = floor(normalizedHeight * numFloors);
+						float	colorToggle = mod(floorIndex, 2.0);
+						vec3	color = mix(vec3(0.8, 0.8, 0.8), vec3(0.2, 0.2, 0.2), colorToggle);
+						gl_FragColor = vec4(color, 1.0);
+					}
+				`,
+				uniforms: uniforms,
+				side:2
+			});
 			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
-
+			materials.push( material );
 			geometries.push( building );
 		};
 
 		for ( let i = 0; i < geometries.length; i++ ) {
-			const	mesh = new THREE.Mesh( geometries[i], mat );
+			const	mesh = new THREE.Mesh( geometries[i], materials[i] );
 
 			mesh.castShadow = true;
 			mesh.receiveShadow = true;
@@ -157,16 +186,17 @@ class	Buildings {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 			
-			geometry.rotateX(Math.PI / 2 );
-			//geometry.rotateZ(Math.PI);
-			geometry.rotateY(Math.PI /2);
+			geometry.rotateX( Math.PI / 2 );
+			geometry.rotateY( Math.PI / 2 );
 			geometry.computeBoundingSphere();
 			const	altitude = await this.getAltitude( geometry );
 
-			geometry.translate(0, altitude , 0);
+			geometry.translate( 0, altitude , 0 );
+
 			resolve( geometry );
 		});
 	};
+
 	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
 		return new Promise( async ( resolve ) => {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
@@ -174,9 +204,6 @@ class	Buildings {
 			const	up = new THREE.Vector3( 0, 1, 0 );
 			const	chunkSize = 5;
 			let	altitude = 0;
-			//const ray = new THREE.Ray(building.boundingSphere?.center, up )
-			//const rayHelper = this.createRayHelper(ray);
-			//this.view.scene.add(rayHelper);
 	
 			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
 				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
@@ -189,6 +216,7 @@ class	Buildings {
 					};
 				};
 			};
+
 			resolve( altitude );
 		});
 	};
