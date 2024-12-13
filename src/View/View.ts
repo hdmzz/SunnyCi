@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import SunPath from './SunPath';
-import GUI from 'three/examples/jsm/libs/lil-gui.module.min.js';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+import { AxesHelper, ArrowHelper, Vector3 } from 'three';
 
 const	sunParams = {
 	minute: new Date().getMinutes(),
@@ -21,7 +22,8 @@ class	View extends THREE.EventDispatcher {
 	layers: THREE.Object3D[];
 	sunPath!: SunPath;
 	center: [lat: number, lon: number];
-	sunSphere: THREE.Mesh;
+	sunSphere!: THREE.Mesh;
+	compass!: THREE.ArrowHelper;
 
 	constructor( container: HTMLDivElement, center: [lat: number, lon: number] ) {
 		super();
@@ -41,29 +43,23 @@ class	View extends THREE.EventDispatcher {
 		this.scene.add( new THREE.AmbientLight( 'white' ))
 
 		this.initSun();
+		this.createGUI();
 
 		this.layers = [];
 
-		// Créer une sphère jaune pour représenter le soleil
-		const sunGeometry = new THREE.SphereGeometry(50, 32, 32);
-		const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-		this.sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
-		this.sunSphere.position.copy(this.sunLight.position);
-		this.scene.add(this.sunSphere);
-	
+		let	dir = new THREE.Vector3();
+		let	sph = new THREE.Spherical();
+		const	compass = document.getElementById("compassContainer");
+
 		const	animate =  () => {
+			this.camera.getWorldDirection( dir );
+			sph.setFromVector3( dir );
+			let	thetaDegree = sph.theta * ( 180 / Math.PI );
+			compass!.style.transform = `rotate(${thetaDegree - 180}deg)`;
 			this.controls.update();
 			this.renderer.render( this.scene, this.camera );
 			this.sunSphere.position.copy(this.sunLight.position); // Mettre à jour la position de la sphère
 		};
-
-		const	gui = new GUI();
-
-		const	sunLightFolder = gui.addFolder( 'SunLight' );
-		sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
-		sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
-		sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
-		sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
@@ -74,7 +70,12 @@ class	View extends THREE.EventDispatcher {
 		container.appendChild( this.renderer.domElement );
 		this.container = container;
 
-		window.addEventListener('resize', () => {
+		this.initListener();
+	};
+
+	private	initListener() {
+
+		window.addEventListener( 'resize', () => {
 			this.onResize();
 		});
 	};
@@ -86,9 +87,9 @@ class	View extends THREE.EventDispatcher {
 		};
 
 	public	addLayer(...layers: THREE.Object3D[]) {
-		layers.forEach(layer => {
-			this.layers.push(layer);
-			this.scene.add(layer);
+		layers.forEach(( layer ) => {
+			this.scene.add( layer );
+			this.layers.push( layer );
 		});
 		this.render();
 	};
@@ -101,19 +102,53 @@ class	View extends THREE.EventDispatcher {
 		this.render();
 	};
 
+	private	createGUI() {
+		const	gui = new GUI();
+		const	sunLightFolder = gui.addFolder( 'SunLight' );
+
+		sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+		sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+		sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
+		sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
+
+	};
+
+	private	initCompass() {
+		const	compass = new THREE.ConeGeometry( 0.5, 2, 32 );
+		const	compassMaterial = new THREE.MeshBasicMaterial({ color: "red" });
+		const	compassMesh = new THREE.Mesh( compass, compassMaterial );
+
+		
+		this.scene.add( compassMesh );
+	};
+
 	private	initSun() {
-		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );//la classe modifie  la position de la lumiere du soleildonc ajouter une fonction qui prend en arguent un delta( + || - )
-		this.sunLight.castShadow = true;
+		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );
+		this.sunLight.shadow.mapSize.height = 2048;
+		this.sunLight.shadow.mapSize.width = 2048;
 		this.sunLight.shadow.camera.left = -2500;
-		this.sunLight.shadow.camera.right = 2500;
 		this.sunLight.shadow.camera.top = 2500;
+		this.sunLight.shadow.camera.right = 2500;
 		this.sunLight.shadow.camera.bottom = -2500;
 		this.sunLight.shadow.camera.near = 0.5;
 		this.sunLight.shadow.camera.far = 2500;
+		this.sunLight.castShadow = true;
 		this.sunLight.shadow.bias = -0.005;
-		this.sunLight.shadow.mapSize.width = 2048;
-		this.sunLight.shadow.mapSize.height = 2048;
+
+		const sunGeometry = new THREE.SphereGeometry( 50, 32, 32 );
+		const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+		this.sunSphere = new THREE.Mesh( sunGeometry, sunMaterial );
+		this.sunSphere.position.copy( this.sunLight.position );
+		this.scene.add(this.sunSphere);
 	};
+
+	public	centerCameraOnGroup( group: THREE.Group ) {
+		const	box = new THREE.Box3().setFromObject( group );
+		const	center = box.getCenter( new THREE.Vector3() );
+		const	size = box.getSize( new THREE.Vector3() );
+		
+		this.camera.position.setY( center.y + size.y * 0.1 );
+	}
 
 	private	render() {
 		this.renderer.render( this.scene, this.camera );

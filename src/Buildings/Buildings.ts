@@ -87,6 +87,7 @@ class	Buildings {
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
 			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
+			building.computeVertexNormals();
 
 			geometries.push( building );
 		};
@@ -96,6 +97,7 @@ class	Buildings {
 
 			mesh.castShadow = true;
 			mesh.receiveShadow = true;
+			mesh.userData = buildings[i].properties;
 			meshes.push( mesh );
 		};
 
@@ -172,17 +174,13 @@ class	Buildings {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	raycaster = new THREE.Raycaster();
 			const	up = new THREE.Vector3( 0, 1, 0 );
-			const	chunkSize = 5;
-			let	altitude = 0;
-			//const ray = new THREE.Ray(building.boundingSphere?.center, up )
-			//const rayHelper = this.createRayHelper(ray);
-			//this.view.scene.add(rayHelper);
-	
+			const	chunkSize = 2;
+			let	altitude = 0;	
 			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
 				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
 				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
 				for ( const mesh of terrainChunk ) {
-					const	intersects =  raycaster.intersectObject( mesh );
+					const	intersects =  raycaster.intersectObject( mesh, false );
 					if ( intersects.length > 0 ) {
 						altitude = intersects[0].point.y;
 						break;

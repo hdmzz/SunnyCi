@@ -55,7 +55,6 @@ class	ElevationLayer {
 				const	lon = bbox.minLon + ( i / 256 ) * lonRange;
 				const	lat = bbox.minLat + ( j / 256 ) * latRange;
 				const	mercator = new Coordinate({ latitude: lat, longitude: lon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
-				if ( j === 127 ) console.log( mercator );
 				geometry.attributes.position.setXYZ( vertexIndex, mercator.world.x, mercator.world.y, grid[j][i] );
 			};
 		};

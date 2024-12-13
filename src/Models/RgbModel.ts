@@ -5,7 +5,7 @@ import { SphericalMercator } from "@mapbox/sphericalmercator";
 import { BboxType } from "../type";
 
 const	constVertices = 128;
-//! Attention ll signifi lon lat ici et pas lat lon
+//! Attention ll signifie lon lat ici et pas lat lon
 const	constTilePixels = new SphericalMercator({size: 128});
 
 const	computeSeamRows = ( shift: number ) => {
@@ -76,6 +76,7 @@ class	RgbModel {
 	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
 		//calculer le zoomPositionElevation
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
+		console.log(zpCovered, zoomPositionElevation)
 		let	count = 0;
 		
 		zoomPositionElevation.forEach( async zoomPos => {
@@ -134,8 +135,8 @@ class	RgbModel {
 			for ( let r = pxRange[0][0]; r < pxRange[0][1]; r++ ) {
 				for ( let c = pxRange[1][0]; c < pxRange[1][1]; c++ ) {
 					elev.push( elevations[r * 512 + c] );
-				}
-			}
+				};
+			};
 
 			let	array = [];
 			let	dataIndex = 0;
@@ -221,7 +222,7 @@ class	RgbModel {
 			);
 			//plane.castShadow = true;
 			plane.receiveShadow = true;
-			plane.userData = {isRgb: true};
+			plane.userData = { isRgb: true };
 
 			//la raison de mettre plane dans objs est//qu'on en a besoin
 			objs.push( plane );
@@ -258,7 +259,7 @@ class	RgbModel {
 	};
 
 	public	resolveSeams( array: number[], infoNei: { [key: number]: number[] } ) {
-		let	cSegments = [ constVertices - 1, constVertices - 1 ];
+		let	cSegments = [ constVertices - 1, constVertices - 1 ];//constVertice === 128
 
 		Object.entries( infoNei ).forEach(([ idxNei, arrayNei ]) => {
 			if ( idxNei === "2" ) {
@@ -311,7 +312,7 @@ class	RgbModel {
 	public	getNeighborsInfo( dataEle: number[][][], dataEleIds: {[key: string]: number}, zoomPos: number[] ): {[ key: number ]: number[]} {
 		const	infoNei: {[ key: number ]: number[]} = {};
 		this.getNeighbors8( zoomPos ).forEach(( zoomposNei, idxNei ) => {
-			const id = zoomposNei.join( '/' );
+			const	id = zoomposNei.join( '/' );
 			if ( id in dataEleIds ) {
 				const arrayNei = dataEle[dataEleIds[id]][1];
 				infoNei[idxNei] = arrayNei;
@@ -342,6 +343,7 @@ class	RgbModel {
 		token:string,
 		onTex: ( texture: THREE.DataTexture ) => void,
 	) {
+		console.log(zoomPos)
 		const	pixels = await Fetch.fetchTile( zoomPos, token, apiSatellite );
 		const	tex = new THREE.DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], THREE.RGBAFormat );
 

@@ -39,13 +39,14 @@ async function main() {
 					CENTER = [latitude, longitude];
 				};
 			};
-			const terrain = await tgeo.getTerrainRgb(CENTER, RADIUS, 14)
+			const terrain = await tgeo.getTerrainRgb(CENTER, RADIUS, 14);
+			view.centerCameraOnGroup( terrain );
 			const buildingSource = new WFSSource(CENTER, RADIUS, {
 				layer: "BDTOPO_V3:batiment",
 			});
 			terrain.rotation.x = -Math.PI / 2
 
-			view.addLayer(terrain);
+			view.addLayer( terrain );
 
 			const buildings = await new Buildings(CENTER, RADIUS, UNITS_PER_METER, view, buildingSource, terrain).Building();
 
