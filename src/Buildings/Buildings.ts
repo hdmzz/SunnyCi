@@ -23,13 +23,13 @@ class	Buildings {
 	buildingsArray: [];
 	center: [lat: number, lon: number];
 	radius: number;
-	unitsPerMeter: number;
+	unitsSide: number;
 	view: View;
 	source: Source;
 	bbox: BboxType;
 	terrain: THREE.Mesh[];
 
-	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain:THREE.Group ) {
+	constructor( center: [lat:number, lon: number], radius: number, unitsSide: number, view: View, source: Source, terrain:THREE.Group ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
@@ -37,7 +37,7 @@ class	Buildings {
 		this.view = view;
 		this.source = source;
 		this.bbox = HugoGeo.getBbox( center, radius );
-		this.unitsPerMeter  = unitsPerMeter;
+		this.unitsSide  = unitsSide;
 		this.terrain = terrain.children as THREE.Mesh[];
 	};
 
@@ -75,14 +75,13 @@ class	Buildings {
 	};
 
 	public async	Building() {
-		const	mat = new THREE.MeshPhysicalMaterial({ color: 'white', side: 2, wireframe: false });
+		const	mat = new THREE.MeshPhysicalMaterial({ color: 'white', side: 1, wireframe: false });
 		const	url = this.source.url;
-		console.log(url);
 		const	buildings = await this.getBuildings( url as string );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
 
-		for ( let i = 0; i < buildings.length; i++ ) {//!pb a regler asynchrone toute les altitude ne sont pas calcuees du premier coup 
+		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
 			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
@@ -128,7 +127,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -0.5 * height, bevelEnabled: false, altitude } );
+		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -0.5 * height, bevelEnabled: false, bevelSize: 0, altitude } );
 
 		return ( geometry );
 	};
@@ -140,8 +139,7 @@ class	Buildings {
 			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
-				const	projectionRgb = HugoGeo.projectCoord( 1000, [point[0], point[1]], this.bbox.northWest, this.bbox.southEast );
-				//const	normPnt = getWorldCoords( point[1], point[0], point[2], this.center );
+				const	projectionRgb = HugoGeo.projectCoord( this.unitsSide, [point[0], point[1]], this.bbox.northWest, this.bbox.southEast );
 
 				if ( y === 0 ) {
 					shape.moveTo( projectionRgb[1], projectionRgb[0] );
@@ -154,28 +152,30 @@ class	Buildings {
 		return ( shape );
 	};
 
-	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): Promise<THREE.ExtrudeGeometry> {
+	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, bevelSize: number, altitude: number } ): Promise<THREE.ExtrudeGeometry> {
 		return new Promise( async ( resolve ) => {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-			
+
 			geometry.rotateX(Math.PI / 2 );
-			//geometry.rotateZ(Math.PI);
 			geometry.rotateY(Math.PI /2);
 			geometry.computeBoundingSphere();
+
 			const	altitude = await this.getAltitude( geometry );
 
 			geometry.translate(0, altitude , 0);
+
 			resolve( geometry );
 		});
 	};
+
 	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
 		return new Promise( async ( resolve ) => {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	raycaster = new THREE.Raycaster();
 			const	up = new THREE.Vector3( 0, 1, 0 );
 			const	chunkSize = 2;
-			let	altitude = 0;	
+			let		altitude = 0;	
 			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
 				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
 				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );

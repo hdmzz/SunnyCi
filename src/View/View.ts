@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import SunPath from './SunPath';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
-import { AxesHelper, ArrowHelper, Vector3 } from 'three';
 
 const	sunParams = {
 	minute: new Date().getMinutes(),
@@ -19,7 +18,7 @@ class	View extends THREE.EventDispatcher {
 	controls: OrbitControls;
 	container: HTMLDivElement;
 	sunLight: THREE.DirectionalLight;
-	layers: THREE.Object3D[];
+	layers: { key: string, value: THREE.Object3D }[] = [];
 	sunPath!: SunPath;
 	center: [lat: number, lon: number];
 	sunSphere!: THREE.Mesh;
@@ -27,6 +26,7 @@ class	View extends THREE.EventDispatcher {
 
 	constructor( container: HTMLDivElement, center: [lat: number, lon: number] ) {
 		super();
+		const	compass = document.getElementById("compassContainer");
 		this.center = center
 		this.scene = new THREE.Scene();
 		//!!changer url local host ou github pour deploy
@@ -45,11 +45,8 @@ class	View extends THREE.EventDispatcher {
 		this.initSun();
 		this.createGUI();
 
-		this.layers = [];
-
-		let	dir = new THREE.Vector3();
-		let	sph = new THREE.Spherical();
-		const	compass = document.getElementById("compassContainer");
+		let		dir = new THREE.Vector3();
+		let		sph = new THREE.Spherical();
 
 		const	animate =  () => {
 			this.camera.getWorldDirection( dir );
@@ -73,10 +70,38 @@ class	View extends THREE.EventDispatcher {
 		this.initListener();
 	};
 
+	private	getLayerByName( name: string ) {
+		const	layer = this.layers.find(( layer ) => layer.key === name );
+		if ( layer === undefined ) {
+			throw new Error( `layer ${name} not found, maybe too soon, does the buildings are already there` );
+		};
+
+		return ( layer.value );
+	};
+
+	private	increaseHeight(mesh: THREE.Mesh) {
+		
+	};
+
 	private	initListener() {
+		const	raycaster = new THREE.Raycaster();
 
 		window.addEventListener( 'resize', () => {
 			this.onResize();
+		});
+
+		window.addEventListener( 'click', ( event ) => {
+			const	mouse = new THREE.Vector2();
+			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
+
+			raycaster.setFromCamera( mouse, this.camera );
+			try {
+				const	intersects = raycaster.intersectObjects( this.getLayerByName( "buildings" ).children );//stocker les layer par cles valeurs pour chercher dedans au lieu de galerer cest time consuming putaing!
+				console.log( intersects[0].object );
+			} catch ( err ) {
+				console.log( err );
+			};
 		});
 	};
 
@@ -86,17 +111,15 @@ class	View extends THREE.EventDispatcher {
 			this.renderer.setSize( window.innerWidth, window.innerHeight );
 		};
 
-	public	addLayer(...layers: THREE.Object3D[]) {
-		layers.forEach(( layer ) => {
-			this.scene.add( layer );
-			this.layers.push( layer );
-		});
+	public	addLayer(name: string, layers: THREE.Object3D) {
+		this.scene.add( layers );
+		this.layers.push( { key: name, value: layers } );
 		this.render();
 	};
 
 	public	removeLayer() {
 		this.layers.forEach(( layer ) => {
-			this.scene.remove( layer );
+				this.scene.remove( layer.value );
 		});
 		this.layers = [];
 		this.render();
@@ -110,16 +133,6 @@ class	View extends THREE.EventDispatcher {
 		sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
 		sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
 		sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
-
-	};
-
-	private	initCompass() {
-		const	compass = new THREE.ConeGeometry( 0.5, 2, 32 );
-		const	compassMaterial = new THREE.MeshBasicMaterial({ color: "red" });
-		const	compassMesh = new THREE.Mesh( compass, compassMaterial );
-
-		
-		this.scene.add( compassMesh );
 	};
 
 	private	initSun() {
@@ -142,7 +155,7 @@ class	View extends THREE.EventDispatcher {
 		this.scene.add(this.sunSphere);
 	};
 
-	public	centerCameraOnGroup( group: THREE.Group ) {
+	public centerCameraOnGroup( group: THREE.Group ) {
 		const	box = new THREE.Box3().setFromObject( group );
 		const	center = box.getCenter( new THREE.Vector3() );
 		const	size = box.getSize( new THREE.Vector3() );

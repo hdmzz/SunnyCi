@@ -98,7 +98,6 @@ class	RgbModel {
 
 	public	addTile( tile: ndarray.NdArray<Uint8Array>, zoomPositionElevation: number[], zpCovered: number[][], bbox: BboxType ): number[][][] {
 		let	elevations =  [];
-		//ici extrcction de l'elevation
 		if ( tile ) {
 			let	R, G, B;
 			for ( let i = 0; i < tile.data.length; i += 4 ) {//on avance de 4 car la  quatrieme valeur est la valeur alpha du pixel
@@ -149,7 +148,7 @@ class	RgbModel {
 					], zoomPos[0]);
 					array.push(
 						...this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] ),
-						elev[dataIndex] * this.unitsPerMeter);
+						elev[dataIndex] * this.unitsPerMeter);//fix le sens
 					dataIndex++;
 				};
 			};
@@ -186,14 +185,13 @@ class	RgbModel {
 		): THREE.Mesh[] {
 		const	{ dataElevationCovered: dataEl, apiSatellite, mapBoxToken } = this;
 
-		//first sort the data Ele
 		dataEl.sort(( zp1, zp2 ) => {
 			return ( zp1[0].join( "/" ) > zp2[0].join( "/" ) ? 1 : -1 );
 		});
 
 		//on index chaque valeurn et on les stock dans un tab nommé dataEleIds
 		const	dataElIds: { [key: string]: number } = {};
-		dataEl.forEach(( data, index ) => { dataElIds[data[0].join('/')] = index });
+		dataEl.forEach(( data, index ) => { dataElIds[data[0].join( '/' )] = index });
 
 		const	objs: THREE.Mesh[] = [];
 		const	geometries: THREE.BufferGeometry[] = [];
@@ -343,7 +341,6 @@ class	RgbModel {
 		token:string,
 		onTex: ( texture: THREE.DataTexture ) => void,
 	) {
-		console.log(zoomPos)
 		const	pixels = await Fetch.fetchTile( zoomPos, token, apiSatellite );
 		const	tex = new THREE.DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], THREE.RGBAFormat );
 
