@@ -23,7 +23,7 @@ class	View extends THREE.EventDispatcher {
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.scene.add( new THREE.AmbientLight( 'white', 1.7 ));
-		this.light = new THREE.DirectionalLight( 'white', 1 );
+		this.light = new THREE.DirectionalLight( 'white', 2 );
 		this.light.position.set( 300, 300, 300 );
 		this.light.castShadow = true;
 		this.light.shadow.camera.left = -500;
@@ -63,11 +63,9 @@ class	View extends THREE.EventDispatcher {
 			this.renderer.setSize( window.innerWidth, window.innerHeight );
 		};
 
-	public	addLayer(...layers: THREE.Object3D[]) {
-		layers.forEach(layer => {
-			this.layers.push(layer);
-			this.scene.add(layer);
-		});
+	public	addLayer( layer: THREE.Object3D ) {
+		this.layers.push(layer);
+		this.scene.add(layer);
 		this.render();
 	};
 

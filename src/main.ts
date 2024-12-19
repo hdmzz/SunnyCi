@@ -40,8 +40,13 @@ async function	loadTerrain() {
 
 	view.addLayer( terrain );
 
+	const	osmSource = new OSMSource( CENTER, 500, "tree" );
+
+	const	geomTree = new GeometryLayer(osmSource, HugoGeo.getBbox(CENTER, RADIUS), terrain, view );
+
+	console.log(osmSource)
 	
-	const	buildings =  await new Buildings( CENTER, RADIUS, UNITS_PER_METER, view, buildingSource, terrain, tgeo.refBbox ).Building();
+	const	buildings =  await new Buildings( CENTER, RADIUS, view, buildingSource, terrain, tgeo.refBbox ).Building();
 	view.addLayer( buildings );
 };
 

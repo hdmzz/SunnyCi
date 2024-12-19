@@ -24,21 +24,19 @@ class	Buildings {
 	buildingsArray: [];
 	center: [lat: number, lon: number];
 	radius: number;
-	unitsPerMeter: number;
 	view: View;
 	source: Source;
 	bbox: refBboxType;
 	terrain: THREE.Mesh[];
 
-	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number, view: View, source: Source, terrain:THREE.Group, refBbox: refBboxType ) {
+	constructor( center: [lat:number, lon: number], radius: number, view: View, source: Source, terrain:THREE.Group, refBbox: refBboxType ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
 		this.radius = radius;
 		this.view = view;
 		this.source = source;
-		this.bbox = refBbox;
-		this.unitsPerMeter  = unitsPerMeter;
+		this.bbox = HugoGeo.getBbox(center, radius);
 		this.terrain = terrain.children as THREE.Mesh[];
 	};
 
