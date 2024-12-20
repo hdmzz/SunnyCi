@@ -64,7 +64,7 @@ class	WMTSSource {
 	};
 
 	public	tileToBBox(): { minLat: number, minLon: number, maxLat: number, maxLon: number } {
-		const resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow(2, 14);
+		const resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow( 2, this.zoom );
 		if (this.tileCol === undefined || this.tileRow === undefined) {
 			throw new Error("tileCol or tileRow is undefined");
 		}

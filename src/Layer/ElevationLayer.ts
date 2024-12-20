@@ -23,46 +23,48 @@ class	ElevationLayer {
 		})
 	};
 
-	private			parseBil( buffer: ArrayBuffer )  {
+	private		parseBil( buffer: ArrayBuffer ) 
+	{
 		const	elevationData = new DataView(buffer);
 		const	grid = [];
 		const	ncols = 256;
-	
+		const	bbox = this.source.tileToBBox();
+		const	lonRange = bbox.maxLon - bbox.minLon;
+		const	latRange = bbox.maxLat - bbox.minLat;
+
 		for (let row = 0; row < ncols; row++) {
 			const rowArray = [];
 			for (let col = 0; col < ncols; col++) {
 				const	index = (row * ncols + col) * 4; // 4 bytes per float32 value
 				const	value = elevationData.getFloat32(index, true); // Little-endian
-				rowArray.push( value / 255 * 50 );
-			}
+				const	lon = bbox.minLon + (col / (ncols - 1)) * lonRange;
+				const	lat = bbox.minLat + (row / (ncols - 1)) * latRange;
+
+				rowArray.push({ elevation: value / 255 * 50, lat, lon });
+			};
 			grid.push(rowArray);
-		}
-	
+		};
+
 		return ( grid );
 	};
 
-	private createMesh(grid: number[][], res: (payload : THREE.Mesh) => void) {
+	private createMesh(grid: { elevation: number, lat: number, lon: number }[][], res: (payload : THREE.Mesh) => void) {
 		const	ncols = grid[0].length;
-		const	nrows = grid.length;
-		const geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
+		const	geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
 		const	bbox = this.source.tileToBBox();
-		const	projectedMin = new Coordinate({ latitude: bbox.minLat, longitude: bbox.minLon, altitude:0 }, this.source.center );
-		const	projectedMax = new Coordinate({ latitude: bbox.maxLat, longitude: bbox.maxLon, altitude:0 }, this.source.center );
-
 		const	lonRange = bbox.maxLon - bbox.minLon;
 		const	latRange = bbox.maxLat - bbox.minLat;
 
 		for ( let i = 0; i < ncols; i++ ) {
 			for ( let j = 0; j < ncols; j++ ) {
 				const	vertexIndex = j * ncols + i;
-				const	lon = bbox.minLon + ( i / 256 ) * lonRange;
-				const	lat = bbox.minLat + ( j / 256 ) * latRange;
+				const	lon = bbox.minLon + ( i / 255 ) * lonRange;
+				const	lat = bbox.minLat + ( j / 255 ) * latRange;
 				const	mercator = new Coordinate({ latitude: lat, longitude: lon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
-				if ( j === 127 ) console.log( mercator );
-				geometry.attributes.position.setXYZ( vertexIndex, mercator.world.x, mercator.world.y, grid[j][i] );
+				geometry.attributes.position.setXYZ( vertexIndex, mercator.world.x, mercator.world.y, grid[j][i].elevation );
 			};
 		};
-		const	material = new THREE.MeshBasicMaterial({ color: "white", wireframe: true });
+		const	material = new THREE.MeshBasicMaterial({ color: "white", wireframe: true, side:2 });
 		const	mesh = new THREE.Mesh( geometry, material );
 		mesh.rotation.x = -Math.PI / 2;
 		mesh.rotateZ( Math.PI );

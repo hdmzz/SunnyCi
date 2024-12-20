@@ -27,9 +27,10 @@ class	Buildings {
 	view: View;
 	source: Source;
 	bbox: BboxType;
-	terrain: THREE.Mesh[];
+	terrain: THREE.Mesh;
+	raycaster: THREE.Raycaster;
 
-	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain:THREE.Group ) {
+	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain: THREE.Mesh ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
@@ -38,7 +39,8 @@ class	Buildings {
 		this.source = source;
 		this.bbox = HugoGeo.getBbox( center, radius );
 		this.unitsPerMeter  = unitsPerMeter;
-		this.terrain = terrain.children as THREE.Mesh[];
+		this.terrain = terrain;
+		this.raycaster = new THREE.Raycaster();
 	};
 
 	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
@@ -77,7 +79,6 @@ class	Buildings {
 	public async	Building() {
 		const	mat = new THREE.MeshPhongMaterial({ color: 'red', side: 2, wireframe: false });
 		const	url = this.source.url;
-		console.log(url);
 		const	buildings = await this.getBuildings( url as string );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
@@ -87,7 +88,7 @@ class	Buildings {
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
 			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
-
+			
 			geometries.push( building );
 		};
 
@@ -138,13 +139,12 @@ class	Buildings {
 			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
-				const	projectionRgb = HugoGeo.projectCoord( 1000, [point[0], point[1]], this.bbox.northWest, this.bbox.southEast );
-				//const	normPnt = getWorldCoords( point[1], point[0], point[2], this.center );
+				const	mercator = new Coordinate({ latitude: point[1], longitude: point[0], altitude: point[2] }, this.center).ComputeWorldCoordinate();
 
 				if ( y === 0 ) {
-					shape.moveTo( projectionRgb[1], projectionRgb[0] );
+					shape.moveTo( mercator.world.x, mercator.world.y );
 				} else {
-					shape.lineTo( projectionRgb[1], projectionRgb[0]);
+					shape.lineTo( mercator.world.x, mercator.world.y );
 				};
 			});
 		};
@@ -159,35 +159,28 @@ class	Buildings {
 			
 			geometry.rotateX(Math.PI / 2 );
 			//geometry.rotateZ(Math.PI);
-			geometry.rotateY(Math.PI /2);
+			geometry.rotateY( -Math.PI );
 			geometry.computeBoundingSphere();
 			const	altitude = await this.getAltitude( geometry );
-
+			//console.log( altitude );
 			geometry.translate(0, altitude , 0);
 			resolve( geometry );
 		});
 	};
-	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
-		return new Promise( async ( resolve ) => {
+	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number>
+	{
+		return new Promise( async ( resolve, reject ) => {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			const	raycaster = new THREE.Raycaster();
+			let		altitude = 0;
 			const	up = new THREE.Vector3( 0, 1, 0 );
-			const	chunkSize = 5;
-			let	altitude = 0;
-			//const ray = new THREE.Ray(building.boundingSphere?.center, up )
-			//const rayHelper = this.createRayHelper(ray);
-			//this.view.scene.add(rayHelper);
-	
-			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
-				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
-				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
-				for ( const mesh of terrainChunk ) {
-					const	intersects =  raycaster.intersectObject( mesh );
-					if ( intersects.length > 0 ) {
-						altitude = intersects[0].point.y;
-						break;
-					};
-				};
+			//const ray = new THREE.Ray( building.boundingSphere?.center, up );
+			//;
+			//this.view.addLayer(this.createRayHelper( ray ))
+			this.raycaster.set( building.boundingSphere?.center as THREE.Vector3, up );
+			const	intersects  = this.raycaster.intersectObject( this.terrain );
+			if ( intersects.length > 0) {
+				altitude = intersects[0].distance;
+				resolve( altitude );
 			};
 			resolve( altitude );
 		});
