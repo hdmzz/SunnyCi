@@ -94,7 +94,7 @@ class	GreyModel {
 	private async	build() {
 		let	mesh: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[] = [];
 
-		if  ( this.data !== undefined )
+		if ( this.data !== undefined )
 			mesh = await this._build();
 		else if ( this.dataPng !== undefined ) {
 			mesh = await this._buildPng()
@@ -117,7 +117,8 @@ class	GreyModel {
 			plane.attributes.position.setZ( index, (( data[index] as number / heightScale )) )
 		});
 		const	mesh = new Mesh( plane, this.terrainMat );
-		mesh.userData = {isGrey: true};
+		mesh.rotateX( -Math.PI)
+		mesh.userData = { isGrey: true };
 		mesh.receiveShadow = true;
 
 		return ([ mesh ]);

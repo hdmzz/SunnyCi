@@ -12,23 +12,50 @@ class	ElevationLayer {
 	};
 
 	public async	fetchBil() {
-		return new Promise<THREE.Mesh>( async ( resolve, reject ) => {
-			const	bilResponse = await fetch( this.source.url );
-			const	bilBuffer = await  bilResponse.arrayBuffer();
-	
-			const grid = this.parseBil( bilBuffer );
-	
-			console.log(grid);
-			const	mesh = await this.createMesh(grid, resolve);
-		})
+		return new Promise<THREE.Group>( async ( resolve, reject ) => {
+			//const	urls = this.source.neighborsUrls;
+			const	url = this.source.urlZoomPos;
+			const	results: {elevation: number, lat: number, lon: number}[][][] = [];
+
+			//const promises = urls.map(async (url) => {
+			//	const	bilResponse = await fetch( url.url );
+			//	const	bilBuffer = await bilResponse.arrayBuffer();
+			//	results.push( this.parseBil( bilBuffer, url.zoomPos ));
+			//});
+
+			const	bilResponse = await fetch( url.url );
+			const	bilBuffer = await bilResponse.arrayBuffer();
+
+			results.push( this.parseBil(bilBuffer, url.zoomPos ))
+
+			//await Promise.all(promises);
+
+			const	meshes: THREE.Mesh[] = [];
+
+			for ( const meshPrecursor of results ) {
+				const	mesh = this.createMesh( meshPrecursor );
+				meshes.push( mesh );
+			};
+
+			const	group = this.createGroup( meshes );
+			resolve( group );
+		});
 	};
 
-	private		parseBil( buffer: ArrayBuffer ) 
+	private	createGroup( meshes: THREE.Mesh[] ): THREE.Group
+	{
+		const	group = new THREE.Group();
+		meshes.forEach( mesh => group.add( mesh ));
+
+		return ( group );
+	};
+
+	private		parseBil( buffer: ArrayBuffer, zoomPos: {zoom: number, tileCol: number, tileRow: number })
 	{
 		const	elevationData = new DataView(buffer);
 		const	grid = [];
 		const	ncols = 256;
-		const	bbox = this.source.tileToBBox();
+		const	bbox = this.source.tileToBBox( zoomPos.tileCol, zoomPos.tileRow );
 		const	lonRange = bbox.maxLon - bbox.minLon;
 		const	latRange = bbox.maxLat - bbox.minLat;
 
@@ -48,19 +75,17 @@ class	ElevationLayer {
 		return ( grid );
 	};
 
-	private createMesh(grid: { elevation: number, lat: number, lon: number }[][], res: (payload : THREE.Mesh) => void) {
+	private createMesh(grid: { elevation: number, lat: number, lon: number }[][]): THREE.Mesh {
 		const	ncols = grid[0].length;
 		const	geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
-		const	bbox = this.source.tileToBBox();
-		const	lonRange = bbox.maxLon - bbox.minLon;
-		const	latRange = bbox.maxLat - bbox.minLat;
 
 		for ( let i = 0; i < ncols; i++ ) {
 			for ( let j = 0; j < ncols; j++ ) {
 				const	vertexIndex = j * ncols + i;
-				const	lon = bbox.minLon + ( i / 255 ) * lonRange;
-				const	lat = bbox.minLat + ( j / 255 ) * latRange;
+				const	lon = grid[j][i].lon;
+				const	lat = grid[j][i].lat;
 				const	mercator = new Coordinate({ latitude: lat, longitude: lon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
+
 				geometry.attributes.position.setXYZ( vertexIndex, mercator.world.x, mercator.world.y, grid[j][i].elevation );
 			};
 		};
@@ -68,9 +93,8 @@ class	ElevationLayer {
 		const	mesh = new THREE.Mesh( geometry, material );
 		mesh.rotation.x = -Math.PI / 2;
 		mesh.rotateZ( Math.PI );
-		console.log( mesh );
-		this.terrain = mesh
-		res( mesh );
+
+		return ( mesh );
 	};
 };
 

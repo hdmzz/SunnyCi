@@ -1,11 +1,11 @@
+import Source from "./Source";
+
 //https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities
-class	WMTSSource {
-	center: [lat: number, lon: number];
-	radius: number;
-	url: string;
+class	WMTSSource extends Source{
+	urlZoomPos: {url: string, zoomPos: { zoom: number, tileRow: number, tileCol: number }};
+	neighborsUrls: {url: string, zoomPos: { zoom: number, tileRow: number, tileCol: number }}[];
 	heightNeighborsCoordinates: { tileX: number, tileY: number }[];
 	layer: string
-	format: string
 	style: string
 	tileMatrixSet: string
 	zoom: number;
@@ -19,22 +19,23 @@ class	WMTSSource {
 		tileMatrixSet: string;
 		zoom: number;
 	} ) {
-		this.center = center;
-		this.radius = radius;
-		this.url = "";
+		super( center, radius, opts.format )
+		this.urlZoomPos = {url: "", zoomPos: {zoom: 0, tileCol: 0, tileRow: 0}};
+		this.neighborsUrls = []
 		this.heightNeighborsCoordinates = [];
 		this.layer = opts.layer ? opts.layer : "HR.ORTHOIMAGERY.ORTHOPHOTOS";
-		this.format = opts.format ? opts.format : "image/jpeg";
 		this.style = opts.style ? opts.style : "normal";
 		this.tileMatrixSet = opts.tileMatrixSet ? opts.tileMatrixSet : "PM";
 		this.zoom = opts.zoom ? opts.zoom : 8;
-
+		this.isWmtsSource = true;
 		this.wmtsUrlBuilder();
 	};
-	//!tile row = y tile col = x
+	//!tile row = y tile col = x 
+	//!renoie les coordonnees dest 8 neighbors
 	private	getNeighborsCoordinates( originaleTileRow: number, originaleTileCol: number ): { tileX: number, tileY: number }[] {
 		const	neighborsTile: { tileX: number, tileY: number }[] = [];
 
+		neighborsTile.push({ tileX: originaleTileCol, tileY: originaleTileRow });
 		
 		for ( let dx = -1; dx <= 1; dx++ ) {
 			for ( let dy = -1; dy <= 1; dy++ ) {
@@ -54,24 +55,24 @@ class	WMTSSource {
 		const	{ tileX, tileY } = latLonToTile( ...this.center, this.zoom, this.tileMatrixSet );
 		this.tileCol = tileX;
 		this.tileRow = tileY;
-		if ( this.format === "image/jpeg" ) {
-			this.heightNeighborsCoordinates = this.getNeighborsCoordinates(tileY, tileX);
-			console.log( this.heightNeighborsCoordinates );
-		};//!!!!!!!!!!!!!!!!!!!!!!!!!!!proleme de tilematrixset WGS84G et pas PM!!!! Projection mercator !=== a WGS refaire coordonnees de tuile a partir de WGS coords 
-		this.url = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${this.zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
-		console.log( this.url );
-		return ( this.url );
+		this.urlZoomPos = { url: `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${this.zoom}&TILEROW=${tileY}&TILECOL=${tileX}`, zoomPos: {zoom: this.zoom, tileCol: tileX, tileRow: tileY}}
+		const	neiCoords = this.getNeighborsCoordinates( tileY, tileX );
+		neiCoords.forEach(( coord ) => {
+			const	neiUrl = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${this.zoom}&TILEROW=${coord.tileY}&TILECOL=${coord.tileX}`;
+			this.neighborsUrls.push( { url: neiUrl , zoomPos: { zoom: this.zoom, tileRow: coord.tileY, tileCol: coord.tileX }});
+		});
+		console.log( this.neighborsUrls )
 	};
 
-	public	tileToBBox(): { minLat: number, minLon: number, maxLat: number, maxLon: number } {
+	public	tileToBBox( tileCol: number, tileRow: number ): { minLat: number, minLon: number, maxLat: number, maxLon: number } {
 		const resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow( 2, this.zoom );
-		if (this.tileCol === undefined || this.tileRow === undefined) {
+		if (tileCol === undefined || tileRow === undefined) {
 			throw new Error("tileCol or tileRow is undefined");
-		}
-		const minLon = this.tileCol * resolution * EPSG4326_TILE_SIZE - 180;
-		const maxLon = (this.tileCol + 1) * resolution * EPSG4326_TILE_SIZE - 180;
-		const minLat = 90 - (this.tileRow + 1) * resolution * EPSG4326_TILE_SIZE;
-		const maxLat = 90 - this.tileRow * resolution * EPSG4326_TILE_SIZE;
+		};
+		const minLon = tileCol * resolution * EPSG4326_TILE_SIZE - 180;
+		const maxLon = (tileCol + 1) * resolution * EPSG4326_TILE_SIZE - 180;
+		const minLat = 90 - (tileRow + 1) * resolution * EPSG4326_TILE_SIZE;
+		const maxLat = 90 - tileRow * resolution * EPSG4326_TILE_SIZE;
 		return { minLat, minLon, maxLat, maxLon };
 	}
 

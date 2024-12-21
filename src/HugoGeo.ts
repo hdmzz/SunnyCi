@@ -215,7 +215,7 @@ class	HugoGeo {
 		return new Promise( async ( resolve, reject ) => {
 			try {
 				const	watcher = this.createWatcher( resolve );
-				if ( this.source && this.source.format  ===  "png" ) {
+				if ( this.source && this.source.format  ===  "image/jpeg" ) {
 					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source ).fetchPNG( this.source.url as string );
 				} else {
 					const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
@@ -223,7 +223,6 @@ class	HugoGeo {
 					const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
 					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as Source ).fetchTIF( url );
 				}
-
 			} catch (error) {
 				reject( error );
 			};

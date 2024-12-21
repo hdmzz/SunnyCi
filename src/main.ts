@@ -11,8 +11,11 @@ import { color } from "three/webgpu";
 import ElevationLayer from "./Layer/ElevationLayer";
 import { Coordinate, latLonToMeters } from "./Coordinate/Coordinate";
 import { GeolocationService } from "./Services/GeolocationService";
+import { center } from "turf";
+import ColorLayer from "./Layer/ColorLayer";
+import { DragControls } from "three/examples/jsm/Addons.js";
 
-const	RADIUS = 2.00;
+const	RADIUS = 500;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
@@ -29,35 +32,55 @@ const	tgeo = new HugoGeo({
 
 const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
 
-let	CENTER: [lat: number, lon: number] = [45.76356984531247,4.827454154259727];
+let	CENTER: [lat: number, lon: number] = [45.76231491666253,4.822574395693264];
 async function	loadTerrain() {
 	
-	//const	elevationSource = new WMSRSource( CENTER, RADIUS, {
-	//	format: "png",
-	//	requestType: "ELEVATION",
-	//});
+	const	elevationSource = new WMSRSource( CENTER, RADIUS, {
+		format: "png",
+		epsg: "EPSG:4326",
+		layer: "", 
+		style: "",
+	});
 	
 	const testWmts = new WMTSSource( CENTER, RADIUS, {
 		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
 		format: "image/x-bil;bits=32",
 		style: "normal",
 		tileMatrixSet: "WGS84G",
-		zoom: 14,
+		zoom: 13,
 	});
 
-	const	eleLayerTestWmts = await new ElevationLayer( testWmts ).fetchBil();
+	const	eleLayerWmsr = new WMSRSource( CENTER, RADIUS, {
+		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+		style: "normal",
+		format: "image/jpeg",
+		epsg: "EPSG:4326",
+	});
 
-	view.addLayer(eleLayerTestWmts as THREE.Mesh)
+	tgeo.addSource(eleLayerWmsr);
+	const terrainGrey = await tgeo.getTerrainGrey(CENTER, RADIUS);
+
+
+	console.log( terrainGrey );
+
+	view.addLayer( terrainGrey[0] );
+	
+	
+	//const	colorLayer = await new ColorLayer( colorLayerSource ).fetchColorWmts();
+	
+	//const	eleLayerTestWmts = await new ElevationLayer( testWmts ).fetchBil();
+
+	//view.addLayer( eleLayerTestWmts )
 
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});
 
-	const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, eleLayerTestWmts ).Building()
+	//const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, eleLayerTestWmts.children as Mesh ).Building()
 	//buildings.rotateY(Math.PI)
 	
 	
-	view.addLayer( buildings );
+	//view.addLayer( buildings );
 };
 
 

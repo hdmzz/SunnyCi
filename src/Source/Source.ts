@@ -3,6 +3,8 @@ abstract class	Source {
 	radius: number;
 	url: string | undefined;
 	format: string;
+	isWmtsSource: boolean;
+	isWmsSource: boolean;
 	public  bbox: [minLat: number, minLon: number, maxLat: number, maxLon: number];
 
 	constructor( center: [lat: number, lon: number], radius: number, format: string ) {
@@ -10,6 +12,8 @@ abstract class	Source {
 		this.center = center;
 		this.bbox = [0, 0, 0, 0];
 		this.format = format;
+		this.isWmsSource = false;
+		this.isWmtsSource = false;
 	};
 /* 
 	genere une bbox compatible WMS protocol
@@ -31,6 +35,7 @@ abstract class	Source {
 		this.bbox = [minLat, minLon, maxLat, maxLon];
 		return ( [minLat, minLon, maxLat, maxLon] );
 		} else if ( crs === "EPSG:3857" ) {
+
 			// Pour EPSG:3857, le rayon est en mètres. Conversion nécessaire pour les coordonnées.
 			const	earthRadius = 6378137; // Rayon de la Terre en mètres pour EPSG:3857
 			const	toRadians = (degrees: number) => (degrees * Math.PI) / 180;
@@ -52,9 +57,6 @@ abstract class	Source {
 			throw new Error( `CRS non supporté : ${crs}` );
 		};
 	};
-
-	abstract wmsrColorUrlBuilder( radius: number, layerName: string, epsg: string, style: string ) : string;
-
 };
 
 export default Source;
