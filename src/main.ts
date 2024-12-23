@@ -1,21 +1,13 @@
 import * as THREE from "three";
-import HugoGeo from "./HugoGeo";
 import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 import WFSSource from "./Source/WFSSource";
 import WMTSSource from "./Source/WMTSSource";
-import WMSSource from "./Source/WMSRSource";
 import WMSRSource from "./Source/WMSRSource";
-import WMSVSource from "./Source/WMSVSource";
-import { color } from "three/webgpu";
 import ElevationLayer from "./Layer/ElevationLayer";
-import { Coordinate, latLonToMeters } from "./Coordinate/Coordinate";
-import { GeolocationService } from "./Services/GeolocationService";
-import { center } from "turf";
-import ColorLayer from "./Layer/ColorLayer";
-import { DragControls } from "three/examples/jsm/Addons.js";
+import Extent from "./core/Extent";
 
-const	RADIUS = 500;
+const	RADIUS = 2;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
@@ -23,31 +15,17 @@ const	view = new View( container )
 
 view.addLayer( gridHelper );
 
-const	tgeo = new HugoGeo({
-	tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
-	tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
-	unitsSide: 1000,
-	
-});
-
-const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
-
 let	CENTER: [lat: number, lon: number] = [45.76825158302504,4.823992989011319];
+const	extent = new Extent( CENTER, RADIUS, 14, "EPSG:4326" );
+extent.asTile();
 async function	loadTerrain() {
-	
-	const	elevationSource = new WMSRSource( CENTER, RADIUS, {
-		format: "png",
-		epsg: "EPSG:4326",
-		layer: "", 
-		style: "",
-	});
-	
+
 	const testWmts = new WMTSSource( CENTER, RADIUS, {
 		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
 		format: "image/x-bil;bits=32",
 		style: "normal",
 		tileMatrixSet: "WGS84G",
-		zoom: 13,
+		zoom: 14,
 	});
 
 	const	eleLayer = new ElevationLayer( testWmts );
@@ -71,11 +49,11 @@ async function	loadTerrain() {
 
 	//view.addLayer( eleLayerTestWmts )
 
-	const	buildingSource = new WFSSource( CENTER, RADIUS, {
-		layer: "BDTOPO_V3:batiment",
-	});
+	//const	buildingSource = new WFSSource( CENTER, RADIUS, {
+	//	layer: "BDTOPO_V3:batiment",
+	//});
 
-	const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, eleLayerTestWmts.children as Mesh ).Building()
+	//const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, eleLayerTestWmts.children as Mesh ).Building()
 	//buildings.rotateY(Math.PI)
 	
 	

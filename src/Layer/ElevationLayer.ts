@@ -2,6 +2,7 @@ import WMTSSource from "../Source/WMTSSource";
 import { fromArrayBuffer } from "geotiff";
 import * as THREE from 'three';
 import { Coordinate } from "../Coordinate/Coordinate";
+import Extent from "../core/Extent";
 
 class	ElevationLayer {
 	source: WMTSSource;
@@ -50,7 +51,7 @@ class	ElevationLayer {
 		const	elevationData = new DataView(buffer);
 		const	grid = [];
 		const	ncols = 256;
-		const	bbox = this.source.tileToBBox( zoomPos.tileCol, zoomPos.tileRow );
+		const	bbox = Extent.tileToBBox( zoomPos.tileCol, zoomPos.tileRow, zoomPos.zoom );
 		const	lonRange = bbox.maxLon - bbox.minLon;
 		const	latRange = bbox.maxLat - bbox.minLat;
 

@@ -2,6 +2,7 @@ import Source from "../Source/Source";
 import WMTSSource from "../Source/WMTSSource";
 import * as THREE from 'three';
 import { Coordinate } from "../Coordinate/Coordinate";
+import Extent from "../core/Extent";
 
 class ColorLayer {
 	source : Source;
@@ -27,7 +28,7 @@ class ColorLayer {
 					const mesh = new THREE.Mesh( geometry, material );
 
 					// Calculer la position géoréférencée
-					const bbox = (this.source as WMTSSource).tileToBBox(url.zoomPos.tileCol, url.zoomPos.tileRow);
+					const bbox = Extent.tileToBBox( url.zoomPos.tileCol, url.zoomPos.tileRow, url.zoomPos.zoom );
 					const centerLat = (bbox.minLat + bbox.maxLat) / 2;
 					const centerLon = (bbox.minLon + bbox.maxLon) / 2;
 					const mercator = new Coordinate({ latitude: centerLat, longitude: centerLon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
