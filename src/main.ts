@@ -37,19 +37,19 @@ async function	loadTerrain() {
 
 	const	eleLayer = new ElevationLayer( testWmts );
 	const	terrain = await eleLayer.fetchBil();
-
+	terrain.rotateY( Math.PI);
 	view.addLayer( terrain );
 
 	// Exemple de projection d'un objet 3D sur le modèle de terrain
 	const lat = 45.76231491666253;
 	const lon = 4.822574395693264;
-	const position = reproject(45.797584562865445,4.829471030620449)
+	const position = reproject(45.799005450976146,4.836483745754241)
 	const center = reproject(...CENTER)
 	const boxGeometry = new THREE.BoxGeometry(50, 50, 50);
 	const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 	const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
 
-	boxMesh.position.set(-(position[0] - center[0]), 200, (position[1] - center[1]));
+	boxMesh.position.set((position[0] - center[0]), 200, -(position[1] - center[1]));
 	boxMesh.rotateZ(Math.PI)
 	view.addLayer(boxMesh);
 	
