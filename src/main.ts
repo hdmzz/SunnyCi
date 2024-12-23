@@ -6,6 +6,7 @@ import WMTSSource from "./Source/WMTSSource";
 import WMSRSource from "./Source/WMSRSource";
 import ElevationLayer from "./Layer/ElevationLayer";
 import Extent from "./core/Extent";
+import proj4 from "proj4";
 
 const	RADIUS = 2;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
@@ -18,6 +19,12 @@ view.addLayer( gridHelper );
 let	CENTER: [lat: number, lon: number] = [45.76825158302504,4.823992989011319];
 const	extent = new Extent( CENTER, RADIUS, 14, "EPSG:4326" );
 extent.asTile();
+
+const WGS84 = "EPSG:4326"; // Latitude/Longitude
+const WebMercator = "EPSG:3857"; 
+function reproject(lat: number, lon: number): [number, number] {
+	return proj4(WGS84, WebMercator, [lon, lat]);
+  }
 async function	loadTerrain() {
 
 	const testWmts = new WMTSSource( extent, {
@@ -36,7 +43,7 @@ async function	loadTerrain() {
 	// Exemple de projection d'un objet 3D sur le modèle de terrain
 	const lat = 45.76231491666253;
 	const lon = 4.822574395693264;
-	const position = eleLayer.projectLatLonToTerrain(lat, lon);
+	const position = 
 	const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
 	const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 	const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
