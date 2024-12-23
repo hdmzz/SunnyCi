@@ -39,3 +39,51 @@
 		<script type="module" src="./src/main.ts"></script>
 	</body>
 </html>
+
+<!-- Curseur temps -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curseur temps</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #slider-container {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+    }
+    #time-slider {
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Conteneur du curseur -->
+  <div id="slider-container">
+    <!-- <label for="time-slider">Heure simulée :</label> -->
+    <input type="range" id="time-slider" min="0" max="24" step="0.1" value="12">
+    <span id="time-display">12.0</span> h
+  </div>
+
+  <script>
+    // Référence au curseur et affichage
+    const slider = document.getElementById('time-slider');
+    const timeDisplay = document.getElementById('time-display');
+
+    // Écouter les changements de valeur du curseur
+    slider.addEventListener('input', (event) => {
+      const simulatedTime = parseFloat(event.target.value);
+      timeDisplay.textContent = simulatedTime.toFixed(1); // Afficher avec 1 décimale
+    });
+  </script>
+</body>
+</html>

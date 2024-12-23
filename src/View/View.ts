@@ -125,15 +125,21 @@ class	View extends THREE.EventDispatcher {
 		this.render();
 	};
 
-	private	createGUI() {
-		const	gui = new GUI();
-		const	sunLightFolder = gui.addFolder( 'SunLight' );
+	// private updateHourSlider(){
 
-		sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
-		sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
-		sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
-		sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
-	};
+			// this.sunPath.updateHour()).listen()
+	// }
+
+	// private	createGUI() {
+	// 	const	gui = new GUI();
+	// 	const	sunLightFolder = gui.addFolder( 'SunLight' );
+
+	// 	// sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+	// 	// sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+	// 	// sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
+	// 	// sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
+	// 	sunLightFolder.add( sunParams, 'minute', 0, 120, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+	// };
 
 	private	initSun() {
 		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );
