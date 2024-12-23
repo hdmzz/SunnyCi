@@ -20,7 +20,7 @@ const	extent = new Extent( CENTER, RADIUS, 14, "EPSG:4326" );
 extent.asTile();
 async function	loadTerrain() {
 
-	const testWmts = new WMTSSource( CENTER, RADIUS, {
+	const testWmts = new WMTSSource( extent, {
 		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
 		format: "image/x-bil;bits=32",
 		style: "normal",

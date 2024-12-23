@@ -13,9 +13,9 @@ class	ElevationLayer {
 	};
 
 	public async	fetchBil() {
-		return new Promise<THREE.Group>( async ( resolve, reject ) => {
+		return new Promise<THREE.Group>( async ( resolve ) => {
 			const	urls = this.source.neighborsUrls;
-			const	url = this.source.urlZoomPos;
+			//const	url = this.source.urlZoomPos;
 			const	results: {elevation: number, lat: number, lon: number}[][][] = [];
 
 			const promises = urls.map(async (url) => {
