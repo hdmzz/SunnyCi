@@ -43,7 +43,8 @@ class	View extends THREE.EventDispatcher {
 		this.scene.add( new THREE.AmbientLight( 'white' ))
 
 		this.initSun();
-		this.createGUI();
+		// this.createGUI();
+		this.linkSliderToSun()
 
 		let		dir = new THREE.Vector3();
 		let		sph = new THREE.Spherical();
@@ -125,21 +126,38 @@ class	View extends THREE.EventDispatcher {
 		this.render();
 	};
 
-	// private updateHourSlider(){
+	private linkSliderToSun() {
+		
+		// Récupérer le curseur HTML
+		const timeSlider = document.getElementById('time-slider') as HTMLInputElement;
+	  
+		if (timeSlider) {
+		  // Mettre à jour sunParams.hour en fonction de l'input du curseur
+		  timeSlider.addEventListener('input', (event) => {
+			const newHour = parseFloat(timeSlider.value);
+			sunParams.hour = newHour;
+	  
+			// Mettre à jour la position du soleil dans la scène
+			if (this.sunPath) {
+			  this.sunPath.updateHour();
+			}
+			console.log(`Heure mise à jour : ${sunParams.hour}`);
+		  });
+		} else {
+		  console.error('Curseur non trouvé dans le DOM');
+		}
+	  }
 
-	// 		this.sunPath.updateHour()).listen()
-	// }
+	// private	createGUI() {
+	// 	const	gui = new GUI();
+	// 	const	sunLightFolder = gui.addFolder( 'SunLight' );
 
-	private	createGUI() {
-		const	gui = new GUI();
-		const	sunLightFolder = gui.addFolder( 'SunLight' );
-
-		sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
-		sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
-		sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
-		sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
-		// sunLightFolder.add( sunParams, 'minute', 0, 120, 1 ).onChange(() => this.sunPath.updateHour()).listen();
-	};
+	// 	sunLightFolder.add( sunParams, 'minute', 0, 60, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+	// 	sunLightFolder.add( sunParams, 'hour', 0, 24, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+	// 	sunLightFolder.add( sunParams, 'day', 1, 30, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
+	// 	sunLightFolder.add( sunParams, 'month', 1, 12, 1 ).onChange(() => this.sunPath.updateMonth()).listen();
+	// 	// sunLightFolder.add( sunParams, 'minute', 0, 120, 1 ).onChange(() => this.sunPath.updateHour()).listen();
+	// };
 
 	private	initSun() {
 		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );
