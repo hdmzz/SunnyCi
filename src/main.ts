@@ -32,7 +32,7 @@ const	tgeo = new HugoGeo({
 
 const	UNITS_PER_METER = HugoGeo.getUnitsPerMeters( 1000, RADIUS );
 
-let	CENTER: [lat: number, lon: number] = [45.76231491666253,4.822574395693264];
+let	CENTER: [lat: number, lon: number] = [45.76825158302504,4.823992989011319];
 async function	loadTerrain() {
 	
 	const	elevationSource = new WMSRSource( CENTER, RADIUS, {
@@ -50,21 +50,20 @@ async function	loadTerrain() {
 		zoom: 13,
 	});
 
-	const	eleLayerWmsr = new WMSRSource( CENTER, RADIUS, {
-		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
-		style: "normal",
-		format: "image/jpeg",
-		epsg: "EPSG:4326",
-	});
+	const	eleLayer = new ElevationLayer( testWmts );
+	const	terrain = await eleLayer.fetchBil();
 
-	tgeo.addSource(eleLayerWmsr);
-	const terrainGrey = await tgeo.getTerrainGrey(CENTER, RADIUS);
+	view.addLayer( terrain );
 
-
-	console.log( terrainGrey );
-
-	view.addLayer( terrainGrey[0] );
-	
+	// Exemple de projection d'un objet 3D sur le modèle de terrain
+	const lat = 45.76231491666253;
+	const lon = 4.822574395693264;
+	const position = eleLayer.projectLatLonToTerrain(lat, lon);
+	const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
+	const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+	const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+	boxMesh.position.copy(position);
+	view.addLayer(boxMesh);
 	
 	//const	colorLayer = await new ColorLayer( colorLayerSource ).fetchColorWmts();
 	
@@ -76,7 +75,7 @@ async function	loadTerrain() {
 		layer: "BDTOPO_V3:batiment",
 	});
 
-	//const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, eleLayerTestWmts.children as Mesh ).Building()
+	const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, eleLayerTestWmts.children as Mesh ).Building()
 	//buildings.rotateY(Math.PI)
 	
 	
@@ -96,6 +95,6 @@ goButton?.addEventListener("click", () => {
 		CENTER = [coords[0], coords[1]];
 		loadTerrain();
 	} else {
-		alert('not a valid center bitch!');
+		alert('not a valid center!');
 	};
 });

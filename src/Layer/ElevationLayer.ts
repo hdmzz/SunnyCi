@@ -5,7 +5,7 @@ import { Coordinate } from "../Coordinate/Coordinate";
 
 class	ElevationLayer {
 	source: WMTSSource;
-	terrain: THREE.Mesh | undefined;
+	terrain: THREE.Mesh[] | undefined;
 
 	constructor ( source: WMTSSource ) {
 		this.source = source;
@@ -13,22 +13,16 @@ class	ElevationLayer {
 
 	public async	fetchBil() {
 		return new Promise<THREE.Group>( async ( resolve, reject ) => {
-			//const	urls = this.source.neighborsUrls;
+			const	urls = this.source.neighborsUrls;
 			const	url = this.source.urlZoomPos;
 			const	results: {elevation: number, lat: number, lon: number}[][][] = [];
 
-			//const promises = urls.map(async (url) => {
-			//	const	bilResponse = await fetch( url.url );
-			//	const	bilBuffer = await bilResponse.arrayBuffer();
-			//	results.push( this.parseBil( bilBuffer, url.zoomPos ));
-			//});
-
-			const	bilResponse = await fetch( url.url );
-			const	bilBuffer = await bilResponse.arrayBuffer();
-
-			results.push( this.parseBil(bilBuffer, url.zoomPos ))
-
-			//await Promise.all(promises);
+			const promises = urls.map(async (url) => {
+				const	bilResponse = await fetch( url.url );
+				const	bilBuffer = await bilResponse.arrayBuffer();
+				results.push( this.parseBil( bilBuffer, url.zoomPos ));
+			});
+			await Promise.all(promises);
 
 			const	meshes: THREE.Mesh[] = [];
 
@@ -38,6 +32,7 @@ class	ElevationLayer {
 			};
 
 			const	group = this.createGroup( meshes );
+			this.terrain = group.children as THREE.Mesh[];
 			resolve( group );
 		});
 	};
@@ -65,7 +60,7 @@ class	ElevationLayer {
 				const	index = (row * ncols + col) * 4; // 4 bytes per float32 value
 				const	value = elevationData.getFloat32(index, true); // Little-endian
 				const	lon = bbox.minLon + (col / (ncols - 1)) * lonRange;
-				const	lat = bbox.minLat + (row / (ncols - 1)) * latRange;
+				const	lat = bbox.maxLat - (row / (ncols - 1)) * latRange; // Inverser l'ordre des lignes
 
 				rowArray.push({ elevation: value / 255 * 50, lat, lon });
 			};
@@ -96,6 +91,20 @@ class	ElevationLayer {
 
 		return ( mesh );
 	};
+
+	public projectLatLonToTerrain(lat: number, lon: number): THREE.Vector3 {
+		if (!this.terrain) {
+			throw new Error("Terrain not loaded");
+		}
+
+		const mercator = new Coordinate({ latitude: lat, longitude: lon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
+		const centerMercator = new Coordinate({ latitude: this.source.center[0], longitude: this.source.center[1], altitude: 0 },  [this.source.center[0], this.source.center[1] ]).ComputeWorldCoordinate();
+		const x = mercator.world.x - centerMercator.world.x;
+		const y = 0;
+		const z = mercator.world.y - centerMercator.world.y;
+
+		return new THREE.Vector3(x, y, z);
+	}
 };
 
 export default	ElevationLayer;

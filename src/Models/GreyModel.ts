@@ -189,7 +189,7 @@ class	GreyModel {
 	};
 
 	private async	resolveTexture( onTex: ( texture: DataTexture ) => void ) {
-		const	colorSourceUrl = this.source?.wmsrColorUrlBuilder( 0.02, "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
+		const	colorSourceUrl = (this.source as WMSRSource).wmsrColorUrlBuilder( 0.02, "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
 		const	pixels = await Fetch.fetchPngMap( colorSourceUrl as string );
 		const	tex = new DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], RGBAFormat );
 
