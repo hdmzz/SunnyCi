@@ -3,20 +3,28 @@ import { fromArrayBuffer } from "geotiff";
 import * as THREE from 'three';
 import { Coordinate } from "../Coordinate/Coordinate";
 import Extent from "../core/Extent";
+import proj4 from "proj4";
 
+const WGS84 = "EPSG:4326"; // Latitude/Longitude
+const WebMercator = "EPSG:3857"; 
+function reproject(lat: number, lon: number): [number, number] {
+	return proj4(WGS84, WebMercator, [lon, lat]);
+  };
 class	ElevationLayer {
 	source: WMTSSource;
 	terrain: THREE.Mesh[] | undefined;
+	centerWm: [x: number, y: number]
 
 	constructor ( source: WMTSSource ) {
 		this.source = source;
+		this.centerWm = reproject( ...source.center );
 	};
 
 	public async	fetchBil() {
 		return new Promise<THREE.Group>( async ( resolve ) => {
 			const	urls = this.source.neighborsUrls;
 			//const	url = this.source.urlZoomPos;
-			const	results: {elevation: number, lat: number, lon: number}[][][] = [];
+			const	results: {elevation: number, x: number, y: number}[][][] = [];
 
 			const promises = urls.map(async (url) => {
 				const	bilResponse = await fetch( url.url );
@@ -62,8 +70,10 @@ class	ElevationLayer {
 				const	value = elevationData.getFloat32(index, true); // Little-endian
 				const	lon = bbox.minLon + (col / (ncols - 1)) * lonRange;
 				const	lat = bbox.maxLat - (row / (ncols - 1)) * latRange; // Inverser l'ordre des lignes
-
-				rowArray.push({ elevation: value / 255 * 50, lat, lon });
+				const	[px, py] = reproject(lat, lon);
+				const	x = px - this.centerWm[0];
+				const	y = py - this.centerWm[1];
+				rowArray.push({ elevation: value, y, x });
 			};
 			grid.push(rowArray);
 		};
@@ -71,18 +81,15 @@ class	ElevationLayer {
 		return ( grid );
 	};
 
-	private createMesh(grid: { elevation: number, lat: number, lon: number }[][]): THREE.Mesh {
+	private createMesh(grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh {
 		const	ncols = grid[0].length;
 		const	geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
 
 		for ( let i = 0; i < ncols; i++ ) {
 			for ( let j = 0; j < ncols; j++ ) {
 				const	vertexIndex = j * ncols + i;
-				const	lon = grid[j][i].lon;
-				const	lat = grid[j][i].lat;
-				const	mercator = new Coordinate({ latitude: lat, longitude: lon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
 
-				geometry.attributes.position.setXYZ( vertexIndex, mercator.world.x, mercator.world.y, grid[j][i].elevation );
+				geometry.attributes.position.setXYZ( vertexIndex, grid[j][i].x, grid[j][i].y, grid[j][i].elevation );
 			};
 		};
 		const	material = new THREE.MeshBasicMaterial({ color: "white", wireframe: true, side:2 });

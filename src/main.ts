@@ -16,7 +16,7 @@ const	view = new View( container )
 
 view.addLayer( gridHelper );
 
-let	CENTER: [lat: number, lon: number] = [45.76825158302504,4.823992989011319];
+let	CENTER: [lat: number, lon: number] = [45.797028770581974,4.830430105427541];
 const	extent = new Extent( CENTER, RADIUS, 14, "EPSG:4326" );
 extent.asTile();
 
@@ -43,11 +43,14 @@ async function	loadTerrain() {
 	// Exemple de projection d'un objet 3D sur le modèle de terrain
 	const lat = 45.76231491666253;
 	const lon = 4.822574395693264;
-	const position = 
-	const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
+	const position = reproject(45.797584562865445,4.829471030620449)
+	const center = reproject(...CENTER)
+	const boxGeometry = new THREE.BoxGeometry(50, 50, 50);
 	const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 	const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
-	boxMesh.position.copy(position);
+
+	boxMesh.position.set(-(position[0] - center[0]), 200, (position[1] - center[1]));
+	boxMesh.rotateZ(Math.PI)
 	view.addLayer(boxMesh);
 	
 	//const	colorLayer = await new ColorLayer( colorLayerSource ).fetchColorWmts();
