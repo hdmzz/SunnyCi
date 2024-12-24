@@ -15,12 +15,14 @@ class	ElevationLayer {
 	terrain: THREE.Mesh[] | undefined;
 	centerWm: [x: number, y: number]
 
-	constructor ( source: WMTSSource ) {
+	constructor ( source: WMTSSource )
+	{
 		this.source = source;
 		this.centerWm = reproject( ...source.center );
 	};
 
-	public async	fetchBil() {
+	public async	fetchBil()
+	{
 		return new Promise<THREE.Group>( async ( resolve ) => {
 			const	urls = this.source.neighborsUrls;
 			//const	url = this.source.urlZoomPos;
@@ -63,25 +65,26 @@ class	ElevationLayer {
 		const	lonRange = bbox.maxLon - bbox.minLon;
 		const	latRange = bbox.maxLat - bbox.minLat;
 
-		for (let row = 0; row < ncols; row++) {
-			const rowArray = [];
-			for (let col = 0; col < ncols; col++) {
-				const	index = (row * ncols + col) * 4; // 4 bytes per float32 value
-				const	value = elevationData.getFloat32(index, true); // Little-endian
-				const	lon = bbox.minLon + (col / (ncols - 1)) * lonRange;
-				const	lat = bbox.maxLat - (row / (ncols - 1)) * latRange; // Inverser l'ordre des lignes
-				const	[px, py] = reproject(lat, lon);
+		for ( let row = 0; row < ncols; row++ ) {
+			const	rowArray = [];
+			for ( let col = 0; col < ncols; col++ ) {
+				const	index = ( row * ncols + col ) * 4; // 4 bytes per float32 value
+				const	value = elevationData.getFloat32( index, true ); // Little-endian
+				const	lon = bbox.minLon + ( col / ( ncols - 1 )) * lonRange;
+				const	lat = bbox.maxLat - ( row / ( ncols - 1 )) * latRange;
+				const	[px, py] = reproject( lat, lon );
 				const	x = px - this.centerWm[0];
 				const	y = py - this.centerWm[1];
 				rowArray.push({ elevation: value, y, x });
 			};
-			grid.push(rowArray);
+			grid.push( rowArray );
 		};
 
 		return ( grid );
 	};
 
-	private createMesh(grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh {
+	private createMesh( grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh
+	{
 		const	ncols = grid[0].length;
 		const	geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
 
@@ -92,51 +95,13 @@ class	ElevationLayer {
 				geometry.attributes.position.setXYZ( vertexIndex, grid[j][i].x, grid[j][i].y, grid[j][i].elevation );
 			};
 		};
-		const	material = new THREE.MeshBasicMaterial({ color: "white", wireframe: true, side:2 });
+		const	material = new THREE.MeshPhysicalMaterial({ color: "cream", wireframe: true, side:1 });
 		const	mesh = new THREE.Mesh( geometry, material );
 		mesh.rotation.x = -Math.PI / 2;
 		mesh.rotateZ( Math.PI );
 
 		return ( mesh );
 	};
-
-	public projectLatLonToTerrain(lat: number, lon: number): THREE.Vector3 {
-		if (!this.terrain) {
-			throw new Error("Terrain not loaded");
-		}
-
-		const mercator = new Coordinate({ latitude: lat, longitude: lon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
-		const centerMercator = new Coordinate({ latitude: this.source.center[0], longitude: this.source.center[1], altitude: 0 },  [this.source.center[0], this.source.center[1] ]).ComputeWorldCoordinate();
-		const x = mercator.world.x - centerMercator.world.x;
-		const y = 0;
-		const z = mercator.world.y - centerMercator.world.y;
-
-		return new THREE.Vector3(x, y, z);
-	}
 };
 
 export default	ElevationLayer;
-
-/**
- * Calcule la bounding box d'une tuile dans EPSG:4326.
- * @param x Indice de la tuile (colonne).
- * @param y Indice de la tuile (ligne).
- * @param z Niveau de zoom.
- * @returns Bounding box au format [lonMin, latMin, lonMax, latMax].
- */
-function calculateBoundingBox(x: number, y: number, z: number): [number, number, number, number] {
-	// Largeur d'une tuile en degrés de longitude
-	const deltaLon = 360 / Math.pow(2, z);
-	// Hauteur d'une tuile en degrés de latitude
-	const deltaLat = 180 / Math.pow(2, z);
-
-	// Calcul de la longitude minimale et maximale
-	const lonMin = -180 + x * deltaLon;
-	const lonMax = lonMin + deltaLon;
-
-	// Calcul de la latitude maximale et minimale
-	const latMax = 90 - y * deltaLat;
-	const latMin = latMax - deltaLat;
-
-	return [lonMin, latMin, lonMax, latMax];
-}

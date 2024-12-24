@@ -16,15 +16,10 @@ const	view = new View( container )
 
 view.addLayer( gridHelper );
 
-let	CENTER: [lat: number, lon: number] = [45.797028770581974,4.830430105427541];
+let	CENTER: [lat: number, lon: number] = [45.757674175809704,4.832085939503834];
 const	extent = new Extent( CENTER, RADIUS, 14, "EPSG:4326" );
 extent.asTile();
 
-const WGS84 = "EPSG:4326"; // Latitude/Longitude
-const WebMercator = "EPSG:3857"; 
-function reproject(lat: number, lon: number): [number, number] {
-	return proj4(WGS84, WebMercator, [lon, lat]);
-  }
 async function	loadTerrain() {
 
 	const testWmts = new WMTSSource( extent, {
@@ -40,34 +35,15 @@ async function	loadTerrain() {
 	terrain.rotateY( Math.PI);
 	view.addLayer( terrain );
 
-	// Exemple de projection d'un objet 3D sur le modèle de terrain
-	const lat = 45.76231491666253;
-	const lon = 4.822574395693264;
-	const position = reproject(45.799005450976146,4.836483745754241)
-	const center = reproject(...CENTER)
-	const boxGeometry = new THREE.BoxGeometry(50, 50, 50);
-	const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-	const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+	const	buildingSource = new WFSSource( CENTER, RADIUS, {
+		layer: "BDTOPO_V3:batiment",
+	});
 
-	boxMesh.position.set((position[0] - center[0]), 200, -(position[1] - center[1]));
-	boxMesh.rotateZ(Math.PI)
-	view.addLayer(boxMesh);
-	
-	//const	colorLayer = await new ColorLayer( colorLayerSource ).fetchColorWmts();
-	
-	//const	eleLayerTestWmts = await new ElevationLayer( testWmts ).fetchBil();
-
-	//view.addLayer( eleLayerTestWmts )
-
-	//const	buildingSource = new WFSSource( CENTER, RADIUS, {
-	//	layer: "BDTOPO_V3:batiment",
-	//});
-
-	//const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, eleLayerTestWmts.children as Mesh ).Building()
-	//buildings.rotateY(Math.PI)
+	const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building()
+	buildings.rotateY(Math.PI)
 	
 	
-	//view.addLayer( buildings );
+	view.addLayer( buildings );
 };
 
 

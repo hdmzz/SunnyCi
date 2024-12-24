@@ -4,6 +4,7 @@ import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
 import View from '../View/View';
 import Source from '../Source/Source';
+import Extent from '../core/Extent';
 
 const	coordinateCache: { [key: string]: Coordinate } = {};
 
@@ -27,10 +28,11 @@ class	Buildings {
 	view: View;
 	source: Source;
 	bbox: BboxType;
-	terrain: THREE.Mesh;
+	terrain: THREE.Mesh[];
 	raycaster: THREE.Raycaster;
+	extent: Extent;
 
-	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain: THREE.Mesh ) {
+	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain: THREE.Mesh[], extent: Extent ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
@@ -41,6 +43,7 @@ class	Buildings {
 		this.unitsPerMeter  = unitsPerMeter;
 		this.terrain = terrain;
 		this.raycaster = new THREE.Raycaster();
+		this.extent = extent;
 	};
 
 	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
@@ -86,7 +89,7 @@ class	Buildings {
 		for ( let i = 0; i < buildings.length; i++ ) {//!pb a regler asynchrone toute les altitude ne sont pas calcuees du premier coup 
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
-			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
+			const	altitude = featureElement.properties.altitude_minimale_sol;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
 			
 			geometries.push( building );
@@ -127,7 +130,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -0.5 * height, bevelEnabled: false, altitude } );
+		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -height, bevelEnabled: false, altitude } );
 
 		return ( geometry );
 	};
@@ -139,12 +142,12 @@ class	Buildings {
 			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
-				const	mercator = new Coordinate({ latitude: point[1], longitude: point[0], altitude: point[2] }, this.center).ComputeWorldCoordinate();
+				const	mercator = this.extent.getProjectCoords( point[1], point[0] );
 
 				if ( y === 0 ) {
-					shape.moveTo( mercator.world.x, mercator.world.y );
+					shape.moveTo( mercator[0], mercator[1] );
 				} else {
-					shape.lineTo( mercator.world.x, mercator.world.y );
+					shape.lineTo( mercator[0], mercator[1] );
 				};
 			});
 		};
@@ -152,49 +155,18 @@ class	Buildings {
 		return ( shape );
 	};
 
-	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): Promise<THREE.ExtrudeGeometry> {
-		return new Promise( async ( resolve ) => {
-			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-			
-			geometry.rotateX(Math.PI / 2 );
-			//geometry.rotateZ(Math.PI);
-			geometry.rotateY( -Math.PI );
-			geometry.computeBoundingSphere();
-			const	altitude = await this.getAltitude( geometry );
-			//console.log( altitude );
-			geometry.translate(0, altitude , 0);
-			resolve( geometry );
-		});
-	};
-	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number>
+	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): Promise<THREE.ExtrudeGeometry>
 	{
 		return new Promise( async ( resolve, reject ) => {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			let		altitude = 0;
-			const	up = new THREE.Vector3( 0, 1, 0 );
-			//const ray = new THREE.Ray( building.boundingSphere?.center, up );
-			//;
-			//this.view.addLayer(this.createRayHelper( ray ))
-			this.raycaster.set( building.boundingSphere?.center as THREE.Vector3, up );
-			const	intersects  = this.raycaster.intersectObject( this.terrain );
-			if ( intersects.length > 0) {
-				altitude = intersects[0].distance;
-				resolve( altitude );
-			};
-			resolve( altitude );
+			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+
+			geometry.rotateX(Math.PI / 2 );
+			geometry.rotateY( -Math.PI );
+			geometry.translate(0, extrudeSettings.altitude + 1 , 0);
+			resolve( geometry );
 		});
 	};
-
-	private createRayHelper(ray: THREE.Ray): THREE.Line {
-		const length = 100; // Longueur du rayon
-		const geometry = new THREE.BufferGeometry().setFromPoints([
-			ray.origin,
-			ray.origin.clone().add(ray.direction.clone().multiplyScalar(length))
-		]);
-		const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-		return new THREE.Line(geometry, material);
-	}
 };
 
 export default	Buildings;
