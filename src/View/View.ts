@@ -39,7 +39,7 @@ class	View extends THREE.EventDispatcher {
 		});
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-		this.sunLight = new THREE.DirectionalLight( 'white', 4 );
+		this.sunLight = new THREE.DirectionalLight( 'yellow', 4 );
 		this.scene.add( new THREE.AmbientLight( 'white' ))
 
 		this.initSun();
@@ -137,8 +137,8 @@ class	View extends THREE.EventDispatcher {
 
 	private	initSun() {
 		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );
-		this.sunLight.shadow.mapSize.height = 2048;
-		this.sunLight.shadow.mapSize.width = 2048;
+		this.sunLight.shadow.mapSize.height = 4056;
+		this.sunLight.shadow.mapSize.width = 4056;
 		this.sunLight.shadow.camera.left = -2500;
 		this.sunLight.shadow.camera.top = 2500;
 		this.sunLight.shadow.camera.right = 2500;
