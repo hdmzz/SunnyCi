@@ -6,9 +6,8 @@ import WMTSSource from "./Source/WMTSSource";
 import WMSRSource from "./Source/WMSRSource";
 import ElevationLayer from "./Layer/ElevationLayer";
 import Extent from "./core/Extent";
-import proj4 from "proj4";
 
-const	RADIUS = 2;
+const	RADIUS = 1;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
 const	gridHelper = new THREE.GridHelper(60, 150, new THREE.Color(0x555555), new THREE.Color(0x333333));
@@ -16,19 +15,30 @@ const	view = new View( container )
 
 view.addLayer( gridHelper );
 
-let	CENTER: [lat: number, lon: number] = [45.757674175809704,4.832085939503834];
+let		CENTER: [lat: number, lon: number] = [45.757674175809704,4.832085939503834];
 
 async function	loadTerrain() {
-	
-	const	extent = new Extent( CENTER, RADIUS, 13, "EPSG:4326" );
-	const testWmts = new WMTSSource( extent, {
+	const	extent = new Extent( CENTER, RADIUS, "EPSG:4326" );
+
+	const	testWmts = new WMTSSource( extent, {
 		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
 		format: "image/x-bil;bits=32",
 		style: "normal",
 		tileMatrixSet: "WGS84G",
-		zoom: 12,
-		neighbors: true,
+		neighbors: false,
+		zoom: 14,
 	});
+
+	const	testTexture = new WMTSSource( extent, {
+		layer: "ORTHOIMAGERY.ORTHOPHOTOS",
+		format: "image/jpeg",
+		style: "normal",
+		tileMatrixSet: "PM",
+		neighbors: false,
+		zoom: 16,
+	});
+
+	console.log( testTexture );
 
 	const	eleLayer = new ElevationLayer( testWmts );
 	const	terrain = await eleLayer.fetchBil();
@@ -39,8 +49,8 @@ async function	loadTerrain() {
 		layer: "BDTOPO_V3:batiment",
 	});
 
-	const	buildings =  await new Buildings(CENTER, RADIUS, 0, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building()
-	buildings.rotateY(Math.PI)
+	const	buildings = await new Buildings(CENTER, RADIUS, 0, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
+	buildings.rotateY( Math.PI );
 	
 	
 	view.addLayer( buildings );

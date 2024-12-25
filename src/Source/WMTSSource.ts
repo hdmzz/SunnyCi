@@ -9,11 +9,9 @@ class	WMTSSource extends Source{
 	layer: string
 	style: string
 	tileMatrixSet: string
-	zoom: number;
-	tileRow: number | undefined;
-	tileCol: number | undefined;
 	extent: Extent;
 	neighbors: boolean;
+	zoom: number;
 
 	constructor( extent: Extent, opts: {
 		layer: string;
@@ -30,16 +28,16 @@ class	WMTSSource extends Source{
 		this.layer = opts.layer ? opts.layer : "HR.ORTHOIMAGERY.ORTHOPHOTOS";
 		this.style = opts.style ? opts.style : "normal";
 		this.tileMatrixSet = opts.tileMatrixSet ? opts.tileMatrixSet : "PM";
-		this.zoom = opts.zoom ? opts.zoom : 8;
 		this.isWmtsSource = true;
 		this.extent = extent;
 		this.neighbors = opts.neighbors;
+		this.zoom = opts.zoom;
 		this.wmtsUrlBuilder();
 	};
 
 	public	wmtsUrlBuilder()
 	{
-		const	tileCoord = this.extent.asTile( this.neighbors );
+		const	tileCoord = this.extent.asTile( this.neighbors, this.tileMatrixSet, this.zoom );
 		console.log( tileCoord );
 		tileCoord.forEach(( coord ) => {
 			const	neiUrl = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${coord.zoom}&TILEROW=${coord.tileRow}&TILECOL=${coord.tileCol}`;
