@@ -33,8 +33,8 @@ class	WMTSSource extends Source{
 		this.zoom = opts.zoom ? opts.zoom : 8;
 		this.isWmtsSource = true;
 		this.extent = extent;
-		this.wmtsUrlBuilder();
 		this.neighbors = opts.neighbors;
+		this.wmtsUrlBuilder();
 	};
 
 	public	wmtsUrlBuilder()

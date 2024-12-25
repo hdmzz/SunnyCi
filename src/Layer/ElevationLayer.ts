@@ -1,7 +1,5 @@
 import WMTSSource from "../Source/WMTSSource";
-import { fromArrayBuffer } from "geotiff";
 import * as THREE from 'three';
-import { Coordinate } from "../Coordinate/Coordinate";
 import Extent from "../core/Extent";
 import proj4 from "proj4";
 

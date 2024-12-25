@@ -27,7 +27,7 @@ async function	loadTerrain() {
 		style: "normal",
 		tileMatrixSet: "WGS84G",
 		zoom: 12,
-		neighbors: false,
+		neighbors: true,
 	});
 
 	const	eleLayer = new ElevationLayer( testWmts );
