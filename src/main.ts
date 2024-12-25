@@ -17,7 +17,8 @@ let		CENTER: [lat: number, lon: number] = [45.757674175809704,4.832085939503834]
 //	CENTER = [latitude, longitude];
 //};
 const view = new View( container, CENTER );
-
+const	gridHelper = new THREE.GridHelper(100)
+view.addLayer( "helper", gridHelper );
 
 async function	loadTerrain()
 {

@@ -12,6 +12,7 @@ class	ElevationLayer {
 	source: WMTSSource;
 	terrain: THREE.Mesh[] | undefined;
 	centerWm: [x: number, y: number]
+	gridTexture!: { tileRow: number, tileCol: number, zoom: number }[];
 
 	constructor ( source: WMTSSource )
 	{
@@ -23,14 +24,14 @@ class	ElevationLayer {
 	{
 		return new Promise<THREE.Group>( async ( resolve ) => {
 			const	urls = this.source.neighborsUrls;
-			const	results: {elevation: number, x: number, y: number}[][][] = [];
+			const	results: { elevation: number, x: number, y: number }[][][] = [];
 
-			const promises = urls.map(async (url) => {
+			const promises = urls.map( async ( url ) => {
 				const	bilResponse = await fetch( url.url );
 				const	bilBuffer = await bilResponse.arrayBuffer();
 				results.push( this.parseBil( bilBuffer, url.zoomPos ));
 			});
-			await Promise.all(promises);
+			await Promise.all( promises );
 
 			const	meshes: THREE.Mesh[] = [];
 
@@ -53,9 +54,9 @@ class	ElevationLayer {
 		return ( group );
 	};
 
-	private		parseBil( buffer: ArrayBuffer, zoomPos: {zoom: number, tileCol: number, tileRow: number })
+	private		parseBil( buffer: ArrayBuffer, zoomPos: { zoom: number, tileCol: number, tileRow: number })
 	{
-		const	elevationData = new DataView(buffer);
+		const	elevationData = new DataView( buffer );
 		const	grid = [];
 		const	ncols = 256;
 		const	bbox = Extent.tileToBBox( zoomPos.tileCol, zoomPos.tileRow, zoomPos.zoom );
@@ -64,9 +65,10 @@ class	ElevationLayer {
 
 		for ( let row = 0; row < ncols; row++ ) {
 			const	rowArray = [];
+
 			for ( let col = 0; col < ncols; col++ ) {
-				const	index = ( row * ncols + col ) * 4; // 4 bytes per float32 value
-				const	value = elevationData.getFloat32( index, true ); // Little-endian
+				const	index = ( row * ncols + col ) * 4;
+				const	value = elevationData.getFloat32( index, true );
 				const	lon = bbox.minLon + ( col / ( ncols - 1 )) * lonRange;
 				const	lat = bbox.maxLat - ( row / ( ncols - 1 )) * latRange;
 				const	[px, py] = reproject( lat, lon );
@@ -76,8 +78,17 @@ class	ElevationLayer {
 			};
 			grid.push( rowArray );
 		};
-
+		this.resolveTexture( bbox );
 		return ( grid );
+	};
+
+	/**
+	 * @param bbox boundingBox en wgs84 de la tuile delevation, la source d'elevation convient super bien pour la france donc pas besoin 
+	 * pour le moment de s'inquieter de savoir si cest generique 
+	 */
+	private	resolveTexture( bbox: { minLat: number; minLon: number; maxLat: number; maxLon: number; })
+	{
+		
 	};
 
 	private createMesh( grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh
