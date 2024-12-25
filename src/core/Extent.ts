@@ -71,37 +71,40 @@ class	Extent {
 		this.centerWebMercator = reproject( ...origin );
 	};
 
-	asTile()
+	asTile( neighbors:boolean ): {zoom: number, tileCol: number, tileRow: number }[]
 	{
-		const	topLeft = latLonToTile( this.bbox[3], this.bbox[0], this.zoom, this.epsg );
-		const	bottomRight = latLonToTile( this.bbox[1], this.bbox[2], this.zoom, this.epsg );
-		let		tileCoordinate: {zoom: number, tileCol: number, tileRow: number }[] = [];
-		console.log( topLeft, bottomRight);
-		for ( let x = topLeft.tileX; x < bottomRight.tileX; x++ ) {
-			for ( let y = topLeft.tileY; y < bottomRight.tileY; y++ ) {
-				tileCoordinate.push({ zoom: this.zoom, tileCol: x, tileRow: y });
+		if ( neighbors === true )
+		{
+			const	topLeft = latLonToTile( this.bbox[3], this.bbox[0], this.zoom, this.epsg );
+			const	bottomRight = latLonToTile( this.bbox[1], this.bbox[2], this.zoom, this.epsg );
+			let		tileCoordinate: {zoom: number, tileCol: number, tileRow: number }[] = [];
+			console.log( topLeft, bottomRight);
+			for ( let x = topLeft.tileX; x < bottomRight.tileX; x++ ) {
+				for ( let y = topLeft.tileY; y < bottomRight.tileY; y++ ) {
+					tileCoordinate.push({ zoom: this.zoom, tileCol: x, tileRow: y });
+				};
 			};
-		};
+			return ( tileCoordinate );
+		}
+		const	{ tileX, tileY } = latLonToTile( this.origin[0], this.origin[1], this.zoom, this.epsg )
 
-		return ( tileCoordinate );
+		return ([{ zoom: this.zoom, tileCol:tileX, tileRow: tileY }]);
+
 	};
 
-	/**
-	 * methode static pour retrouver la bbox d'une tile au cas ou on en ai besoin,
-	 * uniquement utiisee pour le develepomment et le test de certaine fonctionalitees
-	 */
 	static	tileToBBox( tileCol: number, tileRow: number, zoom: number ): { minLat: number, minLon: number, maxLat: number, maxLon: number }
 	{
-		const resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow( 2, zoom );
+		const	resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow( 2, zoom );
 		if (tileCol === undefined || tileRow === undefined) {
 			throw new Error("tileCol or tileRow is undefined");
 		};
-		const minLon = tileCol * resolution * EPSG4326_TILE_SIZE - 180;
-		const maxLon = (tileCol + 1) * resolution * EPSG4326_TILE_SIZE - 180;
-		const minLat = 90 - (tileRow + 1) * resolution * EPSG4326_TILE_SIZE;
-		const maxLat = 90 - tileRow * resolution * EPSG4326_TILE_SIZE;
+		const	minLon = tileCol * resolution * EPSG4326_TILE_SIZE - 180;
+		const	maxLon = (tileCol + 1) * resolution * EPSG4326_TILE_SIZE - 180;
+		const	minLat = 90 - (tileRow + 1) * resolution * EPSG4326_TILE_SIZE;
+		const	maxLat = 90 - tileRow * resolution * EPSG4326_TILE_SIZE;
+
 		return { minLat, minLon, maxLat, maxLon };
-	}
+	};
 
 	public	getProjectCoords( lat: number, lon: number ): [x: number, y: number]
 	{

@@ -25,7 +25,6 @@ class	ElevationLayer {
 	{
 		return new Promise<THREE.Group>( async ( resolve ) => {
 			const	urls = this.source.neighborsUrls;
-			//const	url = this.source.urlZoomPos;
 			const	results: {elevation: number, x: number, y: number}[][][] = [];
 
 			const promises = urls.map(async (url) => {

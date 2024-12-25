@@ -13,6 +13,7 @@ class	WMTSSource extends Source{
 	tileRow: number | undefined;
 	tileCol: number | undefined;
 	extent: Extent;
+	neighbors: boolean;
 
 	constructor( extent: Extent, opts: {
 		layer: string;
@@ -20,6 +21,7 @@ class	WMTSSource extends Source{
 		style: string;
 		tileMatrixSet: string;
 		zoom: number;
+		neighbors: boolean;
 	}) {
 		super( extent.origin, extent.radius, opts.format )
 		this.urlZoomPos = {url: "", zoomPos: {zoom: 0, tileCol: 0, tileRow: 0}};
@@ -32,11 +34,12 @@ class	WMTSSource extends Source{
 		this.isWmtsSource = true;
 		this.extent = extent;
 		this.wmtsUrlBuilder();
+		this.neighbors = opts.neighbors;
 	};
 
 	public	wmtsUrlBuilder()
 	{
-		const	tileCoord = this.extent.asTile();
+		const	tileCoord = this.extent.asTile( this.neighbors );
 		console.log( tileCoord );
 		tileCoord.forEach(( coord ) => {
 			const	neiUrl = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${coord.zoom}&TILEROW=${coord.tileRow}&TILECOL=${coord.tileCol}`;

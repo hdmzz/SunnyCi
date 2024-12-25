@@ -17,17 +17,17 @@ const	view = new View( container )
 view.addLayer( gridHelper );
 
 let	CENTER: [lat: number, lon: number] = [45.757674175809704,4.832085939503834];
-const	extent = new Extent( CENTER, RADIUS, 14, "EPSG:4326" );
-extent.asTile();
 
 async function	loadTerrain() {
-
+	
+	const	extent = new Extent( CENTER, RADIUS, 13, "EPSG:4326" );
 	const testWmts = new WMTSSource( extent, {
 		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
 		format: "image/x-bil;bits=32",
 		style: "normal",
 		tileMatrixSet: "WGS84G",
-		zoom: 14,
+		zoom: 12,
+		neighbors: false,
 	});
 
 	const	eleLayer = new ElevationLayer( testWmts );
