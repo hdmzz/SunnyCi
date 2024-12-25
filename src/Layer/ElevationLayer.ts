@@ -1,70 +1,103 @@
 import WMTSSource from "../Source/WMTSSource";
 import * as THREE from 'three';
-import { Coordinate } from "../Coordinate/Coordinate";
+import Extent from "../core/Extent";
+import proj4 from "proj4";
 
+const WGS84 = "EPSG:4326"; // Latitude/Longitude
+const WebMercator = "EPSG:3857"; 
+function reproject(lat: number, lon: number): [number, number] {
+	return proj4(WGS84, WebMercator, [lon, lat]);
+  };
 class	ElevationLayer {
 	source: WMTSSource;
-	terrain: THREE.Mesh | undefined;
+	terrain: THREE.Mesh[] | undefined;
+	centerWm: [x: number, y: number]
 
-	constructor ( source: WMTSSource ) {
+	constructor ( source: WMTSSource )
+	{
 		this.source = source;
+		this.centerWm = reproject( ...source.center );
 	};
 
-	public async	fetchBil() {
-		return new Promise<THREE.Mesh>( async ( resolve, reject ) => {
-			const	bilResponse = await fetch( this.source.url );
-			const	bilBuffer = await  bilResponse.arrayBuffer();
-	
-			const grid = this.parseBil( bilBuffer );
-	
-			console.log(grid);
-			const	mesh = await this.createMesh(grid, resolve);
-			if ( mesh === undefined)
-				reject();
-		})
+	public async	fetchBil()
+	{
+		return new Promise<THREE.Group>( async ( resolve ) => {
+			const	urls = this.source.neighborsUrls;
+			const	results: {elevation: number, x: number, y: number}[][][] = [];
+
+			const promises = urls.map(async (url) => {
+				const	bilResponse = await fetch( url.url );
+				const	bilBuffer = await bilResponse.arrayBuffer();
+				results.push( this.parseBil( bilBuffer, url.zoomPos ));
+			});
+			await Promise.all(promises);
+
+			const	meshes: THREE.Mesh[] = [];
+
+			for ( const meshPrecursor of results ) {
+				const	mesh = this.createMesh( meshPrecursor );
+				meshes.push( mesh );
+			};
+
+			const	group = this.createGroup( meshes );
+			this.terrain = group.children as THREE.Mesh[];
+			resolve( group );
+		});
 	};
 
-	private			parseBil( buffer: ArrayBuffer )  {
+	private	createGroup( meshes: THREE.Mesh[] ): THREE.Group
+	{
+		const	group = new THREE.Group();
+		meshes.forEach( mesh => group.add( mesh ));
+
+		return ( group );
+	};
+
+	private		parseBil( buffer: ArrayBuffer, zoomPos: {zoom: number, tileCol: number, tileRow: number })
+	{
 		const	elevationData = new DataView(buffer);
 		const	grid = [];
 		const	ncols = 256;
-	
-		for (let row = 0; row < ncols; row++) {
-			const rowArray = [];
-			for (let col = 0; col < ncols; col++) {
-				const	index = (row * ncols + col) * 4; // 4 bytes per float32 value
-				const	value = elevationData.getFloat32(index, true); // Little-endian
-				rowArray.push( value / 255 * 50 );
-			}
-			grid.push(rowArray);
-		}
-	
+		const	bbox = Extent.tileToBBox( zoomPos.tileCol, zoomPos.tileRow, zoomPos.zoom );
+		const	lonRange = bbox.maxLon - bbox.minLon;
+		const	latRange = bbox.maxLat - bbox.minLat;
+
+		for ( let row = 0; row < ncols; row++ ) {
+			const	rowArray = [];
+			for ( let col = 0; col < ncols; col++ ) {
+				const	index = ( row * ncols + col ) * 4; // 4 bytes per float32 value
+				const	value = elevationData.getFloat32( index, true ); // Little-endian
+				const	lon = bbox.minLon + ( col / ( ncols - 1 )) * lonRange;
+				const	lat = bbox.maxLat - ( row / ( ncols - 1 )) * latRange;
+				const	[px, py] = reproject( lat, lon );
+				const	x = px - this.centerWm[0];
+				const	y = py - this.centerWm[1];
+				rowArray.push({ elevation: value, y, x });
+			};
+			grid.push( rowArray );
+		};
+
 		return ( grid );
 	};
 
-	private createMesh(grid: number[][], res: (payload : THREE.Mesh) => void) {
+	private createMesh( grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh
+	{
 		const	ncols = grid[0].length;
-		const geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
-		const	bbox = this.source.tileToBBox();
-		const	lonRange = bbox.maxLon - bbox.minLon;
-		const	latRange = bbox.maxLat - bbox.minLat;
+		const	geometry = new THREE.PlaneGeometry( 256, 256, ncols - 1, ncols - 1 );
 
 		for ( let i = 0; i < ncols; i++ ) {
 			for ( let j = 0; j < ncols; j++ ) {
 				const	vertexIndex = j * ncols + i;
-				const	lon = bbox.minLon + ( i / 256 ) * lonRange;
-				const	lat = bbox.minLat + ( j / 256 ) * latRange;
-				const	mercator = new Coordinate({ latitude: lat, longitude: lon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
-				geometry.attributes.position.setXYZ( vertexIndex, mercator.world.x, mercator.world.y, grid[j][i] );
+
+				geometry.attributes.position.setXYZ( vertexIndex, grid[j][i].x, grid[j][i].y, grid[j][i].elevation );
 			};
 		};
-		const	material = new THREE.MeshBasicMaterial({ color: "white", wireframe: true });
+		const	material = new THREE.MeshPhysicalMaterial({ color: "cream", wireframe: true, side:1 });
 		const	mesh = new THREE.Mesh( geometry, material );
 		mesh.rotation.x = -Math.PI / 2;
 		mesh.rotateZ( Math.PI );
-		console.log( mesh );
-		this.terrain = mesh
-		res( mesh );
+
+		return ( mesh );
 	};
 };
 

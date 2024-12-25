@@ -1,78 +1,77 @@
 import * as THREE from "three";
-import HugoGeo from "./HugoGeo";
 import View from "./View/View";
 import Buildings from "./Buildings/Buildings";
 import WFSSource from "./Source/WFSSource";
+import WMTSSource from "./Source/WMTSSource";
+import ElevationLayer from "./Layer/ElevationLayer";
+import Extent from "./core/Extent";
 import { GeolocationService } from "./Services/GeolocationService";
 
-const	RADIUS = 2.0;
-const	UNITS_SIDE = 1000;
+const	RADIUS = 1;
+const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
-async function main() {
-	// Assurez-vous que le DOM est complètement chargé
-	document.addEventListener('DOMContentLoaded', async () => {
-		const container = document.getElementById( 'viewerDiv' ) as HTMLDivElement;
-
-		let CENTER: [lat: number, lon: number] = [45.756073929704456,4.8401463179085225];
-		const position = await GeolocationService.getCurrentPosition();
-		const { latitude, longitude } = position.coords;
-		if ( latitude && longitude ) {
-			CENTER = [latitude, longitude];
-		};
-		const view = new View( container, CENTER );
-		const gridHelper = new THREE.GridHelper( 60, 150, new THREE.Color( 0x555555 ), new THREE.Color( 0x333333 ));
-
-		const tgeo = new HugoGeo({
-			tokenMapBox: 'pk.eyJ1IjoiZWwtb3NvIiwiYSI6ImNsbzRhbXhzcDAwMzMydXBoYmJxbW11ZjMifQ.fw-spr6aqF4LYqfNKiGw_w',
-			tokenOpenTopo: '1beba77d1c58069e0c5b7ac410586699',
-			unitsSide: UNITS_SIDE,
-		});
+let		CENTER: [lat: number, lon: number] = [45.757674175809704,4.832085939503834];
+//const position = await GeolocationService.getCurrentPosition();
+//const { latitude, longitude } = position.coords;
+//if ( latitude && longitude ) {
+//	CENTER = [latitude, longitude];
+//};
+const view = new View( container, CENTER );
 
 
-		view.addLayer( "gridHelper", gridHelper );
+async function	loadTerrain()
+{
+	const	extent = new Extent( CENTER, RADIUS, "EPSG:4326" );
 
-		async function loadTerrain() {
-			if ( CENTER[0] === 0 && CENTER[1] === 0 ) {
-				const position = await GeolocationService.getCurrentPosition();
-				const { latitude, longitude } = position.coords;
-				if ( latitude && longitude ) {
-					CENTER = [latitude, longitude];
-				};
-			};
-			const terrain = await tgeo.getTerrainRgb( CENTER, RADIUS, 16 );
-			view.centerCameraOnGroup( terrain );
-			const buildingSource = new WFSSource(
-				CENTER,
-				RADIUS,
-				{
-					layer: "BDTOPO_V3:batiment"
-				},
-			);
-			terrain.rotation.x = -Math.PI / 2;
+	const	testWmts = new WMTSSource( extent, {
+		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+		format: "image/x-bil;bits=32",
+		style: "normal",
+		tileMatrixSet: "WGS84G",
+		neighbors: false,
+		zoom: 14,
+	});
 
-			view.addLayer( "terrain", terrain );
+	const	testTexture = new WMTSSource( extent, {
+		layer: "ORTHOIMAGERY.ORTHOPHOTOS",
+		format: "image/jpeg",
+		style: "normal",
+		tileMatrixSet: "PM",
+		neighbors: false,
+		zoom: 16,
+	});
 
-			const buildings = await new Buildings(CENTER, RADIUS, UNITS_SIDE, view, buildingSource, terrain).Building();
+	console.log( testTexture );
 
-			view.addLayer( "buildings", buildings );
-		};
+	const	eleLayer = new ElevationLayer( testWmts );
+	const	terrain = await eleLayer.fetchBil();
+	terrain.rotateY( Math.PI);
+	view.addLayer( "terrain", terrain );
+
+	const	buildingSource = new WFSSource( CENTER, RADIUS, {
+		layer: "BDTOPO_V3:batiment",
+	});
+
+	const	buildings = await new Buildings(CENTER, RADIUS, 0, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
+	buildings.rotateY( Math.PI );
+	
+	
+	view.addLayer( "buildings", buildings );
+};
+
 
 		loadTerrain();
 
 		const goButton = document.getElementById("goButton") as HTMLButtonElement;
 		const coordsInput = document.getElementById("coordsInput") as HTMLInputElement;
 
-		goButton?.addEventListener("click", () => {
-			const coords = coordsInput.value.split(',').map(Number);
-			if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
-				view.removeLayer();
-				CENTER = [coords[0], coords[1]];
-				loadTerrain();
-			} else {
-				alert('not a valid center bitch!');
-			};
-		});
-	});
-}
-
-main().catch(console.error);
+goButton?.addEventListener("click", () => {
+	const	coords = coordsInput.value.split( ',' ).map( Number );
+	if ( coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+		view.removeLayer();
+		CENTER = [coords[0], coords[1]];
+		loadTerrain();
+	} else {
+		alert('not a valid center!');
+	};
+});

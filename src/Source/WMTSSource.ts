@@ -1,141 +1,50 @@
+import Extent, { latLonToTile } from "../core/Extent";
+import Source from "./Source";
+
 //https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities
-class	WMTSSource {
-	center: [lat: number, lon: number];
-	radius: number;
-	url: string;
+class	WMTSSource extends Source{
+	urlZoomPos: {url: string, zoomPos: { zoom: number, tileRow: number, tileCol: number }};
+	neighborsUrls: {url: string, zoomPos: { zoom: number, tileRow: number, tileCol: number }}[];
 	heightNeighborsCoordinates: { tileX: number, tileY: number }[];
 	layer: string
-	format: string
 	style: string
 	tileMatrixSet: string
+	extent: Extent;
+	neighbors: boolean;
 	zoom: number;
-	tileRow: number | undefined;
-	tileCol: number | undefined;
 
-	constructor( center: [lat: number, lon: number], radius: number, opts: {
+	constructor( extent: Extent, opts: {
 		layer: string;
 		format: string;
 		style: string;
 		tileMatrixSet: string;
 		zoom: number;
-	} ) {
-		this.center = center;
-		this.radius = radius;
-		this.url = "";
+		neighbors: boolean;
+	}) {
+		super( extent.origin, extent.radius, opts.format )
+		this.urlZoomPos = {url: "", zoomPos: {zoom: 0, tileCol: 0, tileRow: 0}};
+		this.neighborsUrls = []
 		this.heightNeighborsCoordinates = [];
 		this.layer = opts.layer ? opts.layer : "HR.ORTHOIMAGERY.ORTHOPHOTOS";
-		this.format = opts.format ? opts.format : "image/jpeg";
 		this.style = opts.style ? opts.style : "normal";
 		this.tileMatrixSet = opts.tileMatrixSet ? opts.tileMatrixSet : "PM";
-		this.zoom = opts.zoom ? opts.zoom : 8;
-
+		this.isWmtsSource = true;
+		this.extent = extent;
+		this.neighbors = opts.neighbors;
+		this.zoom = opts.zoom;
 		this.wmtsUrlBuilder();
 	};
-	//!tile row = y tile col = x
-	private	getNeighborsCoordinates( originaleTileRow: number, originaleTileCol: number ): { tileX: number, tileY: number }[] {
-		const	neighborsTile: { tileX: number, tileY: number }[] = [];
 
-		
-		for ( let dx = -1; dx <= 1; dx++ ) {
-			for ( let dy = -1; dy <= 1; dy++ ) {
-				if ( dx === 0 && dy === 0 ) continue; //original tile coordinate ~~~
-				const	tileX = originaleTileCol + dx;
-				const	tileY = originaleTileRow + dy;
-
-				neighborsTile.push({ tileX, tileY });
-			};
-		};
-
-		return ( neighborsTile );
+	public	wmtsUrlBuilder()
+	{
+		const	tileCoord = this.extent.asTile( this.neighbors, this.tileMatrixSet, this.zoom );
+		console.log( tileCoord );
+		tileCoord.forEach(( coord ) => {
+			const	neiUrl = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${coord.zoom}&TILEROW=${coord.tileRow}&TILECOL=${coord.tileCol}`;
+			this.neighborsUrls.push( { url: neiUrl , zoomPos: { zoom: coord.zoom, tileRow: coord.tileRow, tileCol: coord.tileCol }});
+		});
+		console.log( this.neighborsUrls )
 	};
-
-//! Pour la donnees d'elevation il n'est pas necessaire de connaitre les 8 connected tiles, le filtre peux se faire avec le format, en effet les donnees d'elevation sont au format x-bil 32 bits et JAMAIS en jpeg ou png
-	public	wmtsUrlBuilder() {
-		const	{ tileX, tileY } = latLonToTile( ...this.center, this.zoom, this.tileMatrixSet );
-		this.tileCol = tileX;
-		this.tileRow = tileY;
-		if ( this.format === "image/jpeg" ) {
-			this.heightNeighborsCoordinates = this.getNeighborsCoordinates(tileY, tileX);
-			console.log( this.heightNeighborsCoordinates );
-		};//!!!!!!!!!!!!!!!!!!!!!!!!!!!proleme de tilematrixset WGS84G et pas PM!!!! Projection mercator !=== a WGS refaire coordonnees de tuile a partir de WGS coords 
-		this.url = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${this.zoom}&TILEROW=${tileY}&TILECOL=${tileX}`;
-		console.log( this.url );
-		return ( this.url );
-	};
-
-	public	tileToBBox(): { minLat: number, minLon: number, maxLat: number, maxLon: number } {
-		const resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow(2, 14);
-		if (this.tileCol === undefined || this.tileRow === undefined) {
-			throw new Error("tileCol or tileRow is undefined");
-		}
-		const minLon = this.tileCol * resolution * EPSG4326_TILE_SIZE - 180;
-		const maxLon = (this.tileCol + 1) * resolution * EPSG4326_TILE_SIZE - 180;
-		const minLat = 90 - (this.tileRow + 1) * resolution * EPSG4326_TILE_SIZE;
-		const maxLat = 90 - this.tileRow * resolution * EPSG4326_TILE_SIZE;
-		return { minLat, minLon, maxLat, maxLon };
-	}
-
 };
 
 export default	WMTSSource;
-// Définition des constantes et des fonctions nécessaires
-const TILE_SIZE = 256; // Taille des tuiles en pixels
-const INITIAL_RESOLUTION = 2 * Math.PI * 6378137 / TILE_SIZE; // Résolution initiale à zoom 0
-const ORIGIN_SHIFT = 2 * Math.PI * 6378137 / 2.0; // Décalage pour EPSG:3857
-
-const EPSG4326_TILE_SIZE = 256; // Taille des tuiles en pixels pour EPSG:4326
-const EPSG4326_INITIAL_RESOLUTION = 180 / EPSG4326_TILE_SIZE; // Résolution initiale à zoom 0 pour EPSG:4326
-
-function	latLonToTileEPSG4326(lat: number, lon: number, zoom: number): { tileX: number, tileY: number } {
-	const	resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow(2, zoom); // Résolution pour le niveau de zoom donné
-	const	tileX = Math.floor((lon + 180) / resolution / EPSG4326_TILE_SIZE); // Indice de la tuile X
-	const	tileY = Math.floor((90 - lat) / resolution / EPSG4326_TILE_SIZE); // Indice de la tuile Y
-	return { tileX, tileY };
-}
-
-/**
- * Convertit une latitude et une longitude en coordonnées Mercator (EPSG:3857).
- * @param lat Latitude en degrés.
- * @param lon Longitude en degrés.
- * @returns Un objet avec les coordonnées x et y en mètres.
- */
-function latLonToMeters(lat: number, lon: number): { x: number, y: number } {
-	const x = lon * ORIGIN_SHIFT / 180.0;
-	const y = Math.log(Math.tan((90 + lat) * Math.PI / 360.0)) / (Math.PI / 180.0);
-	return { x, y: y * ORIGIN_SHIFT / 180.0 };
-}
-
-/**
- * Convertit les coordonnées en mètres en indices de tuile.
- * @param x Mètre X dans EPSG:3857.
- * @param y Mètre Y dans EPSG:3857.
- * @param zoom Niveau de zoom.
- * @returns Les indices de la tuile x et y.
- */
-function metersToTile(x: number, y: number, zoom: number): { tileX: number, tileY: number } {
-	const resolution = INITIAL_RESOLUTION / Math.pow(2, zoom); // Résolution pour le niveau de zoom donné
-	const pixelX = (x + ORIGIN_SHIFT) / resolution; // Coordonnée en pixels sur l'axe X
-	const pixelY = (ORIGIN_SHIFT - y) / resolution; // Coordonnée en pixels sur l'axe Y
-	return {
-		tileX: Math.floor(pixelX / TILE_SIZE), // Indice de la tuile X
-		tileY: Math.floor(pixelY / TILE_SIZE)  // Indice de la tuile Y
-	};
-}
-
-/**
- * Calcule les indices de la tuile WMTS pour une latitude, une longitude et un niveau de zoom donnés.
- * @param lat Latitude en degrés.
- * @param lon Longitude en degrés.
- * @param zoom Niveau de zoom.
- * @returns Les indices de la tuile x et y.
- */
-function latLonToTile( lat: number, lon: number, zoom: number, tileMatrixSet: string ): { tileX: number, tileY: number } {
-	let	units;
-	if ( tileMatrixSet === "PM" ) {
-		units = latLonToMeters(lat, lon); // Conversion de latitude/longitude en mètres
-		return metersToTile( units.x as number, units.y as number, zoom ); // Conversion des mètres en indices de tuile
-	} else {
-		return ( latLonToTileEPSG4326( lat, lon, zoom ) );
-	};
-};
-

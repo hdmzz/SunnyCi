@@ -83,7 +83,7 @@ class	RgbModel {
 			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );
 
 			if ( tile !== null ) {
-				this.dataElevationCovered = this.dataElevationCovered.concat( this.addTile( tile, zoomPos, zpCovered, bbox ) );
+				this.dataElevationCovered = this.dataElevationCovered.concat( this.addTile( tile, zoomPos, zpCovered, bbox ));
 			} else {
 				throw new Error( 'no tile added l-87 RgbModel' );
 			};
@@ -172,7 +172,6 @@ class	RgbModel {
 				};
 			};
 		};
-
 
 		const	meshes = this._build( onSatelliteMatWrapper );
 

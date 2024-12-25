@@ -4,6 +4,7 @@ import HugoGeo from '../HugoGeo';
 import { Coordinate } from '../Coordinate/Coordinate';
 import View from '../View/View';
 import Source from '../Source/Source';
+import Extent from '../core/Extent';
 
 const	coordinateCache: { [key: string]: Coordinate } = {};
 
@@ -23,13 +24,14 @@ class	Buildings {
 	buildingsArray: [];
 	center: [lat: number, lon: number];
 	radius: number;
-	unitsSide: number;
 	view: View;
 	source: Source;
 	bbox: BboxType;
 	terrain: THREE.Mesh[];
+	raycaster: THREE.Raycaster;
+	extent: Extent;
 
-	constructor( center: [lat:number, lon: number], radius: number, unitsSide: number, view: View, source: Source, terrain:THREE.Group ) {
+	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain: THREE.Mesh[], extent: Extent ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
@@ -37,8 +39,9 @@ class	Buildings {
 		this.view = view;
 		this.source = source;
 		this.bbox = HugoGeo.getBbox( center, radius );
-		this.unitsSide  = unitsSide;
-		this.terrain = terrain.children as THREE.Mesh[];
+		this.terrain = terrain;
+		this.raycaster = new THREE.Raycaster();
+		this.extent = extent;
 	};
 
 	public async	getBuildings( url: string ): Promise<GeoJSONFeature[]> {
@@ -84,10 +87,9 @@ class	Buildings {
 		for ( let i = 0; i < buildings.length; i++ ) {
 			const	featureElement = buildings[i];
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
-			const	altitude = featureElement.properties.altitude_minimale_sol / 255 * 55;
+			const	altitude = featureElement.properties.altitude_minimale_sol;
 			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
-			building.computeVertexNormals();
-
+			
 			geometries.push( building );
 		};
 
@@ -127,7 +129,7 @@ class	Buildings {
 			throw new Error( "Shape was not init" );
 		};
 
-		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -0.5 * height, bevelEnabled: false, bevelSize: 0, altitude } );
+		const	geometry = await this.genGeometry( shape, { curveSegment: 1, depth: -height, bevelEnabled: false, altitude } );
 
 		return ( geometry );
 	};
@@ -139,12 +141,12 @@ class	Buildings {
 			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
-				const	projectionRgb = HugoGeo.projectCoord( this.unitsSide, [point[0], point[1]], this.bbox.northWest, this.bbox.southEast );
+				const	mercator = this.extent.getProjectCoords( point[1], point[0] );
 
 				if ( y === 0 ) {
-					shape.moveTo( projectionRgb[1], projectionRgb[0] );
+					shape.moveTo( mercator[0], mercator[1] );
 				} else {
-					shape.lineTo( projectionRgb[1], projectionRgb[0]);
+					shape.lineTo( mercator[0], mercator[1] );
 				};
 			});
 		};
@@ -152,54 +154,18 @@ class	Buildings {
 		return ( shape );
 	};
 
-	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, bevelSize: number, altitude: number } ): Promise<THREE.ExtrudeGeometry> {
-		return new Promise( async ( resolve ) => {
+	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): Promise<THREE.ExtrudeGeometry>
+	{
+		return new Promise( async ( resolve, reject ) => {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 
 			geometry.rotateX(Math.PI / 2 );
-			geometry.rotateY(Math.PI /2);
-			geometry.computeBoundingSphere();
-
-			const	altitude = await this.getAltitude( geometry );
-
-			geometry.translate(0, altitude , 0);
-
+			geometry.rotateY( -Math.PI );
+			geometry.translate(0, extrudeSettings.altitude + 1 , 0);
 			resolve( geometry );
 		});
 	};
-
-	public async	getAltitude( building: THREE.ExtrudeGeometry ): Promise<number> {
-		return new Promise( async ( resolve ) => {
-			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			const	raycaster = new THREE.Raycaster();
-			const	up = new THREE.Vector3( 0, 1, 0 );
-			const	chunkSize = 2;
-			let		altitude = 0;	
-			for ( let i =  0; i < this.terrain.length; i += chunkSize ) {
-				const	terrainChunk = this.terrain.slice( i, i + chunkSize );
-				raycaster.set(( building.boundingSphere?.center as THREE.Vector3 ), up );
-				for ( const mesh of terrainChunk ) {
-					const	intersects =  raycaster.intersectObject( mesh, false );
-					if ( intersects.length > 0 ) {
-						altitude = intersects[0].point.y;
-						break;
-					};
-				};
-			};
-			resolve( altitude );
-		});
-	};
-
-	//private createRayHelper(ray: THREE.Ray): THREE.Line {
-	//	const length = 100; // Longueur du rayon
-	//	const geometry = new THREE.BufferGeometry().setFromPoints([
-	//		ray.origin,
-	//		ray.origin.clone().add(ray.direction.clone().multiplyScalar(length))
-	//	]);
-	//	const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-	//	return new THREE.Line(geometry, material);
-	//}
 };
 
 export default	Buildings;

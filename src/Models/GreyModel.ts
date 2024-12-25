@@ -89,7 +89,7 @@ class	GreyModel {
 	private async	build() {
 		let	mesh: Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>[] = [];
 
-		if  ( this.data !== undefined )
+		if ( this.data !== undefined )
 			mesh = await this._build();
 		else if ( this.dataPng !== undefined ) {
 			mesh = await this._buildPng()
@@ -112,7 +112,8 @@ class	GreyModel {
 			plane.attributes.position.setZ( index, (( data[index] as number / heightScale )) )
 		});
 		const	mesh = new Mesh( plane, this.terrainMat );
-		mesh.userData = {isGrey: true};
+		mesh.rotateX( -Math.PI)
+		mesh.userData = { isGrey: true };
 		mesh.receiveShadow = true;
 
 		return ([ mesh ]);
@@ -181,7 +182,7 @@ class	GreyModel {
 	};
 
 	private async	resolveTexture( onTex: ( texture: DataTexture ) => void ) {
-		const	colorSourceUrl = this.source?.wmsrColorUrlBuilder( 0.02, "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
+		const	colorSourceUrl = (this.source as WMSRSource).wmsrColorUrlBuilder( 0.02, "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
 		const	pixels = await Fetch.fetchPngMap( colorSourceUrl as string );
 		const	tex = new DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], RGBAFormat );
 
