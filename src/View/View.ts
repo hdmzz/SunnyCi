@@ -8,7 +8,7 @@ const	sunParams = {
 	hour: new Date().getHours(),
 	day: new Date().getDate(),
 	month: new Date().getMonth() + 1,
-	radius: 1500,
+	radius: 5000,
 };
 
 class	View extends THREE.EventDispatcher {

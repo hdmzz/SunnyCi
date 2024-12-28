@@ -7,17 +7,17 @@ import ElevationLayer from "./Layer/ElevationLayer";
 import Extent from "./core/Extent";
 import { GeolocationService } from "./Services/GeolocationService";
 
-const	RADIUS = 1;
+const	RADIUS = 5;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
-let		CENTER: [lat: number, lon: number] = [45.757674175809704,4.832085939503834];
+let		CENTER: [lat: number, lon: number] = [45.770773364035,4.828380952770384];
 //const position = await GeolocationService.getCurrentPosition();
 //const { latitude, longitude } = position.coords;
 //if ( latitude && longitude ) {
 //	CENTER = [latitude, longitude];
 //};
 const view = new View( container, CENTER );
-const	gridHelper = new THREE.GridHelper(100)
+const	gridHelper = new THREE.GridHelper(100, 100)
 view.addLayer( "helper", gridHelper );
 
 async function	loadTerrain()
@@ -29,20 +29,10 @@ async function	loadTerrain()
 		format: "image/x-bil;bits=32",
 		style: "normal",
 		tileMatrixSet: "WGS84G",
-		neighbors: false,
+		neighbors: true,
 		zoom: 14,
 	});
 
-	const	testTexture = new WMTSSource( extent, {
-		layer: "ORTHOIMAGERY.ORTHOPHOTOS",
-		format: "image/jpeg",
-		style: "normal",
-		tileMatrixSet: "PM",
-		neighbors: false,
-		zoom: 16,
-	});
-
-	console.log( testTexture );
 
 	const	eleLayer = new ElevationLayer( testWmts );
 	const	terrain = await eleLayer.fetchBil();
@@ -53,7 +43,7 @@ async function	loadTerrain()
 		layer: "BDTOPO_V3:batiment",
 	});
 
-	const	buildings = await new Buildings(CENTER, RADIUS, 0, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
+	const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
 	buildings.rotateY( Math.PI );
 	
 	

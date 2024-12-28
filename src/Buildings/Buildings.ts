@@ -31,7 +31,7 @@ class	Buildings {
 	raycaster: THREE.Raycaster;
 	extent: Extent;
 
-	constructor( center: [lat:number, lon: number], radius: number, unitsPerMeter: number,view: View, source: Source, terrain: THREE.Mesh[], extent: Extent ) {
+	constructor( center: [lat:number, lon: number], radius: number,view: View, source: Source, terrain: THREE.Mesh[], extent: Extent ) {
 		this.data = {};
 		this.buildingsArray = [];
 		this.center = center;
@@ -78,7 +78,7 @@ class	Buildings {
 	};
 
 	public async	Building() {
-		const	mat = new THREE.MeshPhysicalMaterial({ color: 'white', side: 1, wireframe: false });
+		const	mat = new THREE.MeshPhongMaterial({ color: 'green', side: 1, wireframe: false });
 		const	url = this.source.url;
 		const	buildings = await this.getBuildings( url as string );
 		const	geometries: THREE.ExtrudeGeometry[] = [];
@@ -156,7 +156,7 @@ class	Buildings {
 
 	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): Promise<THREE.ExtrudeGeometry>
 	{
-		return new Promise( async ( resolve, reject ) => {
+		return new Promise( async ( resolve ) => {
 			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
 			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 

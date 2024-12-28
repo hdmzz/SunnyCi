@@ -36,12 +36,12 @@ function	metersToTile( x: number, y: number, zoom: number ): { tileX: number, ti
 	};
 };
 
-export function latLonToTile( lat: number, lon: number, zoom: number, tileMatrixSet: string ): { tileX: number, tileY: number }
+export function	latLonToTile( lat: number, lon: number, zoom: number, tileMatrixSet: string ): { tileX: number, tileY: number }
 {
 	let	units;
 	if ( tileMatrixSet === "PM" ) {
-		units = latLonToMeters(lat, lon); // Conversion de latitude/longitude en mètres
-		return metersToTile( units.x as number, units.y as number, zoom ); // Conversion des mètres en indices de tuile
+		units = latLonToMeters( lat, lon );
+		return ( metersToTile( units.x as number, units.y as number, zoom ));
 	} else {
 		return ( latLonToTileEPSG4326( lat, lon, zoom ));
 	};
@@ -71,13 +71,24 @@ class	Extent {
 		this.centerWebMercator = reproject( ...origin );
 	};
 
-	as( from: string, to: string )
+	//avnt de lappeler elle il faut recuperer la bbox de la tuile
+	static	bboxAsTile( bbox: { minLat: number, minLon: number, maxLat: number, maxLon: number }, zoom: number, epsg: string )
 	{
+		const { minTileCol, minTileRow, maxTileCol, maxTileRow } = Extent.bboxToTileCoords( bbox, zoom, epsg );
+		const tiles = [];
 
+		for (let tileCol = minTileCol; tileCol <= maxTileCol; tileCol++) {
+			for (let tileRow = minTileRow; tileRow <= maxTileRow; tileRow++) {
+				tiles.push({ zoom, tileCol, tileRow });
+			};
+		};
+
+		return ( tiles );
 	};
+
 	/**
-	 * @param epsg tileMatrixSet PM || EPSG:4326 || EPSG:3847.....
-	 */
+	* @param epsg tileMatrixSet PM || EPSG:4326 || EPSG:3847.....
+	*/
 	asTile( neighbors:boolean, epsg: string = this.epsg, zoom: number ): { zoom: number, tileCol: number, tileRow: number }[]
 	{
 		const { tileX, tileY } = latLonToTile( this.origin[0], this.origin[1], zoom, epsg );
@@ -119,6 +130,13 @@ class	Extent {
 		return ( tiles );
 	};
 
+	static bboxToTileCoords(bbox: { minLat: number, minLon: number, maxLat: number, maxLon: number }, zoom: number, epsg: string = "EPSG:4326"): { minTileCol: number, minTileRow: number, maxTileCol: number, maxTileRow: number } {
+		const { tileX: minTileCol, tileY: maxTileRow } = latLonToTile(bbox.minLat, bbox.minLon, zoom, epsg);
+		const { tileX: maxTileCol, tileY: minTileRow } = latLonToTile(bbox.maxLat, bbox.maxLon, zoom, epsg);
+
+		return { minTileCol, minTileRow, maxTileCol, maxTileRow };
+	};
+
 	static	tileToBBox( tileCol: number, tileRow: number, zoom: number ): { minLat: number, minLon: number, maxLat: number, maxLon: number }
 	{
 		const	resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow( 2, zoom );
@@ -133,7 +151,7 @@ class	Extent {
 		return { minLat, minLon, maxLat, maxLon };
 	};
 
-	static tileToBBoxWebMercator(tileCol: number, tileRow: number, zoom: number)
+	static	tileToBBoxWebMercator( tileCol: number, tileRow: number, zoom: number )
 	{
 		const	resolution = EPSG3857_INITIAL_RESOLUTION / Math.pow( 2, zoom );
 		if ( tileCol === undefined || tileRow === undefined ) {

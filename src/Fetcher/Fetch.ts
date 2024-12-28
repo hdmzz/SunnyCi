@@ -80,7 +80,7 @@ class Fetch {
 
 	static async	getPngMap( url: string ): Promise<ndarray.NdArray<Uint8Array>> {
 		return new Promise(( resolve, reject ) => {
-			getPixels ( url, ( err: any, pixels: ndarray.NdArray<Uint8Array> ) => {
+			getPixels( url, ( err: any, pixels: ndarray.NdArray<Uint8Array> ) => {
 				if ( err ) {
 					reject( err );
 				} else {
