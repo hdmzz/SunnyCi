@@ -8,7 +8,7 @@ const	sunParams = {
 	hour: new Date().getHours(),
 	day: new Date().getDate(),
 	month: new Date().getMonth() + 1,
-	radius: 5000,
+	radius: 2000,
 };
 
 class	View extends THREE.EventDispatcher {
@@ -47,7 +47,7 @@ class	View extends THREE.EventDispatcher {
 		let		dir = new THREE.Vector3();
 		let		sph = new THREE.Spherical();
 
-		const	animate =  () => {
+		const	animate = () => {
 			this.camera.getWorldDirection( dir );
 			sph.setFromVector3( dir );
 			let	thetaDegree = sph.theta * ( 180 / Math.PI );
@@ -114,6 +114,9 @@ class	View extends THREE.EventDispatcher {
 		this.scene.add( layers );
 		this.layers.push({ key: name, value: layers });
 		this.render();
+		if ( name === "terrain" ) {
+			this.updateCamera( layers );
+		};
 	};
 
 	public	removeLayer() {
@@ -154,16 +157,30 @@ class	View extends THREE.EventDispatcher {
 		this.scene.add(this.sunSphere);
 	};
 
-	public centerCameraOnGroup( group: THREE.Group ) {
-		const	box = new THREE.Box3().setFromObject( group );
-		const	center = box.getCenter( new THREE.Vector3() );
-		const	size = box.getSize( new THREE.Vector3() );
-		
-		this.camera.position.setY( center.y + size.y * 0.1 );
+	public centerCameraOnGroup(group: THREE.Group) {
+		const box = new THREE.Box3().setFromObject(group);
+		const center = box.getCenter(new THREE.Vector3());
+		const size = box.getSize(new THREE.Vector3());
+
+		this.camera.position.set(center.x, center.y + size.y * 2, center.z);
+		this.camera.lookAt(center.x, center.y, center.z);
+		this.controls.update();
 	}
 
 	private	render() {
 		this.renderer.render( this.scene, this.camera );
+	};
+
+	private	updateCamera( layer: THREE.Object3D )
+	{
+		const	raycaster = new THREE.Raycaster();
+		const	up = new THREE.Vector3( 0, 1, 0 );
+		const	origin = new THREE.Vector3( 0, 0, 0 );
+		raycaster.set( origin, up );
+		const	intersects = raycaster.intersectObject( layer );
+		if ( intersects.length > 0 ) {
+			this.camera.position.setY( intersects[0].distance + 500 );
+		};
 	};
 };
 

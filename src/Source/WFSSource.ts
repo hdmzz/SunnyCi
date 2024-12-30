@@ -7,8 +7,8 @@ class	WFSSource extends Source {
 
 	constructor( center: [lat: number, lon: number], radius: number, opts: {
 		layer: string,
-	} ) {
-		super(center, radius, "" )
+	}) {
+		super(center, radius, "" );
 		this.center = center;
 		this.radius = 0.005;
 		super.generateBboxFromCenter( "EPSG:4326", ...center, this.radius );
@@ -19,6 +19,7 @@ class	WFSSource extends Source {
 //source of  feature to fecth  https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetCapabilities
 //ELEVATION.CONTOUR.LINES ==> isohypse elevation ~~
 //! interessant BDTOPO_V3:pleins_de_trucs_la_dedans
+//!https://data.geopf.fr/annexes/ressources/wfs/topographie.xml
 	private	wfsUrlBuilder() {
 		let	url = `https://data.geopf.fr/wfs/ows?SERVICE=WFS&REQUEST=GetFeature&typeName=${this.layerName}&VERSION=2.0.0&SRSNAME=EPSG:4326&outputFormat=application/json&BBOX=${this.bbox[1]},${this.bbox[0]},${this.bbox[3]},${this.bbox[2]},EPSG:4326`;
 
