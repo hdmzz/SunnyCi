@@ -139,14 +139,14 @@ class	View extends THREE.EventDispatcher {
 
 	private	initSun() {
 		this.sunPath = new SunPath( sunParams, this.sunLight, this.center );
-		this.sunLight.shadow.mapSize.height = 4056;
-		this.sunLight.shadow.mapSize.width = 4056;
+		this.sunLight.shadow.mapSize.height = 2050;
+		this.sunLight.shadow.mapSize.width = 2050;
 		this.sunLight.shadow.camera.left = -2500;
 		this.sunLight.shadow.camera.top = 2500;
 		this.sunLight.shadow.camera.right = 2500;
 		this.sunLight.shadow.camera.bottom = -2500;
-		this.sunLight.shadow.camera.near = 0.5;
-		this.sunLight.shadow.camera.far = 2500;
+		this.sunLight.shadow.camera.near = 0.1;
+		this.sunLight.shadow.camera.far = 3000;
 		this.sunLight.castShadow = true;
 		this.sunLight.shadow.bias = -0.005;
 
