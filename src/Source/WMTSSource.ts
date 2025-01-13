@@ -1,4 +1,4 @@
-import Extent, { latLonToTile } from "../core/Extent";
+import Extent from "../core/Extent";
 import Source from "./Source";
 
 //https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities

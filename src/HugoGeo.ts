@@ -214,12 +214,13 @@ class	HugoGeo {
 			try {
 				const	watcher = this.createWatcher( resolve );
 				if ( this.source && this.source.format  ===  "image/jpeg" ) {
-					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource).fetchPNG( this.source.url as string );
+					await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource).fetchPNG( this.source.url as string );
+
 				} else {
 					const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
 					console.log( bbox2 );
 					const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
-					const	mesh = await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource ).fetchTIF( url );
+					await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource ).fetchTIF( url );
 				}
 			} catch (error) {
 				reject( error );

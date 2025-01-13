@@ -1,6 +1,6 @@
 import WMTSSource from "../Source/WMTSSource";
 import * as THREE from 'three';
-import Extent, { latLonToTile } from "../core/Extent";
+import Extent from "../core/Extent";
 import proj4 from "proj4";
 
 const WGS84 = "EPSG:4326"; // Latitude/Longitude
@@ -62,8 +62,6 @@ class	ElevationLayer {
 		const	bbox = Extent.tileToBBox( zoomPos.tileCol, zoomPos.tileRow, zoomPos.zoom );
 		const	lonRange = bbox.maxLon - bbox.minLon;
 		const	latRange = bbox.maxLat - bbox.minLat;
-		let		topLeft: {x: number, y: number} = {x:0, y:0};
-		let		bottomRight: {x: number, y: number} = {x:0, y:0};
 
 		for ( let row = 0; row < ncols; row++ ) {
 			const	rowArray = [];
@@ -74,9 +72,6 @@ class	ElevationLayer {
 				const	lon = bbox.minLon + ( col / ( ncols - 1 )) * lonRange;
 				const	lat = bbox.maxLat - ( row / ( ncols - 1 )) * latRange;
 				const	[px, py] = reproject( lat, lon );
-				if ( row === 0 && col === 0 ) topLeft = {x: px, y: py};
-				if ( row === ncols - 1 && col === ncols - 1 ) bottomRight = {x: px, y: py};
-
 				const	x = px - this.centerWm[0];
 				const	y = py - this.centerWm[1];
 				rowArray.push({ elevation: value, y, x });
@@ -91,17 +86,17 @@ class	ElevationLayer {
 	 * @param bbox boundingBox en wgs84 de la tuile delevation, la source d'elevation convient super bien pour la france donc pas besoin 
 	 * pour le moment de s'inquieter de savoir si cest generique 
 	 */
-	private async	resolveTexture( bbox: { minLat: number; minLon: number; maxLat: number; maxLon: number; })
-	{
-		const	tileCoord = Extent.bboxAsTile(bbox, 16, "PM");
-		const	urls: string[] = [];
-		tileCoord.forEach(( coord ) => {
-			const	neiUrl = `https://data.geopf.fr/wmts?LAYER=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${coord.zoom}&TILEROW=${coord.tileRow}&TILECOL=${coord.tileCol}`;
-			urls.push( neiUrl );
-			//this.neighborsUrls.push( { url: neiUrl , zoomPos: { zoom: coord.zoom, tileRow: coord.tileRow, tileCol: coord.tileCol }});
-		});
+	//private async	resolveTexture( bbox: { minLat: number; minLon: number; maxLat: number; maxLon: number; })
+	//{
+	//	const	tileCoord = Extent.bboxAsTile(bbox, 16, "PM");
+	//	const	urls: string[] = [];
+	//	tileCoord.forEach(( coord ) => {
+	//		const	neiUrl = `https://data.geopf.fr/wmts?LAYER=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${coord.zoom}&TILEROW=${coord.tileRow}&TILECOL=${coord.tileCol}`;
+	//		urls.push( neiUrl );
+	//		//this.neighborsUrls.push( { url: neiUrl , zoomPos: { zoom: coord.zoom, tileRow: coord.tileRow, tileCol: coord.tileCol }});
+	//	});
 
-	};
+	//};
 
 	private createMesh( grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh
 	{
