@@ -115,7 +115,7 @@ class	ElevationLayer {
 				geometry.attributes.position.setXYZ( vertexIndex, grid[j][i].x, grid[j][i].y, grid[j][i].elevation );
 			};
 		};
-		const	material = new THREE.MeshStandardMaterial({ color: "#ECEBE9FF", wireframe: false, side:2 });
+		const	material = new THREE.MeshStandardMaterial({ color: "#ECEBE9FF", wireframe: true, side:2 });
 		const	mesh = new THREE.Mesh( geometry, material );
 		mesh.castShadow = true;
 		mesh.receiveShadow = true;
