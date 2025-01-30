@@ -12,17 +12,19 @@ import GeometryLayer from "./Layer/GeometryLayer";
 const	RADIUS = 5;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
-let		CENTER: [lat: number, lon: number] = [45.76422192053747,4.824104386100552];
+let		CENTER: [lat: number, lon: number] = [0,0];
 const view = new View( container, CENTER );
 const	gridHelper = new THREE.GridHelper(100, 100)
 view.addLayer( "helper", gridHelper );
 
 async function	loadTerrain()
 {
-	const position = await GeolocationService.getCurrentPosition();
-	const { latitude, longitude } = position.coords;
-	if ( latitude && longitude ) {
-		CENTER = [latitude, longitude];
+	if ( CENTER[0] === 0 && CENTER[1] === 0 ) {
+		const position = await GeolocationService.getCurrentPosition();
+		const { latitude, longitude } = position.coords;
+		if ( latitude && longitude ) {
+			CENTER = [latitude, longitude];
+		};
 	};
 	const	extent = new Extent( CENTER, RADIUS, "EPSG:4326" );
 
@@ -62,10 +64,10 @@ async function	loadTerrain()
 	view.addLayer( "buildings", buildings );
 };
 
-		loadTerrain();
+loadTerrain();
 
-		const goButton = document.getElementById("goButton") as HTMLButtonElement;
-		const coordsInput = document.getElementById("coordsInput") as HTMLInputElement;
+const goButton = document.getElementById("goButton") as HTMLButtonElement;
+const coordsInput = document.getElementById("coordsInput") as HTMLInputElement;
 
 goButton?.addEventListener("click", () => {
 	const	coords = coordsInput.value.split( ',' ).map( Number );
