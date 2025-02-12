@@ -37,7 +37,6 @@ async function	loadTerrain()
 		zoom: 14,
 	});
 
-
 	const	eleLayer = new ElevationLayer( testWmts );
 	const	terrain = await eleLayer.fetchBil();
 	terrain.rotateY( Math.PI );
