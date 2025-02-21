@@ -8,7 +8,6 @@ const	ORIGIN_SHIFT = 2 * Math.PI * 6378137 / 2.0;
 const	EPSG4326_INITIAL_RESOLUTION = 180 / TILE_SIZE;
 const	EPSG3857_INITIAL_RESOLUTION = 2 * Math.PI * 6378137 / TILE_SIZE;
 
-
 function	latLonToTileEPSG4326(lat: number, lon: number, zoom: number): { tileX: number, tileY: number } {
 	const	resolution = EPSG4326_INITIAL_RESOLUTION / Math.pow(2, zoom); // Résolution pour le niveau de zoom donné
 	const	tileX = Math.floor((lon + 180) / resolution / TILE_SIZE); // Indice de la tuile X
@@ -89,7 +88,7 @@ class	Extent {
 	/**
 	* @param epsg tileMatrixSet PM || EPSG:4326 || EPSG:3847.....
 	*/
-	asTile( neighbors:boolean, epsg: string = this.epsg, zoom: number ): { zoom: number, tileCol: number, tileRow: number }[]
+	asTile( neighbors: boolean, epsg: string = this.epsg, zoom: number ): { zoom: number, tileCol: number, tileRow: number }[]
 	{
 		const { tileX, tileY } = latLonToTile( this.origin[0], this.origin[1], zoom, epsg );
 		const tiles = [{ zoom: zoom, tileCol: tileX, tileRow: tileY }];
