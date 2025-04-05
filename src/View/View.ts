@@ -29,7 +29,7 @@ class	View extends THREE.EventDispatcher {
 		const	compass = document.getElementById("compassContainer");
 		this.center = center
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.CubeTextureLoader().setPath('/dist/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'])
+		this.scene.background = new THREE.CubeTextureLoader().setPath('/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'])
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
 		this.camera.position.z = 5;
 		this.camera.position.y = 10;
