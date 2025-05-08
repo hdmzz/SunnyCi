@@ -162,7 +162,7 @@ class	Buildings {
 
 			geometry.rotateX(Math.PI / 2 );
 			geometry.rotateY( -Math.PI );
-			geometry.translate(0, extrudeSettings.altitude + 1 , 0);
+			geometry.translate(0, extrudeSettings.altitude + 0.5 , 0);
 			resolve( geometry );
 		});
 	};

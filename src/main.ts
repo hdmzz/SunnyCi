@@ -46,12 +46,6 @@ async function	loadTerrain()
 		layer: "BDTOPO_V3:batiment",
 	});
 
-	const	testZoneVegetation = new WFSSource( CENTER, RADIUS, {
-		layer: "BDTOPO_V3:zone_de_vegetation",
-	});
-
-	console.log( testZoneVegetation );
-
 	const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
 	buildings.rotateY( Math.PI );
 	
