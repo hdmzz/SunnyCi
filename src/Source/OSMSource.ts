@@ -4,7 +4,8 @@ import Source from "./Source";
 const	OVERPASS_API = "https://overpass-api.de/api/interpreter";
 
 class	OSMSource extends Source {
-	constructor( center: [lat: number, lon: number], radius: number, type: string ) {
+	constructor( center: [lat: number, lon: number], radius: number, type: string )
+	{
 		super( center, radius, type );
 		this.url = this.osmUrlBuilderCircle( type, center, 500 );
 	};
