@@ -86,7 +86,7 @@ class	RgbModel {
 			if ( tile !== null ) {
 				this.dataElevationCovered = this.dataElevationCovered.concat( this.addTile( tile, zoomPos, zpCovered, bbox ));
 			} else {
-				throw new Error( 'no tile added l-87 RgbModel' );
+				throw new Error( 'no tile added l-89 RgbModel' );
 			};
 
 			count++;
@@ -158,8 +158,8 @@ class	RgbModel {
 		return ( dataElev );
 	};
 
-	//cette fonnction s'executera dans la boucle forEacch DataElevation 
-	//c'est pour  cela qu on un compte de pour  verifier que les tuiles de 
+	//cette fonnction s'executera dans la boucle forEach DataElevation 
+	//c'est pour  cela qu on un compt pour  verifier que les tuiles de 
 	//lelevation ont bien ete fetche et sont bieng arrivees
 	public async	build() {
 		let		satCount = 0;

@@ -22,9 +22,9 @@ view.addLayer( "helper", gridHelper );
 const geo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiYWxhbnRnZW8tcHJlc2FsZXMiLCJhIjoiY2pzcTA4NjRiMTMxczQzcDFqa29maXk3bSJ9.pVYNTFKfcOXA_U_5TUwDWw',
 	tokenOpenTopo: '',
-	unitsSide: 100,
-	source: ''
-})
+	unitsSide: 10000,
+});
+
 
 async function	loadTerrain()
 {
@@ -36,40 +36,50 @@ async function	loadTerrain()
 		};
 	};
 	const	extent = new Extent( CENTER, RADIUS, "EPSG:4326" );
-
-	//const	testWmts = new WMTSSource( extent, {
-	//	layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
-	//	format: "image/x-bil;bits=32",
-	//	style: "normal",
-	//	tileMatrixSet: "WGS84G",
-	//	neighbors: true,
-	//	zoom: 14,
-	//});
-
-	//const	eleLayer = new ElevationLayer( testWmts );
-	//const	terrain = await eleLayer.fetchBil();
-	//terrain.rotateY( Math.PI );
-	//view.addLayer( "terrain", terrain );
-
-	//const	buildingSource = new WFSSource( CENTER, RADIUS, {
-	//	layer: "BDTOPO_V3:batiment",
-	//});
-
-	//const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
-	//buildings.rotateY( Math.PI );
 	
-	//const	osmSource = new OSMSource( CENTER, RADIUS, "tree" );
-	//const	treeLayer = new GeometryLayer( osmSource, terrain, view, extent );
+	// Récupérer la source sélectionnée
+	const sourceSelector = document.getElementById("sourceSelector") as HTMLSelectElement;
+	const selectedSource = sourceSelector ? sourceSelector.value : "mapbox";
+	
+	let terrain;
+	
+	if (selectedSource === "mapbox") {
+		// Utiliser Mapbox RGB
+		terrain = await geo.getTerrainRgb(CENTER, 5, 15);
+	} else {
+		// Utiliser BIL DEM
+		const testWmts = new WMTSSource( extent, {
+			layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+			format: "image/x-bil;bits=32",
+			style: "normal",
+			tileMatrixSet: "WGS84G",
+			neighbors: true,
+			zoom: 14,
+		});
+		
+		const eleLayer = new ElevationLayer( testWmts );
+		terrain = await eleLayer.fetchBil();
+		terrain.rotateY( Math.PI );
+	}
 
-	//console.log( treeLayer );
+	view.addLayer("terrain", terrain)
+		
+		const	buildingSource = new WFSSource( CENTER, RADIUS, {
+			layer: "BDTOPO_V3:batiment",
+		});
+	
+		const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
+		buildings.rotateY( Math.PI );
+		
+		view.addLayer( "buildings", buildings );
 
-	//view.addLayer( "buildings", buildings );
 };
 
 loadTerrain();
 
 const goButton = document.getElementById("goButton") as HTMLButtonElement;
 const coordsInput = document.getElementById("coordsInput") as HTMLInputElement;
+const sourceSelector = document.getElementById("sourceSelector") as HTMLSelectElement;
 
 goButton?.addEventListener("click", () => {
 	const	coords = coordsInput.value.split( ',' ).map( Number );
@@ -80,4 +90,10 @@ goButton?.addEventListener("click", () => {
 	} else {
 		alert('not a valid center!');
 	};
+});
+
+// Ajout d'un événement pour le changement de source
+sourceSelector?.addEventListener("change", () => {
+	view.removeLayer();
+	loadTerrain();
 });
