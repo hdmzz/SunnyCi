@@ -6,9 +6,9 @@ import WMTSSource from "./Source/WMTSSource";
 import ElevationLayer from "./Layer/ElevationLayer";
 import Extent from "./core/Extent";
 import { GeolocationService } from "./Services/GeolocationService";
-import OSMSource from "./Source/OSMSource";
-import GeometryLayer from "./Layer/GeometryLayer";
-import RgbModel from "./Models/RgbModel";
+//import OSMSource from "./Source/OSMSource";
+//import GeometryLayer from "./Layer/GeometryLayer";
+//import RgbModel from "./Models/RgbModel";
 import HugoGeo from "./HugoGeo";
 
 const	RADIUS = 5;
