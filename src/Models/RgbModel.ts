@@ -43,7 +43,7 @@ const	sixteenthPixelRanges = (() => {
 type ProjectCoordsFunction = (coord: [number, number], nw: [number, number], se: [number, number]) => number[];
 
 class	RgbModel {
-	public	unitsPerMeter: number;
+	public	unitsPerMeter: number;//on peut mettre 100?
 	public	projectCoords: ProjectCoordsFunction;
 	public	mapBoxToken: string;
 	public	dataElevationCovered: number[][][];
@@ -55,7 +55,8 @@ class	RgbModel {
 	constructor (
 			units: number,
 			projectCoords: ProjectCoordsFunction,
-			token: string, apiSatellite: string,
+			token: string, 
+			apiSatellite: string,
 			apiRgb: string,
 			watcher: (payload: { what: string, data: THREE.Mesh[] }) => void,
 			onSatelliteMat?: () => void,
@@ -221,7 +222,7 @@ class	RgbModel {
 			plane.receiveShadow = true;
 			plane.userData = { isRgb: true };
 
-			//la raison de mettre plane dans objs est//qu'on en a besoin
+			//la raison de mettre plane dans objs est qu'on en a besoin
 			objs.push( plane );
 			if ( onSatelliteMatWrapper !== null ) {
 				this.resolveTexture(
@@ -243,14 +244,6 @@ class	RgbModel {
 				);
 			};
 		});
-
-		//const	mergedGeometrie =  BufferGeometryUtils.mergeGeometries( geometries, false );
-		//console.log( mergedGeometrie );
-		//const  mergedMeshes = new THREE.Mesh(mergedGeometrie, new THREE.MeshPhongMaterial({
-		//	color: 'white',
-		//	//wireframe: true,
-		//	side: 2,
-		//}));
 
 		return ( objs );
 	};
@@ -341,6 +334,7 @@ class	RgbModel {
 		onTex: ( texture: THREE.DataTexture ) => void,
 	) {
 		const	pixels = await Fetch.fetchTile( zoomPos, token, apiSatellite );
+		//@ts-ignore
 		const	tex = new THREE.DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], THREE.RGBAFormat );
 
 		tex.flipY = true;

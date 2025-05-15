@@ -63,7 +63,6 @@ class	HugoGeo {
 				};
 				const	{ tokenMapBox: token, apiSatellite, apiRgb } = this;
 				const	bbox = HugoGeo.getBbox( origin, radius );
-				console.log("ici hugogeobbox", bbox);//bbox calculee a partir du rayon et du point d'origine
 				const	zoomPositionCovered = HugoGeo.getZoomPositionCovered( bbox.feature, zoom );
 				const	onSatMat = () => {}; //dummy function to trigger the satelite image fetch
 				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher, onSatMat );
@@ -98,7 +97,8 @@ class	HugoGeo {
 	static	getUnitsPerMeters( unitsSide: number, radius: number ): number {
 		return ( unitsSide / ( radius * ( 2**0.5 ) * 1000 ) );
 	};
-//!!!!!!!!coords en lonLat
+
+	//!!!!!!!!coords en lonLat
 	static	projectCoord( unitsSide: number, coord: [number, number], nw: [number, number], se: [number, number]) {
 		return [
 			unitsSide * ( -0.5 + ( coord[0] - nw[0] ) / ( se[0] - nw[0] )),
