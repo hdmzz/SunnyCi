@@ -5,9 +5,9 @@ import { SphericalMercator } from "@mapbox/sphericalmercator";
 import { BboxType } from "../type";
 
 const	constVertices = 128;
-//! Attention ll signifie lon lat ici et pas lat lon
 const	constTilePixels = new SphericalMercator({size: 128});
 
+//! Attention ll signifie lon lat ici et pas lat lon
 const	computeSeamRows = ( shift: number ) => {
 	let	totalCount = 49152; // 128 * 128 * 3
 	let	rowCount = 384; // 128 * 3
@@ -75,7 +75,6 @@ class	RgbModel {
 	};
 
 	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
-		//calculer le zoomPositionElevation
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
 		console.log(zpCovered, zoomPositionElevation)
 		let	count = 0;
@@ -158,9 +157,6 @@ class	RgbModel {
 		return ( dataElev );
 	};
 
-	//cette fonnction s'executera dans la boucle forEach DataElevation 
-	//c'est pour  cela qu on un compt pour  verifier que les tuiles de 
-	//lelevation ont bien ete fetche et sont bieng arrivees
 	public async	build() {
 		let		satCount = 0;
 		let		onSatelliteMatWrapper = null;

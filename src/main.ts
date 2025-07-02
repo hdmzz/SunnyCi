@@ -44,7 +44,6 @@ async function	loadTerrain()
 	let terrain;
 	
 	if (selectedSource === "mapbox") {
-		// Utiliser Mapbox RGB
 		terrain = await geo.getTerrainRgb(CENTER, 5, 15);
 	} else {
 		// Utiliser BIL DEM

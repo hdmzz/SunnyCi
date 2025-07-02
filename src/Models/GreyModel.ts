@@ -12,7 +12,6 @@ async function	getPNGPixels( url: string ): Promise<ImageData> {
 			img.src = URL.createObjectURL( imageData );
 			img.onload = () => resolve( img );
 		});
-
 	
 		const	canvas = document.createElement( "canvas" );
 		const	ctxt = canvas.getContext( "2d" );
@@ -62,7 +61,6 @@ class	GreyModel {
 		const	rawData = await fromArrayBuffer( arrayBuffer );
 		const	tifImg = await rawData.getImage();
 		this.terrainRasterBbox = tifImg.getBoundingBox();
-		console.log(this.terrainRasterBbox)
 		const	data = await tifImg.readRasters({ interleave: true });
 
 		this.data = data;
@@ -184,7 +182,7 @@ class	GreyModel {
 	private async	resolveTexture( onTex: ( texture: DataTexture ) => void ) {
 		const	colorSourceUrl = (this.source as WMSRSource).wmsrColorUrlBuilder( 0.02, "HR.ORTHOIMAGERY.ORTHOPHOTOS", "EPSG:4326", "normal" );
 		const	pixels = await Fetch.fetchPngMap( colorSourceUrl as string );
-		const	tex = new DataTexture( pixels.data, pixels.shape[0], pixels.shape[1], RGBAFormat );
+		const	tex = new DataTexture( pixels.data as BufferSource, pixels.shape[0], pixels.shape[1], RGBAFormat );
 
 		tex.flipY = true;
 		tex.needsUpdate = true;

@@ -212,7 +212,6 @@ class	HugoGeo {
 		});
 	};
 
-	//get terrain greyscale
 	public async	getTerrainGrey( origin: [lat: number, lon:  number], radius: number ): Promise<THREE.Mesh[]> {
 		return new Promise( async ( resolve, reject ) => {
 			try {
