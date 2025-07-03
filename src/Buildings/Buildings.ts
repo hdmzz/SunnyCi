@@ -81,18 +81,16 @@ class	Buildings {
 		const	mat = new THREE.MeshPhongMaterial({ color: 'green', side: 2, wireframe: false });
 		const	url = this.source.url;
 		const	buildings = await this.getBuildings( url as string );
-		const	geometries: THREE.ExtrudeGeometry[] = [];
 		const	meshes: THREE.Mesh[] = [];
 
-		for ( let i = 0; i < buildings.length; i++ ) {
-			const	featureElement = buildings[i];
+		const geometryPromises = buildings.map(( featureElement ) => {
 			const	height = featureElement.properties.hauteur ? featureElement.properties.hauteur : 0.01;
 			const	altitude = featureElement.properties.altitude_minimale_sol;
-			const	building = await this.addBuilding( featureElement.geometry.coordinates, height, altitude );
-			
-			geometries.push( building );
-		};
+			return this.addBuilding( featureElement.geometry.coordinates, height, altitude );
+		});
 
+		const geometries: THREE.ExtrudeGeometry[] = await Promise.all( geometryPromises );
+			
 		for ( let i = 0; i < geometries.length; i++ ) {
 			const	mesh = new THREE.Mesh( geometries[i], mat );
 
@@ -141,7 +139,7 @@ class	Buildings {
 			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
-				const	mercator = this.extent.getProjectCoords( point[1], point[0] );
+				const	mercator = this.extent.getProjectCoords( point[1], point[0] );//!il faut transformer cette fonction en wasm Rust function!!!
 
 				if ( y === 0 ) {
 					shape.moveTo( mercator[0], mercator[1] );

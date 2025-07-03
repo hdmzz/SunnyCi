@@ -5,9 +5,11 @@ import proj4 from "proj4";
 
 const WGS84 = "EPSG:4326"; // Latitude/Longitude
 const WebMercator = "EPSG:3857"; 
+
 function reproject(lat: number, lon: number): [number, number] {
 	return proj4(WGS84, WebMercator, [lon, lat]);
-  };
+};
+
 class	ElevationLayer {
 	source: WMTSSource;
 	terrain: THREE.Mesh[] | undefined;
@@ -23,26 +25,37 @@ class	ElevationLayer {
 	public async	fetchBil()
 	{
 		return new Promise<THREE.Group>( async ( resolve ) => {
-			const	urls = this.source.neighborsUrls;
-			const	results: { elevation: number, x: number, y: number }[][][] = [];
-
-			const promises = urls.map( async ( url ) => {
-				const	bilResponse = await fetch( url.url );
-				const	bilBuffer = await bilResponse.arrayBuffer();
-				results.push( this.parseBil( bilBuffer, url.zoomPos ));
-			});
-			await Promise.all( promises );
-
-			const	meshes: THREE.Mesh[] = [];
-
-			for ( const meshPrecursor of results ) {
-				const	mesh = this.createMesh( meshPrecursor );
-				meshes.push( mesh );
+			const urls = this.source.neighborsUrls;
+			const group = this.createGroup([]);
+			let pending = urls.length;
+	
+			if ( pending === 0 ) {
+				this.terrain = [];
+				resolve( group );
+				return;
 			};
-
-			const	group = this.createGroup( meshes );
-			this.terrain = group.children as THREE.Mesh[];
-			resolve( group );
+			
+			urls.forEach( async ( url ) => {
+				try {
+					const bilResponse = await fetch( url.url );
+	
+					if ( !bilResponse.ok ) {
+						throw new Error( `failed to fetch ${url.url}: ${bilResponse.statusText}` );
+					};
+					const bilBuffer = await bilResponse.arrayBuffer();
+					const meshPrecursor =  this.parseBil( bilBuffer, url.zoomPos );
+					const mesh = this.createMesh( meshPrecursor );
+					group.add( mesh );	
+				} catch ( err ) {
+					console.error
+				} finally {
+					pending--;
+					if ( pending === 0) {
+						this.terrain = group.children as THREE.Mesh[];
+						resolve( group );
+					};
+				};
+			});
 		});
 	};
 
@@ -56,7 +69,7 @@ class	ElevationLayer {
 
 	private		parseBil( buffer: ArrayBuffer, zoomPos: { zoom: number, tileCol: number, tileRow: number })
 	{
-		const	elevationData = new DataView( buffer );
+		const	elevationData = new Float32Array( buffer );
 		const	grid = [];
 		const	ncols = 256;
 		const	bbox = Extent.tileToBBox( zoomPos.tileCol, zoomPos.tileRow, zoomPos.zoom );
@@ -65,10 +78,9 @@ class	ElevationLayer {
 
 		for ( let row = 0; row < ncols; row++ ) {
 			const	rowArray = [];
-
 			for ( let col = 0; col < ncols; col++ ) {
-				const	index = ( row * ncols + col ) * 4;
-				const	value = elevationData.getFloat32( index, true );
+				const	index = ( row * ncols + col );
+				const	value = elevationData[index];
 				const	lon = bbox.minLon + ( col / ( ncols - 1 )) * lonRange;
 				const	lat = bbox.maxLat - ( row / ( ncols - 1 )) * latRange;
 				const	[px, py] = reproject( lat, lon );
