@@ -133,4 +133,4 @@ class	ElevationLayer {
 	};
 };
 
-export default	ElevationLayer;
+export default ElevationLayer;

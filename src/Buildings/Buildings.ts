@@ -139,7 +139,7 @@ class	Buildings {
 			const	elPoint = points[i];
 
 			elPoint.forEach(( point, y ) => {
-				const	mercator = this.extent.getProjectCoords( point[1], point[0] );//!il faut transformer cette fonction en wasm Rust function!!!
+				const	mercator = this.extent.getProjectCoords( point[1], point[0] );//!il faut projeter tous les points en une seule fois, trop d,appele de fonction 
 
 				if ( y === 0 ) {
 					shape.moveTo( mercator[0], mercator[1] );
@@ -152,17 +152,14 @@ class	Buildings {
 		return ( shape );
 	};
 
-	public async	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): Promise<THREE.ExtrudeGeometry>
+	public	genGeometry( shape: THREE.Shape, extrudeSettings: { curveSegment: number, depth: number, bevelEnabled: boolean, altitude: number } ): THREE.ExtrudeGeometry
 	{
-		return new Promise( async ( resolve ) => {
-			await new Promise(( resolve ) => setTimeout( resolve, 0 ));
-			const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+		const	geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 
-			geometry.rotateX(Math.PI / 2 );
-			geometry.rotateY( -Math.PI );
-			geometry.translate(0, extrudeSettings.altitude + 0.5 , 0);
-			resolve( geometry );
-		});
+		geometry.rotateX(Math.PI / 2 );
+		geometry.rotateY( -Math.PI );
+		geometry.translate(0, extrudeSettings.altitude + 0.5 , 0);
+		return ( geometry );
 	};
 };
 
