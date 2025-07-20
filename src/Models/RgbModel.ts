@@ -74,26 +74,22 @@ class	RgbModel {
 			this.onSatelliteMat = undefined;
 	};
 
-	public	fetch( zpCovered: number[][], bbox: BboxType ): void {
+	public	async fetch( zpCovered: number[][], bbox: BboxType ): Promise<void> {
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
 		console.log(zpCovered, zoomPositionElevation)
-		let	count = 0;
 		
-		zoomPositionElevation.forEach( async zoomPos => {
+		const tilePromise = zoomPositionElevation.map( async zoomPos => {
 			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );
 
 			if ( tile !== null ) {
-				this.dataElevationCovered = this.dataElevationCovered.concat( this.addTile( tile, zoomPos, zpCovered, bbox ));
+				return this.addTile( tile, zoomPos, zpCovered, bbox );
 			} else {
 				throw new Error( 'no tile added l-89 RgbModel' );
 			};
-
-			count++;
-
-			if ( count === zoomPositionElevation.length ) {
-				this.build();
-			};
 		});
+		const allTilesData = await Promise.all(tilePromise);
+		this.dataElevationCovered = allTilesData.flat();
+		this.build();
 	};
 
 	public	addTile( tile: ndarray.NdArray<Uint8Array>, zoomPositionElevation: number[], zpCovered: number[][], bbox: BboxType ): number[][][] {
