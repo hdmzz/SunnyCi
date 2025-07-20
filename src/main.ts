@@ -45,7 +45,7 @@ async function	loadTerrain()
 	let terrain;
 	
 	if (selectedSource === "mapbox") {
-		terrain = await geo.getTerrainRgb(CENTER, 5, 15);
+		terrain = await geo.getTerrainRgb(CENTER, 1, 15);
 	} else {
 		// Utiliser BIL DEM
 		const testWmts = new WMTSSource( extent, {
@@ -70,15 +70,14 @@ async function	loadTerrain()
 	const result = wasm.gen_shape_wasm(dummyPoints, dummyCenter);
 	console.log("WASM function result:", result);
 		
-		const	buildingSource = new WFSSource( CENTER, RADIUS, {
-			layer: "BDTOPO_V3:batiment",
-		});
-	
-		const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
-		buildings.rotateY( Math.PI );
-		
-		view.addLayer( "buildings", buildings );
+	const	buildingSource = new WFSSource( CENTER, RADIUS, {
+		layer: "BDTOPO_V3:batiment",
+	});
 
+	const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
+	buildings.rotateY( Math.PI );
+	
+	view.addLayer( "buildings", buildings );
 };
 
 loadTerrain();
