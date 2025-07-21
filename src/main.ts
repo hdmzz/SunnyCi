@@ -45,7 +45,7 @@ async function	loadTerrain()
 	let terrain;
 	
 	if (selectedSource === "mapbox") {
-		terrain = await geo.getTerrainRgb(CENTER, 1, 15);
+		terrain = await geo.getTerrainRgb(CENTER, 4, 15);
 	} else {
 		// Utiliser BIL DEM
 		const testWmts = new WMTSSource( extent, {

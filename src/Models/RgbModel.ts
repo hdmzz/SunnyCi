@@ -76,10 +76,9 @@ class	RgbModel {
 
 	public	async fetch( zpCovered: number[][], bbox: BboxType ): Promise<void> {
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
-		console.log(zpCovered, zoomPositionElevation)
 		
-		const tilePromise = zoomPositionElevation.map( async zoomPos => {
-			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );
+		const tilePromise = zoomPositionElevation.map( async ( zoomPos ) => {
+			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );//recupere juste la tuile
 
 			if ( tile !== null ) {
 				return this.addTile( tile, zoomPos, zpCovered, bbox );
@@ -88,6 +87,8 @@ class	RgbModel {
 			};
 		});
 		const allTilesData = await Promise.all(tilePromise);
+		console.log(allTilesData.length);
+		
 		this.dataElevationCovered = allTilesData.flat();
 		this.build();
 	};
@@ -176,6 +177,8 @@ class	RgbModel {
 			onSatelliteMatWrapper: ((meshAcc: THREE.Mesh[]) => void) | null
 		): THREE.Mesh[] {
 		const	{ dataElevationCovered: dataEl, apiSatellite, mapBoxToken } = this;
+		console.log(dataEl);
+		
 
 		dataEl.sort(( zp1, zp2 ) => {
 			return ( zp1[0].join( "/" ) > zp2[0].join( "/" ) ? 1 : -1 );
@@ -301,7 +304,7 @@ class	RgbModel {
 			};
 		});
 		return ( infoNei );
-	}
+	};
 
 	private	getNeighbors8( zoomPos: number[] ): number[][] {
 		const	zoomposNeighborsDiff = [
