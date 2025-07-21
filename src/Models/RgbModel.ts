@@ -78,7 +78,11 @@ class	RgbModel {
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
 		
 		const tilePromise = zoomPositionElevation.map( async ( zoomPos ) => {
+
+			//!Ici appel rust backend
+
 			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );//recupere juste la tuile
+
 
 			if ( tile !== null ) {
 				return this.addTile( tile, zoomPos, zpCovered, bbox );
@@ -87,7 +91,6 @@ class	RgbModel {
 			};
 		});
 		const allTilesData = await Promise.all(tilePromise);
-		console.log(allTilesData.length);
 		
 		this.dataElevationCovered = allTilesData.flat();
 		this.build();

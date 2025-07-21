@@ -12,27 +12,17 @@ class Fetch {
   *
   * @param zpCovered - An array of zoom position arrays, where each inner array represents a zoom position.
   * @returns An array of unique grandparent zoom position arrays.
+  * >>2 equivqut Math floor(x/4) === x >> 2
   */
  static	getZoomPositionElevation(zpCovered: number[][]) {
-		const elevations: { [key: string]: number[][] } = {};
+		const grandParentsKeys = new Set<String>;
 
-		zpCovered.forEach(( zoomPos ) => {
-			let	grandparent = [
-				zoomPos[0]-2, Math.floor(zoomPos[1]/4), Math.floor(zoomPos[2]/4)];
+		for (const zoomPos of zpCovered) {
+			const key = `${zoomPos[0] - 2},${zoomPos[1] >> 2},${zoomPos[2] >> 2}`;
+			grandParentsKeys.add(key);
+		};
 
-			const	key = grandparent.join(',');
-
-			if (elevations[key]) {
-				elevations[key].push(zoomPos);
-			} else {
-				elevations[key] = [zoomPos];
-			}
-		});
-
-		return (
-			Object.keys(elevations)
-			.map(triplet => triplet.split(',').map(num => parseFloat(num)))
-		);
+		return (Array.from(grandParentsKeys, ( key ) => key.split(',').map( Number )));
 	};
 
 	static	urlBuilder( bbox: BboxType ): string {
