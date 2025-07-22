@@ -3,9 +3,17 @@ import ndarray from "ndarray";
 import Fetch from "../Fetcher/Fetch";
 import { SphericalMercator } from "@mapbox/sphericalmercator";
 import { BboxType } from "../type";
+import pako from "pako";
 
 const	constVertices = 128;
 const	constTilePixels = new SphericalMercator({size: 128});
+
+
+interface Metadata {
+	data_len: number,
+	parent_zoom_pos: number[],
+	zoom_pos: number[]
+}
 
 //! Attention ll signifie lon lat ici et pas lat lon
 const	computeSeamRows = ( shift: number ) => {
@@ -76,23 +84,68 @@ class	RgbModel {
 
 	public	async fetch( zpCovered: number[][], bbox: BboxType ): Promise<void> {
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
+		const rustTest = new URL("http://localhost:8080/api/terrain_rgb_v2");
+		const res = await fetch(rustTest, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({zoom_position: zoomPositionElevation[0], zoom_position_covered: zpCovered, bbox: bbox, units_per_meter: this.unitsPerMeter})
+		})
+
+		const buffer = await res.arrayBuffer();
+		const dataView = new DataView(buffer);
+		const textDecoder = new TextDecoder('utf-8');
+		const decodedTiles = [];
+		const tileDataTest = [];
+
+		let offset =  0;
+		const numTiles = dataView.getUint32(offset, true);
+		offset += 4;
+	
+		for (let i = 0; i < numTiles; i++) {
+			    // 2. Read metadata length and metadata
+			    const metadataLen = dataView.getUint32(offset, true);
+			    offset += 4;
+			    const metadataBytes = buffer.slice(offset, offset + metadataLen);
+			    const metadata: Metadata = await JSON.parse(textDecoder.decode(metadataBytes));
+			    offset += metadataLen;
+				console.log(metadata);
+				
+			    // 3. Read compressed data length and compressed data
+			    const compressedDataLen = dataView.getUint32(offset, true);
+			    offset += 4;
+			    const compressedData = new Uint8Array(buffer, offset, compressedDataLen);
+			    offset += compressedDataLen;
+
+			    // 4. Decompress the data using pako
+			    const dataBytes = pako.inflate(compressedData);
+				const data = new Float32Array(dataBytes.buffer);
+
+				console.log(data);
+				
+			    decodedTiles.push({
+			        metadata: metadata,
+			        data: data,
+			    });
+				tileDataTest.push([metadata.zoom_pos, Array.from(data), metadata.parent_zoom_pos]);
+			}
 		
-		const tilePromise = zoomPositionElevation.map( async ( zoomPos ) => {
-
-			//!Ici appel rust backend
-
-			const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );//recupere juste la tuile
-
-
-			if ( tile !== null ) {
-				return this.addTile( tile, zoomPos, zpCovered, bbox );
-			} else {
-				throw new Error( 'no tile added l-89 RgbModel' );
-			};
-		});
-		const allTilesData = await Promise.all(tilePromise);
+	
+		//const tilePromise = zoomPositionElevation.map( async ( zoomPos ) => {
+		//	const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );//equivqlanet getpixel
+		//	const tileData = this.addTile( tile, zoomPos, zpCovered, bbox );
+			
+		//	if ( tile !== null ) {
+		//		return tileData;
+		//	} else {
+		//		throw new Error( 'no tile added l-89 RgbModel' );
+		//	};
+		//});
+		//const allTilesData = await Promise.all(tilePromise);
 		
-		this.dataElevationCovered = allTilesData.flat();
+		//this.dataElevationCovered = allTilesData.flat();
+		this.dataElevationCovered = tileDataTest;
 		this.build();
 	};
 
@@ -152,6 +205,8 @@ class	RgbModel {
 					dataIndex++;
 				};
 			};
+
+
 			dataElev.push([ zoomPos, array, zoomPositionElevation ])
 		});
 		return ( dataElev );

@@ -8,6 +8,8 @@ import GreyModel from './Models/GreyModel';
 import WMSSource from './Source/WMSRSource'
 import Source from './Source/Source';
 import WMSRSource from './Source/WMSRSource';
+import pako from 'pako';
+
 export interface	BoundingBox {
 	north: number;
 	south: number;
@@ -70,7 +72,6 @@ class	HugoGeo {
 				const	zoomPositionCovered = HugoGeo.getZoomPositionCovered( bbox.feature, zoom );
 				const	onSatMat = () => {}; //dummy function to trigger the satelite image fetch
 				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher, onSatMat );
-
 
 				rgbModel.fetch( zoomPositionCovered, bbox );
 			} catch ( error ) {
