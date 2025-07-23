@@ -70,7 +70,7 @@ class	Extent {
 		this.centerWebMercator = reproject( ...origin );
 	};
 
-	//avnt de lappeler elle il faut recuperer la bbox de la tuile
+	//avnt de lappeler il faut recuperer la bbox de la tuile
 	static	bboxAsTile( bbox: { minLat: number, minLon: number, maxLat: number, maxLon: number }, zoom: number, epsg: string )
 	{
 		const { minTileCol, minTileRow, maxTileCol, maxTileRow } = Extent.bboxToTileCoords( bbox, zoom, epsg );

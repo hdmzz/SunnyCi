@@ -100,7 +100,7 @@ class	Buildings {
 			meshes.push( mesh );
 		};
 
-		const	buildingGroup = HugoGeo.createDemGroups( 'Buildings', meshes );
+		const	buildingGroup = HugoGeo.createThreeGroup( 'Buildings', meshes );
 
 		return ( buildingGroup );
 	};

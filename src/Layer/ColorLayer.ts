@@ -3,7 +3,8 @@ import WMTSSource from "../Source/WMTSSource";
 import * as THREE from 'three';
 import { Coordinate } from "../Coordinate/Coordinate";
 import Extent from "../core/Extent";
-
+//https://maps.pole-emploi.fr/styles/osm-bright/#12/45.73737/4.85156
+//zoom + lat +  lon
 class ColorLayer {
 	source : Source;
 
@@ -11,7 +12,6 @@ class ColorLayer {
 		this.source = source;
 	};
 
-	//servira a la bonne comprehension des tuiles 
 	public async	fetchColorWmts(): Promise<THREE.Mesh[]> {
 		return new Promise( async ( resolve ) => {
 			let	textureResult: THREE.Mesh[] = [];
@@ -27,7 +27,6 @@ class ColorLayer {
 					const geometry = new THREE.PlaneGeometry( 256, 256 );
 					const mesh = new THREE.Mesh( geometry, material );
 
-					// Calculer la position géoréférencée
 					const bbox = Extent.tileToBBox( url.zoomPos.tileCol, url.zoomPos.tileRow, url.zoomPos.zoom );
 					const centerLat = (bbox.minLat + bbox.maxLat) / 2;
 					const centerLon = (bbox.minLon + bbox.maxLon) / 2;

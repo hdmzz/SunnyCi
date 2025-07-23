@@ -49,7 +49,7 @@ class	HugoGeo {
 			mesh.rotateX( -Math.PI/2 );
 		})
 
-		return ( HugoGeo.createDemGroups( "dem-rgb", meshes ));
+		return ( HugoGeo.createThreeGroup( "dem-rgb", meshes ));
 	};
 
 	/**
@@ -81,7 +81,7 @@ class	HugoGeo {
 		});
 	};
 
-	static	createDemGroups( name: string, objects: THREE.Mesh[] ): THREE.Group {
+	static	createThreeGroup( name: string, objects: THREE.Mesh[] ): THREE.Group {
 		const	group = new THREE.Group();
 
 		if (!objects || objects.length === 0) {

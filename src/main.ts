@@ -10,12 +10,11 @@ import { GeolocationService } from "./Services/GeolocationService";
 //import GeometryLayer from "./Layer/GeometryLayer";
 //import RgbModel from "./Models/RgbModel";
 import HugoGeo from "./HugoGeo";
-import * as wasm from "wasm-bindings";
 
 const	RADIUS = 5;
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 
-let		CENTER: [lat: number, lon: number] = [0,0];
+let		CENTER: [lat: number, lon: number] = [45.757653894601546,4.832152196097046];//remttre a zero
 const view = new View( container, CENTER );
 const	gridHelper = new THREE.GridHelper(100, 100)
 view.addLayer( "helper", gridHelper );
@@ -64,12 +63,6 @@ async function	loadTerrain()
 
 	view.addLayer("terrain", terrain)
 
-	// Wasm function
-	const dummyPoints = [[[0.0, 0.0], [1.0, 1.0]]];
-	const dummyCenter = [0.5, 0.5];
-	const result = wasm.gen_shape_wasm(dummyPoints, dummyCenter);
-	console.log("WASM function result:", result);
-		
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});
