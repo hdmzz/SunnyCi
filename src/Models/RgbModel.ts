@@ -50,15 +50,19 @@ const	sixteenthPixelRanges = (() => {
 
 type ProjectCoordsFunction = (coord: [number, number], nw: [number, number], se: [number, number]) => number[];
 
+// MODIFICATION 1: Mettre à jour le type pour accepter Float32Array
+type TileData = [number[], Float32Array, number[]];
+
 class	RgbModel {
-	public	unitsPerMeter: number;//on peut mettre 100?
-	public	projectCoords: ProjectCoordsFunction;
-	public	mapBoxToken: string;
-	public	dataElevationCovered: number[][][];
-	public	apiSatellite: string;
-	public	apiRgb: string;
-	private	watcher: (payload: { what: string; data: THREE.Mesh[]; }) => void;
-	private	onSatelliteMat: ( () => void ) | undefined;
+    public	unitsPerMeter: number;//on peut mettre 100?
+    public	projectCoords: ProjectCoordsFunction;
+    public	mapBoxToken: string;
+    // MODIFICATION 2: Mettre à jour le type de la propriété de classe
+    public	dataElevationCovered: TileData[];
+    public	apiSatellite: string;
+    public	apiRgb: string;
+    private	watcher: (payload: { what: string; data: THREE.Mesh[]; }) => void;
+    private	onSatelliteMat: ( () => void ) | undefined;
 
 	constructor (
 			units: number,
@@ -82,72 +86,77 @@ class	RgbModel {
 			this.onSatelliteMat = undefined;
 	};
 
-	public	async fetch( zpCovered: number[][], bbox: BboxType ): Promise<void> {
-		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
-		const rustTest = new URL("http://localhost:8080/api/terrain_rgb_v2");
-		const res = await fetch(rustTest, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({zoom_position: zoomPositionElevation[0], zoom_position_covered: zpCovered, bbox: bbox, units_per_meter: this.unitsPerMeter})
-		})
-
-		const buffer = await res.arrayBuffer();
+	/**
+	 * Analyse la réponse binaire du serveur pour une tuile.
+	 * @param buffer Le ArrayBuffer reçu du serveur.
+	 * @returns Un tableau de données de tuiles.
+	 */
+	private _parseTileResponse(buffer: ArrayBuffer): TileData[] {
 		const dataView = new DataView(buffer);
 		const textDecoder = new TextDecoder('utf-8');
-		const decodedTiles = [];
-		const tileDataTest = [];
+		const tilesData: TileData[] = [];
+		let offset = 0;
 
-		let offset =  0;
 		const numTiles = dataView.getUint32(offset, true);
 		offset += 4;
-	
+
 		for (let i = 0; i < numTiles; i++) {
-			    // 2. Read metadata length and metadata
-			    const metadataLen = dataView.getUint32(offset, true);
-			    offset += 4;
-			    const metadataBytes = buffer.slice(offset, offset + metadataLen);
-			    const metadata: Metadata = await JSON.parse(textDecoder.decode(metadataBytes));
-			    offset += metadataLen;
-				console.log(metadata);
-				
-			    // 3. Read compressed data length and compressed data
-			    const compressedDataLen = dataView.getUint32(offset, true);
-			    offset += 4;
-			    const compressedData = new Uint8Array(buffer, offset, compressedDataLen);
-			    offset += compressedDataLen;
+			const metadataLen = dataView.getUint32(offset, true);
+			offset += 4;
+			const metadataBytes = buffer.slice(offset, offset + metadataLen);
+			const metadata: Metadata = JSON.parse(textDecoder.decode(metadataBytes));
+			offset += metadataLen;
 
-			    // 4. Decompress the data using pako
-			    const dataBytes = pako.inflate(compressedData);
-				const data = new Float32Array(dataBytes.buffer);
+			const compressedDataLen = dataView.getUint32(offset, true);
+			offset += 4;
+			const compressedData = new Uint8Array(buffer, offset, compressedDataLen);
+			offset += compressedDataLen;
 
-				console.log(data);
-				
-			    decodedTiles.push({
-			        metadata: metadata,
-			        data: data,
-			    });
-				tileDataTest.push([metadata.zoom_pos, Array.from(data), metadata.parent_zoom_pos]);
-			}
-		
-	
-		//const tilePromise = zoomPositionElevation.map( async ( zoomPos ) => {
-		//	const	tile = await Fetch.fetchTile( zoomPos, this.mapBoxToken, this.apiRgb );//equivqlanet getpixel
-		//	const tileData = this.addTile( tile, zoomPos, zpCovered, bbox );
-			
-		//	if ( tile !== null ) {
-		//		return tileData;
-		//	} else {
-		//		throw new Error( 'no tile added l-89 RgbModel' );
-		//	};
-		//});
-		//const allTilesData = await Promise.all(tilePromise);
-		
-		//this.dataElevationCovered = allTilesData.flat();
-		this.dataElevationCovered = tileDataTest;
-		this.build();
-	};
+			const dataBytes = pako.inflate(compressedData);
+			const data = new Float32Array(dataBytes.buffer);
+            
+            // MODIFICATION 3: Supprimer Array.from() 
+            tilesData.push([metadata.zoom_pos, data, metadata.parent_zoom_pos]);
+        }
+        return tilesData;
+    }
+
+    public	async fetch( zpCovered: number[][], bbox: BboxType ): Promise<void> {
+		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
+        const apiUrl = new URL("http://localhost:8080/api/terrain_rgb_v2");
+        
+        const tilePromises = zoomPositionElevation.map(async (zoomPos) => {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        zoom_position: zoomPos,
+                        zoom_position_covered: zpCovered,
+                        bbox: bbox,
+                        units_per_meter: this.unitsPerMeter
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+                }
+
+                const buffer = await response.arrayBuffer();
+                return this._parseTileResponse(buffer);
+
+            } catch (error) {
+                console.error(`Failed to fetch or parse tile ${zoomPos.join('/')}:`, error);
+                return []; // Retourne un tableau vide pour cette tuile en cas d'erreur
+            }
+        });
+
+        const allTiles = await Promise.all(tilePromises);
+        
+        // MODIFICATION 4: Le .flat() fonctionne toujours, mais le type est maintenant correct
+        this.dataElevationCovered = allTiles.flat();
+        this.build();
+    };
 
 	public	addTile( tile: ndarray.NdArray<Uint8Array>, zoomPositionElevation: number[], zpCovered: number[][], bbox: BboxType ): number[][][] {
 		let	elevations =  [];
@@ -194,18 +203,12 @@ class	RgbModel {
 			let	dataIndex = 0;
 			for ( let row = 0; row < constVertices; row++ ) {
 				for ( let col = 0; col < constVertices; col++ ) {
-					//lonLat longitude latitude en degres 
-					let lonlatPixel = constTilePixels.ll([
-						zoomPos[1] * 128 + col,
-						zoomPos[2] * 128 + row
-					], zoomPos[0]);
-					array.push(
-						...this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] ),
-						elev[dataIndex] * this.unitsPerMeter);//fix le sens
+					let lonlatPixel = constTilePixels.ll( [zoomPos[1] * 128 + col, zoomPos[2] * 128 + row], zoomPos[0] );
+					let [x, y] = this.projectCoords( lonlatPixel, bbox.northWest as [number, number], bbox.southEast as [number, number] )
+					array.push( x, y, elev[dataIndex] * this.unitsPerMeter);
 					dataIndex++;
 				};
 			};
-
 
 			dataElev.push([ zoomPos, array, zoomPositionElevation ])
 		});
@@ -232,14 +235,13 @@ class	RgbModel {
 	};
 
 	private	_build(
-			onSatelliteMatWrapper: ((meshAcc: THREE.Mesh[]) => void) | null
-		): THREE.Mesh[] {
-		const	{ dataElevationCovered: dataEl, apiSatellite, mapBoxToken } = this;
+            onSatelliteMatWrapper: ((meshAcc: THREE.Mesh[]) => void) | null
+        ): THREE.Mesh[] {
+        const	{ dataElevationCovered: dataEl, apiSatellite, mapBoxToken } = this;
 		console.log(dataEl);
-		
 
-		dataEl.sort(( zp1, zp2 ) => {
-			return ( zp1[0].join( "/" ) > zp2[0].join( "/" ) ? 1 : -1 );
+		dataEl.sort(( data1, data2 ) => {
+			return ( data1[0].join( "/" ) > data2[0].join( "/" ) ? 1 : -1 );
 		});
 
 		//on index chaque valeurn et on les stock dans un tab nommé dataEleIds
@@ -250,16 +252,18 @@ class	RgbModel {
 		const	geometries: THREE.BufferGeometry[] = [];
 
 		dataEl.forEach(([ zoomPos, array, _zoomPosEle ]) => {
-			let	cSegments = this.resolveSeams(
-				array, this.getNeighborsInfo( dataEl, dataElIds, zoomPos )
-			);
+            //let	cSegments = this.resolveSeams(
+            //    // MODIFICATION 5: Convertir en Array standard juste avant l'utilisation si nécessaire
+            //    Array.from(array), this.getNeighborsInfo( dataEl, dataElIds, zoomPos )
+            //);
 
-			const	geom = new THREE.PlaneGeometry( 1, 1, cSegments[0], cSegments[1] );
+            const	geom = new THREE.PlaneGeometry( 1, 1, 127, 127);
 
-			geom.setAttribute(
-				"position",
-				new THREE.Float32BufferAttribute( new Float32Array( array ), 3 )
-			);
+            geom.setAttribute(
+                "position",
+                // Three.js préfère les Float32Array, donc on utilise directement 'array'
+                new THREE.Float32BufferAttribute( array, 3 )
+            );
 			geom.computeBoundingBox();
 			geometries.push( geom );
 
@@ -301,25 +305,28 @@ class	RgbModel {
 		return ( objs );
 	};
 
-	public	resolveSeams( array: number[], infoNei: { [key: number]: number[] } ) {
-		let	cSegments = [ constVertices - 1, constVertices - 1 ];//constVertice === 128
+	public	resolveSeams( array: number[], infoNei: { [key: number]: (number[] | Float32Array) } ) {
+        let	cSegments = [ constVertices - 1, constVertices - 1 ];//constVertice === 128
 
-		Object.entries( infoNei ).forEach(([ idxNei, arrayNei ]) => {
-			if ( idxNei === "2" ) {
-				this._stitchWithNei2( array, arrayNei );
-				cSegments[1]++;
-			} else if ( idxNei === "3" ) {
-				this._stitchWithNei3( array, arrayNei );
-				cSegments[0]++;
-			};
-		});
+        Object.entries( infoNei ).forEach(([ idxNei, arrayNei ]) => {
+            // On s'assure que le voisin est aussi un tableau standard pour la manipulation
+            const standardArrayNei = Array.from(arrayNei);
+            if ( idxNei === "2" ) {
+                this._stitchWithNei2( array, standardArrayNei );
+                cSegments[1]++;
+            } else if ( idxNei === "3" ) {
+                this._stitchWithNei3( array, standardArrayNei );
+                cSegments[0]++;
+            };
+        });
 
-		if (cSegments[0] === constVertices &&
-			cSegments[1] === constVertices) {
-			let	arrayNei6 = infoNei["6"];
-			if ( arrayNei6 ) {
-				array.push( arrayNei6[0], arrayNei6[1], arrayNei6[2] );
-			} else {
+        if (cSegments[0] === constVertices &&
+            cSegments[1] === constVertices) {
+            let	arrayNei6 = infoNei["6"];
+            if ( arrayNei6 ) {
+                // On utilise directement les valeurs du Float32Array
+                array.push( arrayNei6[0], arrayNei6[1], arrayNei6[2] );
+            } else {
 				// filling with a degenerated triangle
 				let	len = array.length;
 				array.push( array[len-3], array[len-2], array[len-1] );
@@ -352,8 +359,8 @@ class	RgbModel {
 		};
 	};
 
-	public	getNeighborsInfo( dataEle: number[][][], dataEleIds: {[key: string]: number}, zoomPos: number[] ): {[ key: number ]: number[]} {
-		const	infoNei: {[ key: number ]: number[]} = {};
+	public	getNeighborsInfo( dataEle: TileData[], dataEleIds: {[key: string]: number}, zoomPos: number[] ): {[ key: number ]: (number[] | Float32Array)} {
+		const	infoNei: {[ key: number ]: (number[] | Float32Array)} = {};
 		this.getNeighbors8( zoomPos ).forEach(( zoomposNei, idxNei ) => {
 			const	id = zoomposNei.join( '/' );
 			if ( id in dataEleIds ) {
