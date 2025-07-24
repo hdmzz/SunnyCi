@@ -102,7 +102,7 @@ class	ElevationLayer {
 	 * @param bbox boundingBox en wgs84 de la tuile delevation, la source d'elevation convient super bien pour la france donc pas besoin 
 	 * pour le moment de s'inquieter de savoir si cest generique 
 	 */
-	async	resolveTexture( bbox: { minLat: number; minLon: number; maxLat: number; maxLon: number; })
+	public async	resolveTexture( bbox: { minLat: number; minLon: number; maxLat: number; maxLon: number; })
 	{
 		const	tileCoord = Extent.bboxAsTile(bbox, 16, "PM");
 		const baseUrl = 'https://data.geopf.fr/wmts?LAYER=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile';

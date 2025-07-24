@@ -45,7 +45,6 @@ async function	loadTerrain()
 	if (selectedSource === "mapbox") {
 		terrain = await geo.getTerrainRgb(CENTER, 4, 15);
 	} else {
-		// Utiliser BIL DEM
 		const testWmts = new WMTSSource( extent, {
 			layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
 			format: "image/x-bil;bits=32",
@@ -62,22 +61,24 @@ async function	loadTerrain()
 	}
 
 	
-	const	buildingSource = new WFSSource( CENTER, RADIUS, {
-		layer: "BDTOPO_V3:batiment",
-	});
+	//const	buildingSource = new WFSSource( CENTER, RADIUS, {
+	//	layer: "BDTOPO_V3:batiment",
+	//});
 	
-	const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
-	group.add(buildings);
-	view.addLayer("terrain-builing", group);
+	//const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
+	//group.add(buildings);
+
+	//en fonction de la valeur du zoom a chaque crans les coordonnées font (* 2 ) + 1
+	const xyzTest = new XYZSource(CENTER, RADIUS, ZOOM + 3, "https://maps.pole-emploi.fr/styles/klokantech-basic").getUrl();
+	console.log(xyzTest);
 	
-	const xyzTest = new XYZSource(CENTER, RADIUS, ZOOM, "https://maps.pole-emploi.fr/styles/klokantech-basic");
+
+	
 	let box = new THREE.Box3().setFromObject(group);
 	const center = new THREE.Vector3();
 	box.getCenter(center);
 	group.position.sub(center);
-
-
-	//view.addLayer( "buildings", buildings );
+	view.addLayer("terrain-builing", group);
 };
 
 loadTerrain();
@@ -90,6 +91,10 @@ goButton?.addEventListener("click", () => {
 	const	coords = coordsInput.value.split( ',' ).map( Number );
 	if ( coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
 		view.removeLayer();
+		clearGroup( group );
+		
+		console.log( group );
+		
 		CENTER = [coords[0], coords[1]];
 		loadTerrain();
 	} else {
@@ -97,8 +102,20 @@ goButton?.addEventListener("click", () => {
 	};
 });
 
-// Ajout d'un événement pour le changement de source
 sourceSelector?.addEventListener("change", () => {
 	view.removeLayer();
 	loadTerrain();
 });
+
+function clearGroup( group: THREE.Group ) {
+	group.children.forEach(( child ) => {
+		if ( child instanceof THREE.Mesh ) {
+			child.geometry.dispose();
+			child.clear();
+		}
+		if ( child instanceof THREE.Group ) {
+			clearGroup( child );
+		}
+	})
+	group.clear();
+}

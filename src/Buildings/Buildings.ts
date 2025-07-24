@@ -138,13 +138,13 @@ class	Buildings {
 		for ( let i = 0; i < points.length; i++ ) {
 			const	elPoint = points[i];
 
-			elPoint.forEach(( point, y ) => {
-				const	mercator = this.extent.getProjectCoords( point[1], point[0] );//!il faut projeter tous les points en une seule fois, trop d,appele de fonction 
+			elPoint.forEach(( point, idx ) => {
+				const	[x, y] = this.extent.getProjectCoords( point[1], point[0] );
 
-				if ( y === 0 ) {
-					shape.moveTo( mercator[0], mercator[1] );
+				if ( idx === 0 ) {
+					shape.moveTo( x, y );
 				} else {
-					shape.lineTo( mercator[0], mercator[1] );
+					shape.lineTo( x, y );
 				};
 			});
 		};

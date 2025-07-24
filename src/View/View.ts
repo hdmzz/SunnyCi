@@ -129,8 +129,27 @@ class	View extends THREE.EventDispatcher {
 		};
 	};
 
+	public cleanLayer() {
+		this.layers.forEach(( layer ) => {
+			if ( layer instanceof THREE.Group ) {
+				layer.children.forEach(( mesh ) => {
+					if (  mesh instanceof THREE.Mesh ) {
+						mesh.geometry.dispose();
+						mesh.clear();
+					}
+				})
+			} else {
+				if ( layer instanceof THREE.Mesh ) {
+					layer.geometry.dispose();
+					layer.clear();
+				}
+			}
+		})
+	}
+
 	public	removeLayer() {
-		this.layers.forEach(( layer ) => {this.scene.remove( layer.value )});
+		this.layers.forEach(( layer ) => { this.scene.remove( layer.value ) });
+		this.cleanLayer();
 		this.layers = [];
 		this.render();
 	};
