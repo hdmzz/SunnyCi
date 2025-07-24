@@ -23,14 +23,16 @@ class	View extends THREE.EventDispatcher {
 	center: [lat: number, lon: number];
 	sunSphere!: THREE.Mesh;
 	compass!: THREE.ArrowHelper;
+	zoom: number;
 
-	constructor( container: HTMLDivElement, center: [lat: number, lon: number] ) {
+	constructor( container: HTMLDivElement, center: [lat: number, lon: number], zoom: number ) {
 		super();
 		const compass = document.getElementById("compassContainer");
 		this.center = center
 		this.scene = new THREE.Scene();
 		this.scene.background = new THREE.CubeTextureLoader().setPath('/DEMVis/').load(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'])
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
+		this.zoom = zoom;
 		this.camera.position.z = 5;
 		this.camera.position.y = 10;
 		this.renderer = new THREE.WebGLRenderer({
@@ -54,13 +56,12 @@ class	View extends THREE.EventDispatcher {
 			compass!.style.transform = `rotate(${thetaDegree - 180}deg)`;
 			this.controls.update();
 			this.renderer.render( this.scene, this.camera );
-			this.sunSphere.position.copy(this.sunLight.position); // Mettre à jour la position de la sphère
+			this.sunSphere.position.copy(this.sunLight.position);
 		};
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setAnimationLoop( animate );
-		const axesHelper = new THREE.AxesHelper( 1000 );
-		this.scene.add( axesHelper, this.sunLight );
+		this.scene.add( this.sunLight );
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		container.appendChild( this.renderer.domElement );
@@ -92,19 +93,32 @@ class	View extends THREE.EventDispatcher {
 
 			raycaster.setFromCamera( mouse, this.camera );
 			try {
-				const	intersects = raycaster.intersectObjects( this.getLayerByName( "buildings" ).children );//stocker les layer par cles valeurs pour chercher dedans au lieu de galerer cest time consuming putaing!
+				const	intersects = raycaster.intersectObjects( this.getLayerByName( "buildings" ).children );
 				console.log( intersects[0].object );
 			} catch ( err ) {
 				console.log( err );
 			};
 		});
+
+		this.container.addEventListener('wheel', this.handleMouseWheel.bind( this ));
 	};
 
+	handleMouseWheel( e: WheelEvent ) {
+		e.preventDefault();
+		e.stopPropagation();
+		const dir = Math.sign( e.deltaY )
+		const step = 0.1;
+		this.zoom += dir * step;
+		this.zoom = Math.max( 3, Math.min( 17, this.zoom ));
+		console.log(this.zoom);
+		
+	}
+
 	private	onResize() {
-			this.camera.aspect = window.innerWidth / window.innerHeight;
-			this.camera.updateProjectionMatrix();
-			this.renderer.setSize( window.innerWidth, window.innerHeight );
-		};
+		this.camera.aspect = window.innerWidth / window.innerHeight;
+		this.camera.updateProjectionMatrix();
+		this.renderer.setSize( window.innerWidth, window.innerHeight );
+	};
 
 	public	addLayer( name: string, layers: THREE.Object3D ) {
 		this.scene.add( layers );
@@ -116,9 +130,7 @@ class	View extends THREE.EventDispatcher {
 	};
 
 	public	removeLayer() {
-		this.layers.forEach(( layer ) => {
-				this.scene.remove( layer.value );
-		});
+		this.layers.forEach(( layer ) => {this.scene.remove( layer.value )});
 		this.layers = [];
 		this.render();
 	};

@@ -10,21 +10,20 @@ import { GeolocationService } from "./Services/GeolocationService";
 //import GeometryLayer from "./Layer/GeometryLayer";
 //import RgbModel from "./Models/RgbModel";
 import HugoGeo from "./HugoGeo";
+import XYZSource from "./Source/XYZSource";
+
+const	container = document.getElementById('viewerDiv') as HTMLDivElement;
+let group: THREE.Group = new THREE.Group();
 
 const	RADIUS = 5;
-const	container = document.getElementById('viewerDiv') as HTMLDivElement;
-
-let		CENTER: [lat: number, lon: number] = [45.757653894601546,4.832152196097046];//remttre a zero
-const view = new View( container, CENTER );
-const	gridHelper = new THREE.GridHelper(100, 100)
-view.addLayer( "helper", gridHelper );
-
+const 	ZOOM = 14;
+let	CENTER: [lat: number, lon: number] = [45.757653894601546,4.832152196097046];//remttre a zero
+const 	view = new View( container, CENTER,ZOOM );
 const geo = new HugoGeo({
 	tokenMapBox: 'pk.eyJ1IjoiYWxhbnRnZW8tcHJlc2FsZXMiLCJhIjoiY2pzcTA4NjRiMTMxczQzcDFqa29maXk3bSJ9.pVYNTFKfcOXA_U_5TUwDWw',
 	tokenOpenTopo: '',
 	unitsSide: 10000,
 });
-
 
 async function	loadTerrain()
 {
@@ -53,24 +52,32 @@ async function	loadTerrain()
 			style: "normal",
 			tileMatrixSet: "WGS84G",
 			neighbors: true,
-			zoom: 14,
+			zoom: ZOOM,
 		});
 		
 		const eleLayer = new ElevationLayer( testWmts );
 		terrain = await eleLayer.fetchBil();
 		terrain.rotateY( Math.PI );
+		group.add(terrain);
 	}
 
-	view.addLayer("terrain", terrain)
-
+	
 	const	buildingSource = new WFSSource( CENTER, RADIUS, {
 		layer: "BDTOPO_V3:batiment",
 	});
-
-	const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
-	buildings.rotateY( Math.PI );
 	
-	view.addLayer( "buildings", buildings );
+	const	buildings = await new Buildings(CENTER, RADIUS, view, buildingSource, terrain.children as THREE.Mesh[], extent ).Building();
+	group.add(buildings);
+	view.addLayer("terrain-builing", group);
+	
+	const xyzTest = new XYZSource(CENTER, RADIUS, ZOOM, "https://maps.pole-emploi.fr/styles/klokantech-basic");
+	let box = new THREE.Box3().setFromObject(group);
+	const center = new THREE.Vector3();
+	box.getCenter(center);
+	group.position.sub(center);
+
+
+	//view.addLayer( "buildings", buildings );
 };
 
 loadTerrain();

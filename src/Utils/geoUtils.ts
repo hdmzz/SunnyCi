@@ -21,9 +21,7 @@ class	Utils {
 		return ([ w, s, e, n ]);
 	};
 
-	static	tileToBbox() {
-		
-	}
+	
 };
 
 export default	( Utils );
