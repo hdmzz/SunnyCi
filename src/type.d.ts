@@ -11,6 +11,13 @@ export type	BboxType = {
 	southEast: [number, number];
 };
 
+export type	Bbox = {
+	minLat: number,
+	minLon: number,
+	maxLat: number,
+	maxLon: number,
+};
+
 export type	PolygonFeature = {
 	type: string;
 	geometry: {

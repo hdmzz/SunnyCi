@@ -35,6 +35,7 @@ async function	loadTerrain()
 		};
 	};
 	const	extent = new Extent( CENTER, RADIUS, "EPSG:4326" );
+	console.log(extent);
 	
 	// Récupérer la source sélectionnée
 	const sourceSelector = document.getElementById("sourceSelector") as HTMLSelectElement;
@@ -45,7 +46,7 @@ async function	loadTerrain()
 	if (selectedSource === "mapbox") {
 		terrain = await geo.getTerrainRgb(CENTER, 4, 15);
 	} else {
-		const testWmts = new WMTSSource( extent, {
+		const elevationSource = new WMTSSource( extent, {
 			layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
 			format: "image/x-bil;bits=32",
 			style: "normal",
@@ -53,11 +54,15 @@ async function	loadTerrain()
 			neighbors: true,
 			zoom: ZOOM,
 		});
+
 		
-		const eleLayer = new ElevationLayer( testWmts );
+		const eleLayer = new ElevationLayer( elevationSource );
 		terrain = await eleLayer.fetchBil();
 		terrain.rotateY( Math.PI );
-		group.add(terrain);
+		view.addLayer("terrain", terrain);
+		//group.add(terrain);
+
+
 	}
 
 	
@@ -69,16 +74,7 @@ async function	loadTerrain()
 	//group.add(buildings);
 
 	//en fonction de la valeur du zoom a chaque crans les coordonnées font (* 2 ) + 1
-	const xyzTest = new XYZSource(CENTER, RADIUS, ZOOM + 3, "https://maps.pole-emploi.fr/styles/klokantech-basic").getUrl();
-	console.log(xyzTest);
-	
-
-	
-	let box = new THREE.Box3().setFromObject(group);
-	const center = new THREE.Vector3();
-	box.getCenter(center);
-	group.position.sub(center);
-	view.addLayer("terrain-builing", group);
+	//view.addLayer("terrain-builing", group );
 };
 
 loadTerrain();
@@ -104,18 +100,37 @@ goButton?.addEventListener("click", () => {
 
 sourceSelector?.addEventListener("change", () => {
 	view.removeLayer();
+	clearGroup(group);
 	loadTerrain();
 });
 
 function clearGroup( group: THREE.Group ) {
-	group.children.forEach(( child ) => {
-		if ( child instanceof THREE.Mesh ) {
-			child.geometry.dispose();
-			child.clear();
-		}
-		if ( child instanceof THREE.Group ) {
-			clearGroup( child );
-		}
-	})
-	group.clear();
+    // Itérer à l'envers pour supprimer des éléments en toute sécurité
+    for (let i = group.children.length - 1; i >= 0; i--) {
+        const child = group.children[i];
+
+        if ( child instanceof THREE.Mesh ) {
+            // Libérer la géométrie
+            if (child.geometry) {
+                child.geometry.dispose();
+            }
+            // Libérer le(s) matériau(x) et la/les texture(s)
+            if (Array.isArray(child.material)) {
+                child.material.forEach(material => {
+                    if (material.map) {
+                        material.map.dispose();
+                    }
+                    material.dispose();
+                });
+            } else if (child.material) {
+                if (child.material.map) {
+                    child.material.map.dispose();
+                }
+                child.material.dispose();
+            }
+        } else if ( child instanceof THREE.Group ) {
+            clearGroup( child );
+        }
+        group.remove(child);
+    }
 }

@@ -19,6 +19,7 @@ class	ElevationLayer {
 	constructor ( source: WMTSSource )
 	{
 		this.source = source;
+		console.log(this.source.bbox)
 		this.centerWm = reproject( ...source.center );
 	};
 
@@ -47,7 +48,7 @@ class	ElevationLayer {
 					const mesh = this.createMesh( meshPrecursor );
 					group.add( mesh );	
 				} catch ( err ) {
-					console.error
+					console.error( err );
 				} finally {
 					pending--;
 					if ( pending === 0) {
@@ -55,7 +56,7 @@ class	ElevationLayer {
 						const box = new THREE.Box3().setFromObject(group);
 						const center = new THREE.Vector3();
 						box.getCenter(center);
-						group.position.setY(0);
+						group.position.sub(center);
 						resolve( group );
 					};
 				};
@@ -98,22 +99,6 @@ class	ElevationLayer {
 		return ( grid );
 	};
 
-	/**
-	 * @param bbox boundingBox en wgs84 de la tuile delevation, la source d'elevation convient super bien pour la france donc pas besoin 
-	 * pour le moment de s'inquieter de savoir si cest generique 
-	 */
-	public async	resolveTexture( bbox: { minLat: number; minLon: number; maxLat: number; maxLon: number; })
-	{
-		const	tileCoord = Extent.bboxAsTile(bbox, 16, "PM");
-		const baseUrl = 'https://data.geopf.fr/wmts?LAYER=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile';
-		const	urls: string[] = [];
-		tileCoord.forEach(( coord ) => {
-			const	neiUrl = `${baseUrl}&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${coord.zoom}&TILEROW=${coord.tileRow}&TILECOL=${coord.tileCol}`;
-			urls.push( neiUrl );
-			//this.neighborsUrls.push( { url: neiUrl , zoomPos: { zoom: coord.zoom, tileRow: coord.tileRow, tileCol: coord.tileCol }});
-		});
-	};
-
 	//private createMesh( grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh
 	//{
 	//	const	ncols = grid[0].length;
@@ -138,43 +123,43 @@ class	ElevationLayer {
 	//};
 
 	private createMesh( grid: { elevation: number, x: number, y: number }[][]): THREE.Mesh
-    {
-        const	rows = grid.length;
-        const	cols = grid[0].length;
-        const	geometry = new THREE.BufferGeometry();
-        const	vertices = [];
-        const	indices = [];
+	{
+		const	rows = grid.length;
+		const	cols = grid[0].length;
+		const	geometry = new THREE.BufferGeometry();
+		const	vertices = [];
+		const	indices = [];
 
-        for ( let j = 0; j < rows; j++ ) {
-            for ( let i = 0; i < cols; i++ ) {
-                const { x, y, elevation } = grid[j][i];
-                vertices.push( x, elevation, -y ); // Y est la hauteur, Z est -y pour l'orientation
-            }
-        }
+		for ( let j = 0; j < rows; j++ ) {
+			for ( let i = 0; i < cols; i++ ) {
+				const { x, y, elevation } = grid[j][i];
+				vertices.push( x, elevation, -y ); // Y est la hauteur, Z est -y pour l'orientation
+			}
+		}
 
-        for ( let j = 0; j < rows - 1; j++ ) {
-            for ( let i = 0; i < cols - 1; i++ ) {
-                const a = j * cols + i;
-                const b = a + 1;
-                const c = (j + 1) * cols + i;
-                const d = c + 1;
+		for ( let j = 0; j < rows - 1; j++ ) {
+			for ( let i = 0; i < cols - 1; i++ ) {
+				const a = j * cols + i;
+				const b = a + 1;
+				const c = (j + 1) * cols + i;
+				const d = c + 1;
 
-                indices.push( a, c, b );
-                indices.push( b, c, d );
-            }
-        }
+				indices.push( a, c, b );
+				indices.push( b, c, d );
+			}
+		}
 
-        geometry.setIndex( indices );
-        geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ));
-        geometry.computeVertexNormals();
+		geometry.setIndex( indices );
+		geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ));
+		geometry.computeVertexNormals();
 
-        const	material = new THREE.MeshStandardMaterial({ color: "#ECEBE9FF", wireframe: true, side: THREE.DoubleSide });
-        const	mesh = new THREE.Mesh( geometry, material );
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+		const	material = new THREE.MeshStandardMaterial({ color: "#ECEBE9FF", wireframe: true, side: THREE.DoubleSide });
+		const	mesh = new THREE.Mesh( geometry, material );
+		mesh.castShadow = true;
+		mesh.receiveShadow = true;
 
-        return ( mesh );
-    };
+		return ( mesh );
+	};
 };
 
 export default ElevationLayer;

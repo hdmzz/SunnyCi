@@ -1,5 +1,6 @@
 import proj4 from "proj4";
 import Utils from "../Utils/geoUtils";
+import { Bbox } from "../type";
 
 const	TILE_SIZE = 256;
 const	INITIAL_RESOLUTION = 2 * Math.PI * 6378137 / TILE_SIZE;
@@ -57,7 +58,7 @@ function	reproject( lat: number, lon: number ): [number, number]
 class	Extent {
 	radius: number;
 	origin: [lat: number, lon: number];
-	bbox!: [minLon: number, minLat: number, maxLon: number, maxLat: number]; 
+	bbox!: Bbox; 
 	epsg: string;
 	centerWebMercator: [x: number, y: number];
 

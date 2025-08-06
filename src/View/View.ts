@@ -35,9 +35,7 @@ class	View extends THREE.EventDispatcher {
 		this.zoom = zoom;
 		this.camera.position.z = 5;
 		this.camera.position.y = 10;
-		this.renderer = new THREE.WebGLRenderer({
-			antialias: true,
-		});
+		this.renderer = new THREE.WebGLRenderer({ antialias: true });
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.sunLight = new THREE.DirectionalLight( 'yellow', 4 );
@@ -80,26 +78,7 @@ class	View extends THREE.EventDispatcher {
 	};
 
 	private	initListener() {
-		const	raycaster = new THREE.Raycaster();
-
-		window.addEventListener( 'resize', () => {
-			this.onResize();
-		});
-
-		window.addEventListener( 'click', ( event ) => {
-			const	mouse = new THREE.Vector2();
-			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-			mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
-
-			raycaster.setFromCamera( mouse, this.camera );
-			try {
-				const	intersects = raycaster.intersectObjects( this.getLayerByName( "buildings" ).children );
-				console.log( intersects[0].object );
-			} catch ( err ) {
-				console.log( err );
-			};
-		});
-
+		window.addEventListener( 'resize', () => { this.onResize() });
 		this.container.addEventListener('wheel', this.handleMouseWheel.bind( this ));
 	};
 
@@ -110,8 +89,6 @@ class	View extends THREE.EventDispatcher {
 		const step = 0.1;
 		this.zoom += dir * step;
 		this.zoom = Math.max( 3, Math.min( 17, this.zoom ));
-		console.log(this.zoom);
-		
 	}
 
 	private	onResize() {

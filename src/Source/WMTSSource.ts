@@ -38,13 +38,13 @@ class	WMTSSource extends Source{
 	public	wmtsUrlBuilder()
 	{
 		const	tileCoord = this.extent.asTile( this.neighbors, this.tileMatrixSet, this.zoom );
+
 		console.log( tileCoord );
 		tileCoord.forEach(( coord ) => {
 			const	neiUrl = `https://data.geopf.fr/wmts?LAYER=${this.layer}&FORMAT=${this.format}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=${this.style}&TILEMATRIXSET=${this.tileMatrixSet}&TILEMATRIX=${coord.zoom}&TILEROW=${coord.tileRow}&TILECOL=${coord.tileCol}`;
 			this.neighborsUrls.push( { url: neiUrl , zoomPos: { zoom: coord.zoom, tileRow: coord.tileRow, tileCol: coord.tileCol }});
 		});
-		console.log( this.neighborsUrls )
 	};
-};
+}
 
-export default	WMTSSource;
+export default WMTSSource;

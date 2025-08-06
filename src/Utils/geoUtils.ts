@@ -1,5 +1,6 @@
 import * as turfHelpers from '@turf/helpers';
 import turfDestination from '@turf/destination';
+import { Bbox } from '../type';
 
 class	Utils {
 
@@ -13,12 +14,12 @@ class	Utils {
 				maxLat : La latitude maximale est n, qui est la latitude du point nord-ouest.
 				maxLon : La longitude maximale est e, qui est la longitude du point sud-est.
 	 */
-	static	originRadiusToBbox( origin: [lat: number, lon: number], radius: number ): [minlon: number, minLat: number, maxLon: number, maxLat: number]
+	static	originRadiusToBbox( origin: [lat: number, lon: number], radius: number ): Bbox
 	{
 		const	[w, n] = turfDestination( this.createTurfPoint( origin ), radius, -45, "kilometers" ).geometry.coordinates;
 		const	[e, s] = turfDestination( this.createTurfPoint( origin ), radius, 135, "kilometers" ).geometry.coordinates;
 
-		return ([ w, s, e, n ]);
+		return ({ minLon: w, minLat: s, maxLon: e, maxLat: n });
 	};
 
 	
