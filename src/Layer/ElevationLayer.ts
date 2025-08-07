@@ -12,7 +12,6 @@ function reproject(lat: number, lon: number): [number, number] {
 
 class	ElevationLayer {
 	source: WMTSSource;
-	terrain: THREE.Mesh[] | undefined;
 	centerWm: [x: number, y: number]
 	gridTexture!: { tileRow: number, tileCol: number, zoom: number }[];
 
@@ -31,7 +30,6 @@ class	ElevationLayer {
 			let pending = urls.length;
 	
 			if ( pending === 0 ) {
-				this.terrain = [];
 				resolve( group );
 				return;
 			};
@@ -52,7 +50,6 @@ class	ElevationLayer {
 				} finally {
 					pending--;
 					if ( pending === 0) {
-						this.terrain = group.children as THREE.Mesh[];
 						const box = new THREE.Box3().setFromObject(group);
 						const center = new THREE.Vector3();
 						box.getCenter(center);

@@ -12,9 +12,9 @@ class ColorLayer {
 		this.source = source;
 	};
 
-	public async	fetchColorWmts(): Promise<THREE.Mesh[]> {
+	public async	fetchColorWmts(): Promise<THREE.Group> {
 		return new Promise( async ( resolve ) => {
-			let	textureResult: THREE.Mesh[] = [];
+			let	textureResult: THREE.Group = new THREE.Group();
 	
 			if ( this.source.isWmtsSource ) {
 				const urls = ( this.source as WMTSSource ).neighborsUrls;
@@ -23,21 +23,34 @@ class ColorLayer {
 					const blob = await response.blob();
 					const imageBitmap = await createImageBitmap( blob );
 					const texture = new THREE.CanvasTexture( imageBitmap );
-					const material = new THREE.MeshBasicMaterial({ map: texture });
-					const geometry = new THREE.PlaneGeometry( 256, 256 );
-					const mesh = new THREE.Mesh( geometry, material );
-
+					
 					const bbox = Extent.tileToBBox( url.zoomPos.tileCol, url.zoomPos.tileRow, url.zoomPos.zoom );
-					const centerLat = (bbox.minLat + bbox.maxLat) / 2;
-					const centerLon = (bbox.minLon + bbox.maxLon) / 2;
-					const mercator = new Coordinate({ latitude: centerLat, longitude: centerLon, altitude: 0 }, this.source.center ).ComputeWorldCoordinate();
-					const centerMercator = new Coordinate({ latitude: this.source.center[0], longitude: this.source.center[1], altitude: 0 },  [this.source.center[0], this.source.center[1] ]).ComputeWorldCoordinate();
-					mesh.position.set(mercator.world.x - centerMercator.world.x, 0, mercator.world.y - centerMercator.world.y);
+					const minMercator = new Coordinate({latitude: bbox.minLat, longitude: bbox.minLon, altitude: 0}).project();
+					const maxMercator = new Coordinate({latitude: bbox.maxLat, longitude: bbox.maxLon, altitude: 0}).project();
+					const width = maxMercator.x - minMercator.x;
+					const height = maxMercator.y - minMercator.y;
 
-					textureResult.push( mesh );
+					console.log(width, height);
+					
+					const geometry = new THREE.PlaneGeometry(width, height);
+					const material = new THREE.MeshBasicMaterial({ map: texture, side: 2 });
+					const mesh = new THREE.Mesh( geometry, material );
+					mesh.name = url.url;
+					const tileCenterX = minMercator.x + width / 2;
+                    			const tileCenterY = minMercator.y + height / 2;
+
+					const viewCenterMercator = new Coordinate({ latitude: this.source.center[0], longitude: this.source.center[1], altitude: 0 }).project();
+					mesh.position.set(tileCenterX - viewCenterMercator.x, 0, (tileCenterY - viewCenterMercator.y));
+					mesh.rotation.x = -Math.PI / 2;
+
+					textureResult.add( mesh );
 				});
-	
+				
 				await Promise.all( promises );
+				const box = new THREE.Box3().setFromObject(textureResult);
+				const center = new THREE.Vector3();
+				box.getCenter(center);
+				textureResult.position.sub(center);
 				console.log( textureResult );
 				resolve( textureResult )
 			};

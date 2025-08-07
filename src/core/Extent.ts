@@ -127,6 +127,9 @@ class	Extent {
 			};
 		};
 
+		console.log(tiles);
+		
+
 		return ( tiles );
 	};
 

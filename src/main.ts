@@ -11,6 +11,7 @@ import { GeolocationService } from "./Services/GeolocationService";
 //import RgbModel from "./Models/RgbModel";
 import HugoGeo from "./HugoGeo";
 import XYZSource from "./Source/XYZSource";
+import ColorLayer from "./Layer/ColorLayer";
 
 const	container = document.getElementById('viewerDiv') as HTMLDivElement;
 let group: THREE.Group = new THREE.Group();
@@ -37,35 +38,38 @@ async function	loadTerrain()
 	const	extent = new Extent( CENTER, RADIUS, "EPSG:4326" );
 	console.log(extent);
 	
-	// Récupérer la source sélectionnée
-	const sourceSelector = document.getElementById("sourceSelector") as HTMLSelectElement;
-	const selectedSource = sourceSelector ? sourceSelector.value : "mapbox";
-	
 	let terrain;
+	const elevationSource = new WMTSSource( extent, {
+		layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+		format: "image/x-bil;bits=32",
+		style: "normal",
+		tileMatrixSet: "WGS84G",
+		neighbors: true,
+		zoom: ZOOM,
+	});
+
+	const colorSource = new WMTSSource( extent, {
+		layer: "HR.ORTHOIMAGERY.ORTHOPHOTOS",
+		format: "image/jpeg",
+		neighbors: true,
+		style: "normal",
+		tileMatrixSet: "PM",
+		zoom: ZOOM
+	});
+
+	const colorLayer = new ColorLayer( colorSource );
+
+	const colors = await colorLayer.fetchColorWmts();
+
+	console.log(colors);
 	
-	if (selectedSource === "mapbox") {
-		terrain = await geo.getTerrainRgb(CENTER, 4, 15);
-	} else {
-		const elevationSource = new WMTSSource( extent, {
-			layer: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
-			format: "image/x-bil;bits=32",
-			style: "normal",
-			tileMatrixSet: "WGS84G",
-			neighbors: true,
-			zoom: ZOOM,
-		});
 
-		
-		const eleLayer = new ElevationLayer( elevationSource );
-		terrain = await eleLayer.fetchBil();
-		terrain.rotateY( Math.PI );
-		view.addLayer("terrain", terrain);
-		//group.add(terrain);
+	view.addLayer("color-group", colors )
 
+	console.log( "color layer: ", colorSource );
 
-	}
-
-	
+	//const eleLayer = new ElevationLayer( elevationSource );
+	//group.add(terrain);
 	//const	buildingSource = new WFSSource( CENTER, RADIUS, {
 	//	layer: "BDTOPO_V3:batiment",
 	//});
