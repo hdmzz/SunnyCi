@@ -15,7 +15,7 @@ class Fetch {
   * >>2 equivqut Math floor(x/4) === x >> 2
   */
  static	getZoomPositionElevation(zpCovered: number[][]) {
-		const grandParentsKeys = new Set<String>;
+		const grandParentsKeys = new Set<string>();//Values inside a Set are compared by reference so 2 arrays [1, 2, 3] would be evaluated as different
 
 		for (const zoomPos of zpCovered) {
 			const key = `${zoomPos[0] - 2},${zoomPos[1] >> 2},${zoomPos[2] >> 2}`;

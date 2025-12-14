@@ -121,9 +121,10 @@ class	RgbModel {
         return tilesData;
     }
 
+	///Calcul toute les position de tuiles puis, lance une requete par tuile
     public	async fetch( zpCovered: number[][], bbox: BboxType ): Promise<void> {
 		const	zoomPositionElevation = Fetch.getZoomPositionElevation( zpCovered );
-        const apiUrl = new URL("http://localhost:8080/api/terrain_rgb_v2");
+        const 	apiUrl = new URL("http://localhost:8080/api/terrain_rgb_v2");
         
         const tilePromises = zoomPositionElevation.map(async (zoomPos) => {
             try {
