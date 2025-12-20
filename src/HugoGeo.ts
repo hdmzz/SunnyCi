@@ -8,48 +8,54 @@ import GreyModel from './Models/GreyModel';
 import WMSSource from './Source/WMSRSource'
 import Source from './Source/Source';
 import WMSRSource from './Source/WMSRSource';
-import pako from 'pako';
+import View from './View/View';
 
-export interface	BoundingBox {
+export interface BoundingBox {
 	north: number;
 	south: number;
 	est: number;
 	west: number;
 }
 
-class	HugoGeo {
-	public	unitsSide: number;
-	public	isNode: boolean;
-	public	apiVector: string;
-	public	apiRgb: string;
-	public	apiSatellite: string;
-	private	tokenMapBox: string;
-	private	tokenOpenTopo: string;
-	private	source?: Source;
+class HugoGeo {
+	public unitsSide: number;
+	public isNode: boolean;
+	public apiVector: string;
+	public apiRgb: string;
+	public apiSatellite: string;
+	private tokenMapBox: string;
+	private tokenOpenTopo: string;
+	private source?: Source;
+	private view: View;
 
-	constructor( opts: { tokenMapBox: string, tokenOpenTopo: string, source?: Source, unitsSide: number } ) {
-		this.unitsSide = opts.unitsSide;
+	constructor(tokenMapBox: string, tokenOpenTopo: string, unitsSide: number, view: View, source?: Source,) {
+		this.unitsSide = unitsSide;
 		this.isNode = false;
 		this.apiVector = "mapbox-terrain-vector";
 		this.apiRgb = "mapbox-terrain-rgb";
 		this.apiSatellite = "mapbox-satellite";
-		this.tokenMapBox = opts.tokenMapBox;
-		this.tokenOpenTopo = opts.tokenOpenTopo;
-		this.source = opts.source;
+		this.tokenMapBox = tokenMapBox;
+		this.tokenOpenTopo = tokenOpenTopo;
+		this.source = source;
+		this.view = view
 	};
 
-	public	addSource( source: WMSSource ) {
+	public addToView() {
+	
+	}
+
+	public addSource(source: WMSSource) {
 		this.source = source;
 	};
 
-	public async	getTerrainRgb( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Group> {
-		const	meshes = await this.getTerrain(origin, radius, zoom);
+	public async getTerrainRgb(origin: [lat: number, lon: number], radius: number, zoom: number): Promise<THREE.Group> {
+		const meshes = await this.getTerrain(origin, radius, zoom);
 
-		meshes.forEach(( mesh ) => {
-			mesh.rotateX( -Math.PI/2 );
+		meshes.forEach((mesh) => {
+			mesh.rotateX(-Math.PI / 2);
 		})
 
-		return ( HugoGeo.createThreeGroup( "dem-rgb", meshes ));
+		return (HugoGeo.createThreeGroup("dem-rgb", meshes));
 	};
 
 	/**
@@ -58,57 +64,57 @@ class	HugoGeo {
 	 * @zoom dans l'exemple 12 correspond a la valeur du zoom de la camera !! log neperien nombre d'images
 	 * le res de la promesse doit etre donne au watcher
 	 */
-	private	getTerrain( origin: [lat: number, lon:  number], radius: number, zoom: number ): Promise<THREE.Mesh[]>{
-		return new Promise(async ( res, rej ) => {
+	private getTerrain(origin: [lat: number, lon: number], radius: number, zoom: number): Promise<THREE.Mesh[]> {
+		return new Promise(async (res, rej) => {
 			try {
-				const	watcher = this.createWatcher( res );
-				const	unitsSide = this.unitsSide;
-				const	unitsPerMeters = HugoGeo.getUnitsPerMeters( this.unitsSide, radius );
-				const	projectCoords = ( coord: [number, number], nw: [number, number], se: [number, number] ) => {
-					return HugoGeo.projectCoord( unitsSide, coord, nw, se );//coords en lonlat
+				const watcher = this.createWatcher(res);
+				const unitsSide = this.unitsSide;
+				const unitsPerMeters = HugoGeo.getUnitsPerMeters(this.unitsSide, radius);
+				const projectCoords = (coord: [number, number], nw: [number, number], se: [number, number]) => {
+					return HugoGeo.projectCoord(unitsSide, coord, nw, se);//coords en lonlat
 				};
-				const	{ tokenMapBox: token, apiSatellite, apiRgb } = this;
-				const	bbox = HugoGeo.getBbox( origin, radius );
-				const	zoomPositionCovered = HugoGeo.getZoomPositionCovered( bbox.feature, zoom );
-				const	onSatMat = () => {}; //dummy function to trigger the satelite image fetch
-				const	rgbModel = new RgbModel( unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher );
+				const { tokenMapBox: token, apiSatellite, apiRgb } = this;
+				const bbox = HugoGeo.getBbox(origin, radius);
+				const zoomPositionCovered = HugoGeo.getZoomPositionCovered(bbox.feature, zoom);
+				const onSatMat = () => { }; //dummy function to trigger the satelite image fetch
+				const rgbModel = new RgbModel(unitsPerMeters, projectCoords, token, apiSatellite, apiRgb, watcher);
 
-				rgbModel.fetch( zoomPositionCovered, bbox );
-			} catch ( error ) {
-				console.log( error );
-				rej( error );
+				rgbModel.fetch(zoomPositionCovered, bbox);
+			} catch (error) {
+				console.log(error);
+				rej(error);
 			};
 		});
 	};
 
-	static	createThreeGroup( name: string, objects: THREE.Mesh[] ): THREE.Group {
-		const	group = new THREE.Group();
+	static createThreeGroup(name: string, objects: THREE.Mesh[]): THREE.Group {
+		const group = new THREE.Group();
 
 		if (!objects || objects.length === 0) {
 			console.warn('No objects provided to createDemGroups');
 			return group;
 		}
 
-		for ( let i = 0; i < objects.length; i++ ) {
+		for (let i = 0; i < objects.length; i++) {
 			if (objects[i] instanceof THREE.Mesh) {
 				objects[i].name = name;
-				group.add( objects[i] );
+				group.add(objects[i]);
 			} else {
 				console.warn(`Object at index ${i} is not a THREE.Mesh`);
 			};
 		};
-		return ( group );
+		return (group);
 	};
 
-	static	getUnitsPerMeters( unitsSide: number, radius: number ): number {
-		return ( unitsSide / ( radius * ( 2**0.5 ) * 1000 ) );
+	static getUnitsPerMeters(unitsSide: number, radius: number): number {
+		return (unitsSide / (radius * (2 ** 0.5) * 1000));
 	};
 
 	//!!!!!!!!coords en lonLat
-	static	projectCoord( unitsSide: number, coord: [number, number], nw: [number, number], se: [number, number]) {
+	static projectCoord(unitsSide: number, coord: [number, number], nw: [number, number], se: [number, number]) {
 		return [
-			unitsSide * ( -0.5 + ( coord[0] - nw[0] ) / ( se[0] - nw[0] )),
-			unitsSide * ( -0.5 - ( coord[1] - se[1] ) / ( se[1] - nw[1] ))
+			unitsSide * (-0.5 + (coord[0] - nw[0]) / (se[0] - nw[0])),
+			unitsSide * (-0.5 - (coord[1] - se[1]) / (se[1] - nw[1]))
 		];
 	};
 
@@ -116,7 +122,7 @@ class	HugoGeo {
 	 * @param origin lat lon
 	 * @param radius in kilometre ==> 0.5 === 500 metres
 	 */
-	static	getBbox( origin: [lat: number, lon: number], radius: number ): {
+	static getBbox(origin: [lat: number, lon: number], radius: number): {
 		feature: {
 			type: string;
 			geometry: {
@@ -152,59 +158,59 @@ class	HugoGeo {
 		};
 	};
 
-	static	getZoomPositionCovered( polygon: PolygonFeature, zoom: number ): number[][] {
-		const	limits = {
+	static getZoomPositionCovered(polygon: PolygonFeature, zoom: number): number[][] {
+		const limits = {
 			min_zoom: zoom,
 			max_zoom: zoom,
 		};
 
-		return ( cover.tiles( polygon.geometry as GeoJSON.Geometry, limits ) )
-		.map(( [x, y, z] ) => [z, x, y]);
+		return (cover.tiles(polygon.geometry as GeoJSON.Geometry, limits))
+			.map(([x, y, z]) => [z, x, y]);
 	};
-	
-	private	createWatcher( finalCallBack:(value: THREE.Mesh<THREE.BufferGeometry>[]) => void): (payload: { what: string, data: THREE.Mesh[] }) => void {
-		let		isRgbPending: boolean = true;
-		let		isGreyPending: boolean = true;
-		const	ret: { value: THREE.Mesh[] } = { value: [] }; // rgbDem will contain all the data
-		const	isDone = () => !isRgbPending || !isGreyPending;
 
-		if ( isDone() ) {
-			finalCallBack( ret.value );
+	private createWatcher(finalCallBack: (value: THREE.Mesh<THREE.BufferGeometry>[]) => void): (payload: { what: string, data: THREE.Mesh[] }) => void {
+		let isRgbPending: boolean = true;
+		let isGreyPending: boolean = true;
+		const ret: { value: THREE.Mesh[] } = { value: [] }; // rgbDem will contain all the data
+		const isDone = () => !isRgbPending || !isGreyPending;
+
+		if (isDone()) {
+			finalCallBack(ret.value);
 		}
 
-		return (( payload: { what: string, data: THREE.Mesh[] } ) => {
-			const	{ what, data } = payload;
+		return ((payload: { what: string, data: THREE.Mesh[] }) => {
+			const { what, data } = payload;
 
-			if ( what === 'rgb-dem' ) {
+			if (what === 'rgb-dem') {
 				isRgbPending = false;
 				ret.value = data;
 			};
-			if ( what === 'grey-dem' ) {
+			if (what === 'grey-dem') {
 				isGreyPending = false;
 				ret.value = data;
 			};
-			if ( isDone() ) {
-				console.log( 'watcher says all work is done' );
-				finalCallBack( ret.value );
+			if (isDone()) {
+				console.log('watcher says all work is done');
+				finalCallBack(ret.value);
 			};
 		});
 	};
 
-/**
- * Calculate the bounding box of a given point (lat, lon) and radius in kilometers.
- * @param {LatLon} point - Latitude and Longitude of the point.
- * @param {number} radius - Radius in kilometers.
- * @returns {BoundingBox} - The bounding box (minLat, maxLat, minLon, maxLon).
- */
-	private	calculateBoundingBox( point: {lat: number, lon: number}, radius: number ): BoundingBox {
+	/**
+	 * Calculate the bounding box of a given point (lat, lon) and radius in kilometers.
+	 * @param {LatLon} point - Latitude and Longitude of the point.
+	 * @param {number} radius - Radius in kilometers.
+	 * @returns {BoundingBox} - The bounding box (minLat, maxLat, minLon, maxLon).
+	 */
+	private calculateBoundingBox(point: { lat: number, lon: number }, radius: number): BoundingBox {
 		// 1 degree of latitude is approximately 111.32 km
-		const	latDegree = radius / 111; //0.045 environ
-		const	lonDegree = radius / ( 111 * Math.cos(point.lat * (Math.PI / 180)));// 0.072
+		const latDegree = radius / 111; //0.045 environ
+		const lonDegree = radius / (111 * Math.cos(point.lat * (Math.PI / 180)));// 0.072
 
-		const	north = point.lat + latDegree;
-		const	south = point.lat - latDegree;
-		const	est = point.lon + lonDegree;
-		const	west = point.lon - lonDegree;
+		const north = point.lat + latDegree;
+		const south = point.lat - latDegree;
+		const est = point.lon + lonDegree;
+		const west = point.lon - lonDegree;
 
 		return ({
 			north,
@@ -214,24 +220,24 @@ class	HugoGeo {
 		});
 	};
 
-	public async	getTerrainGrey( origin: [lat: number, lon:  number], radius: number ): Promise<THREE.Mesh[]> {
-		return new Promise( async ( resolve, reject ) => {
+	public async getTerrainGrey(origin: [lat: number, lon: number], radius: number): Promise<THREE.Mesh[]> {
+		return new Promise(async (resolve, reject) => {
 			try {
-				const	watcher = this.createWatcher( resolve );
-				if ( this.source && this.source.format  ===  "image/jpeg" ) {
-					await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource).fetchPNG( this.source.url as string );
+				const watcher = this.createWatcher(resolve);
+				if (this.source && this.source.format === "image/jpeg") {
+					await new GreyModel(this.tokenOpenTopo, watcher, origin, this.source as WMSRSource).fetchPNG(this.source.url as string);
 
 				} else {
-					const	bbox2 = this.calculateBoundingBox( {lat: origin[0], lon: origin[1]}, radius );
-					console.log( bbox2 );
-					const	url = Fetch.greyModelUrlBuilder( bbox2, this.tokenOpenTopo );
-					await new GreyModel( this.tokenOpenTopo, watcher, origin, this.source as WMSRSource ).fetchTIF( url );
+					const bbox2 = this.calculateBoundingBox({ lat: origin[0], lon: origin[1] }, radius);
+					console.log(bbox2);
+					const url = Fetch.greyModelUrlBuilder(bbox2, this.tokenOpenTopo);
+					await new GreyModel(this.tokenOpenTopo, watcher, origin, this.source as WMSRSource).fetchTIF(url);
 				}
 			} catch (error) {
-				reject( error );
+				reject(error);
 			};
 		});
 	};
 };
 
-export default	HugoGeo;
+export default HugoGeo;
